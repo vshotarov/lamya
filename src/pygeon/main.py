@@ -26,9 +26,7 @@ def build(site_name, root_dir=None):
 	build_dir.mkdir()
 
 	# Go through each defined content entry
-	pages = [Page(name="home",description="home desc",href="/",content="",
-		file_path=Path("index.html"))]
-	site.navigation_pages.append(pages[0])
+	pages = []
 	for path in (root_dir / "content").glob("**/*"):
 		if not path.is_file():
 			continue
@@ -52,12 +50,24 @@ def build(site_name, root_dir=None):
 
 		if path.suffix.lower() == ".html":
 			raise NotImplementedError("No support for compiling .html files yet")
+
+	# Insert home page if it's not manually defined
+	if not any([p.file_path == Path("index.html") for p in pages]):
+		pages.append(Page(name="home",description="home desc",href="/",content="",
+			file_path=Path("index.html")))
+		site.navigation_pages.insert(0,pages[-1])
+	else:
+		# Make sure the home page is at the front
+		home_page = next(filter(lambda p: p.file_path == Path("index.html"), pages))
+		site.navigation_pages.remove(home_page)
+		site.navigation_pages.insert(0, home_page)
+		home_page.name = "home" # NOTE: Expose this to the front matter
 	
 	# Render
 	environment = jinja2.Environment(
 		loader=jinja2.FileSystemLoader(
 			searchpath=Path(__file__).parent / "resources" / "templates"),
-		autoescape=True)
+		trim_blocks=True, autoescape=True)
 
 	for p in pages:
 		with open(build_dir / p.file_path, "w") as f:
