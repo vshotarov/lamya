@@ -15,7 +15,7 @@ def build(site_name, root_dir=None):
 		exec(f.read(), {}, config)
 	
 	# Create Site object from config
-	site = Site.from_config(config)
+	site = Site(site_name, config=config)
 	
 	# Build
 	build_dir = root_dir / "build" # NOTE: I'm not keen on the name build
@@ -27,6 +27,7 @@ def build(site_name, root_dir=None):
 
 	# Go through each defined content entry
 	pages = []
+	hierarchy_levels = set([])
 	for path in (root_dir / "content").glob("**/*"):
 		if not path.is_file():
 			continue
@@ -47,6 +48,10 @@ def build(site_name, root_dir=None):
 
 			if relative_path.parent == Path("."):
 				site.navigation_pages.append(pages[-1])
+			else:
+				# This is further down the hierarchy, so let's store all the
+				# unique parents to content, so we can create folders for them
+				hierarchy_levels.add(relative_path.parent)
 
 		if path.suffix.lower() == ".html":
 			raise NotImplementedError("No support for compiling .html files yet")
@@ -69,6 +74,32 @@ def build(site_name, root_dir=None):
 			searchpath=Path(__file__).parent / "resources" / "templates"),
 		trim_blocks=True, autoescape=True)
 
+	# Go through all hierarchy levels and create the folders
+	for hl in hierarchy_levels:
+		hl_in_build = build_dir / hl
+		if not hl_in_build.exists():
+			hl_in_build.mkdir(exist_ok=True)
+
+		# If there's no defined index page for that level and it's included
+		# in the config `aggregate` section, we need to create an index page
+		# aggregating all of the content at that level
+		relative_hl = root_dir / "content" / hl
+		level_index_page = next(
+			filter(lambda p: p.file_path == Path(hl / "index.html"), pages), None)
+		if not level_index_page and hl.__str__() in site.aggregate:
+			pages_at_this_level = filter(lambda p: p.file_path.parent == hl, pages)
+
+			# TODO: Aggregate properly with titles, potentially using pages, excerpts, etc.
+			aggregated_content = "\n".join([p.content for p in pages_at_this_level])
+
+			level_index_page = Page(name=hl.stem, description=hl.stem + " desc",
+				href=hl,content=aggregated_content,file_path=hl / "index.html")
+			pages.append(level_index_page)
+
+		# If it's a top level directory add it to the navigation
+		if not hl.parent.stem:
+			site.navigation_pages.append(level_index_page)
+
 	for p in pages:
 		with open(build_dir / p.file_path, "w") as f:
 			f.write(environment.get_template("index.html").render(site=site,page=p))
@@ -82,13 +113,17 @@ class Page(object):
 		self.file_path = file_path
 
 class Site(object):
-	def __init__(self, title_template):
-		self.title_template = title_template
+	def __init__(self, name, config):
+		# Initialize defaults
+		self.name = name
+		self.title_template = "{site.name} - {page.name}"
+		self.aggregate = []
+
+		# Read config
+		for k,v in config.items():
+			setattr(self, k, v)
+
 		self.navigation_pages = []
-	
-	@staticmethod
-	def from_config(config):
-		return Site(title_template=jinja2.Template(config["TITLE_TEMPLATE"]))
 
 def to_href(path: Path) -> str:
 	if path == Path("."):

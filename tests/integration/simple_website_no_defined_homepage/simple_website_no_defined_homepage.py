@@ -1,2 +1,2 @@
-URL = "https://simple_website.xyz"
-TITLE_TEMPLATE = "{{ page.name ~ ' - ' ~ page.description }}"
+url = "https://simple_website.xyz"
+title_template = "{page.name} - {page.description}"
