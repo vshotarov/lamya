@@ -59,7 +59,7 @@ def build(site_name, root_dir=None):
 
 			pages.append(Page(name=relative_path.stem,
 				description="desc", href=to_href(relative_path), content=html,
-				file_path=Path("index.html") if relative_path == Path("index.md")\
+				file_path=relative_path.with_suffix(".html") if relative_path.name == "index.md"\
 						  else relative_path.with_suffix("") / "index.html",
 				front_matter=evaluated_front_matter))
 
@@ -100,7 +100,6 @@ def build(site_name, root_dir=None):
 		# If there's no defined index page for that level and it's included
 		# in the config `aggregate` section, we need to create an index page
 		# aggregating all of the content at that level
-		relative_hl = root_dir / "content" / hl
 		level_index_page = next(
 			filter(lambda p: p.file_path == Path(hl / "index.html"), pages), None)
 		if not level_index_page:
@@ -124,6 +123,8 @@ def build(site_name, root_dir=None):
 					# a way of separating the 404 from the rest
 					pages.append(Page(name="404",description="",href="",
 						content="",file_path=hl / "index.html",template="404.html"))
+		else:
+			level_index_page.name = hl
 
 		# If it's a top level directory add it to the navigation
 		if not hl.parent.stem:
@@ -160,7 +161,7 @@ class Site(object):
 		self.navigation_pages = []
 
 def to_href(path: Path) -> str:
-	if path == Path("index.md"):
-		return "/"
+	if path.name == "index.md":
+		return "/" + path.parent.__str__()
 	else:
 		return "/" + path.with_suffix("").__str__()
