@@ -37,7 +37,22 @@ def build(site_name, root_dir=None):
 				source = f.read()
 
 			# TODO: Process source
-			html = markdown.markdown(source)
+			front_matter = ""
+			source_content = ""
+			write_to_front_matter = False
+			for line in source.splitlines():
+				if line.lstrip().rstrip() == "+++":
+					write_to_front_matter = not write_to_front_matter
+					continue
+				if write_to_front_matter:
+					front_matter += line + "\n"
+				else:
+					source_content += line + "\n"
+
+			evaluated_front_matter = {}
+			exec(front_matter, {}, evaluated_front_matter)
+
+			html = markdown.markdown(source_content)
 			# TODO: Process html
 
 			relative_path = path.relative_to(root_dir / "content")
@@ -45,7 +60,8 @@ def build(site_name, root_dir=None):
 			pages.append(Page(name=relative_path.stem,
 				description="desc", href=to_href(relative_path), content=html,
 				file_path=Path("index.html") if relative_path == Path("index.md")\
-						  else relative_path.with_suffix("") / "index.html"))
+						  else relative_path.with_suffix("") / "index.html",
+				front_matter=evaluated_front_matter))
 
 			if relative_path.parent == Path("."):
 				site.navigation_pages.append(pages[-1])
@@ -118,13 +134,15 @@ def build(site_name, root_dir=None):
 			f.write(environment.get_template(p.template).render(site=site,page=p))
 
 class Page(object):
-	def __init__(self, name, description, href, content, file_path, template="index.html"):
+	def __init__(self, name, description, href, content, file_path,
+			template="index.html", front_matter={}):
 		self.name = name
 		self.description = description
 		self.href = href
 		self.content = content
 		self.file_path = file_path
 		self.template = template
+		self.front_matter = front_matter 
 
 class Site(object):
 	def __init__(self, name, config):

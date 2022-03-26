@@ -1,3 +1,6 @@
++++
+title = "First Blog Post"
++++
 # First blog post
 
 ## Manu de nec esse at rerum iam

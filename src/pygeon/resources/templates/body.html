@@ -1,4 +1,7 @@
 <section>
+	{% if page.front_matter.get("title") %}
+	<h1>{{ page.front_matter["title"] }}</h1>
+	{% endif %}
 	{{ page.content|safe }}
 </section>
 
