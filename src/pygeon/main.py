@@ -86,15 +86,25 @@ def build(site_name, root_dir=None):
 		relative_hl = root_dir / "content" / hl
 		level_index_page = next(
 			filter(lambda p: p.file_path == Path(hl / "index.html"), pages), None)
-		if not level_index_page and hl.__str__() in site.aggregate:
-			pages_at_this_level = filter(lambda p: p.file_path.parent == hl, pages)
+		if not level_index_page:
+			if hl.__str__() in site.aggregate:
+				pages_at_this_level = filter(lambda p: p.file_path.parent == hl, pages)
 
-			# TODO: Aggregate properly with titles, potentially using pages, excerpts, etc.
-			aggregated_content = "\n".join([p.content for p in pages_at_this_level])
+				# TODO: Aggregate properly with titles, potentially using pages, excerpts, etc.
+				aggregated_content = "\n".join([p.content for p in pages_at_this_level])
 
-			level_index_page = Page(name=hl.stem, description=hl.stem + " desc",
-				href=hl,content=aggregated_content,file_path=hl / "index.html")
-			pages.append(level_index_page)
+				level_index_page = Page(name=hl.stem, description=hl.stem + " desc",
+					href=hl,content=aggregated_content,file_path=hl / "index.html")
+				pages.append(level_index_page)
+			else:
+				# Otherwise, seems like we really don't want an index page at
+				# this level, so let's use the 404 template to prevent the web browser
+				# to create open a file browser
+				with open(hl_in_build / "index.html", "w") as f:
+					# NOTE: Creating a dummy page here doesn't feel great. I need
+					# a way of separating the 404 from the rest
+					pages.append(Page(name="404",description="",href="",
+						content="",file_path=hl / "index.html",template="404.html"))
 
 		# If it's a top level directory add it to the navigation
 		if not hl.parent.stem:
@@ -102,15 +112,16 @@ def build(site_name, root_dir=None):
 
 	for p in pages:
 		with open(build_dir / p.file_path, "w") as f:
-			f.write(environment.get_template("index.html").render(site=site,page=p))
+			f.write(environment.get_template(p.template).render(site=site,page=p))
 
 class Page(object):
-	def __init__(self, name, description, href, content, file_path):
+	def __init__(self, name, description, href, content, file_path, template="index.html"):
 		self.name = name
 		self.description = description
 		self.href = href
 		self.content = content
 		self.file_path = file_path
+		self.template = template
 
 class Site(object):
 	def __init__(self, name, config):
