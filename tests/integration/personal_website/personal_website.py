@@ -1,2 +1,2 @@
 url = "https://simple_website.xyz"
-aggregate = ["blog"]
+aggregate = ["portfolio","blog"]

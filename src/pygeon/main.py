@@ -43,8 +43,9 @@ def build(site_name, root_dir=None):
 			relative_path = path.relative_to(root_dir / "content")
 
 			pages.append(Page(name=relative_path.stem,
-				description="desc", href=to_href(relative_path),
-				content=html, file_path=relative_path.with_suffix(".html")))
+				description="desc", href=to_href(relative_path), content=html,
+				file_path=Path("index.html") if relative_path == Path("index.md")\
+						  else relative_path.with_suffix("") / "index.html"))
 
 			if relative_path.parent == Path("."):
 				site.navigation_pages.append(pages[-1])
@@ -58,8 +59,8 @@ def build(site_name, root_dir=None):
 
 	# Insert home page if it's not manually defined
 	if not any([p.file_path == Path("index.html") for p in pages]):
-		pages.append(Page(name="home",description="home desc",href="/",content="",
-			file_path=Path("index.html")))
+		pages.append(Page(name="home",description="home desc",
+			href="/",content="",file_path=Path("index.html")))
 		site.navigation_pages.insert(0,pages[-1])
 	else:
 		# Make sure the home page is at the front
@@ -88,13 +89,13 @@ def build(site_name, root_dir=None):
 			filter(lambda p: p.file_path == Path(hl / "index.html"), pages), None)
 		if not level_index_page:
 			if hl.__str__() in site.aggregate:
-				pages_at_this_level = filter(lambda p: p.file_path.parent == hl, pages)
+				pages_at_this_level = filter(lambda p: p.file_path.parent.parent == hl, pages)
 
 				# TODO: Aggregate properly with titles, potentially using pages, excerpts, etc.
 				aggregated_content = "\n".join([p.content for p in pages_at_this_level])
 
 				level_index_page = Page(name=hl.stem, description=hl.stem + " desc",
-					href=hl,content=aggregated_content,file_path=hl / "index.html")
+					href=to_href(hl),content=aggregated_content,file_path=hl / "index.html")
 				pages.append(level_index_page)
 			else:
 				# Otherwise, seems like we really don't want an index page at
@@ -111,7 +112,9 @@ def build(site_name, root_dir=None):
 			site.navigation_pages.append(level_index_page)
 
 	for p in pages:
-		with open(build_dir / p.file_path, "w") as f:
+		page_path = build_dir / p.file_path
+		page_path.parent.mkdir(exist_ok=True)
+		with open(page_path, "w") as f:
 			f.write(environment.get_template(p.template).render(site=site,page=p))
 
 class Page(object):
@@ -137,7 +140,7 @@ class Site(object):
 		self.navigation_pages = []
 
 def to_href(path: Path) -> str:
-	if path == Path("."):
+	if path == Path("index.md"):
 		return "/"
 	else:
-		return "/" + path.with_suffix(".html").__str__()
+		return "/" + path.stem.__str__()
