@@ -161,4 +161,4 @@ def to_href(path: Path) -> str:
 	if path == Path("index.md"):
 		return "/"
 	else:
-		return "/" + path.stem.__str__()
+		return "/" + path.with_suffix("").__str__()
