@@ -108,7 +108,9 @@ def build(site_name, root_dir=None):
 				pages_at_this_level = filter(lambda p: p.file_path.parent.parent == hl, pages)
 
 				# TODO: Aggregate properly with titles, potentially using pages, excerpts, etc.
-				aggregated_content = "\n".join([p.content for p in pages_at_this_level])
+				aggregated_content = "\n".join([
+					("<a href=%s>%s</a>\n" % (p.href, p.front_matter.get("title",p.name)))\
+					+ p.content for p in pages_at_this_level])
 
 				level_index_page = Page(name=hl.stem, description=hl.stem + " desc",
 					href=to_href(hl),content=aggregated_content,file_path=hl / "index.html")
