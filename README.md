@@ -1,5 +1,6 @@
 # Notes
 - I am not keen on the name `build` for the output folder
+- Also not very keen on the `index.html` template name, which i use as the template for everything. Maybe `default.html`?
 - I would like to make the code treat all content the same way, i.e. the page containing all the blog posts (presumably `http://url.xyz/blog`) exactly the same as say the about page. So, static individual pages are the same thing as aggregated ones. Writing this makes me feel this is an unnecessary generalization but let's see how it goes.
 - The way i handle reading the config file means is not very developer friendly, as then you have no auto completion on the config and site properties
 - I make a bit of an assumption, that all top level pages or aggregates are desired to be in the navigation

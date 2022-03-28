@@ -99,8 +99,12 @@ def build(site_name, root_dir=None):
 	
 	# Render
 	environment = jinja2.Environment(
-		loader=jinja2.FileSystemLoader(
-			searchpath=Path(__file__).parent / "resources" / "templates"),
+		loader=jinja2.ChoiceLoader([
+			jinja2.FileSystemLoader(
+				searchpath=theme_path / "templates"),
+			jinja2.FileSystemLoader(
+				searchpath=Path(__file__).parent / "resources" / "templates")
+		]),
 		trim_blocks=True, autoescape=True)
 
 	# Go through all hierarchy levels and create the folders
