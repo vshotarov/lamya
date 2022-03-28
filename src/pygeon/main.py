@@ -13,6 +13,11 @@ def build(site_name, root_dir=None):
 	config = {}
 	with open(config_file) as f:
 		exec(f.read(), {}, config)
+
+	# Gather the theme information
+	# NOTE: We'd likely want the theme to be specified by the config, rather
+	# than directly reading it from the theme folder
+	theme_path = root_dir / "theme"
 	
 	# Create Site object from config
 	site = Site(site_name, config=config)
@@ -24,6 +29,13 @@ def build(site_name, root_dir=None):
 		shutil.rmtree(build_dir)
 	
 	build_dir.mkdir()
+
+	# Copy over static content
+	# First copy from the theme, so it can then be overwritten by any custom
+	# static content
+	copy_static_data(theme_path / "static", build_dir)
+	# Then from the site
+	copy_static_data(root_dir / "static", build_dir)
 
 	# Go through each defined content entry
 	pages = []
@@ -130,6 +142,7 @@ def build(site_name, root_dir=None):
 		if not hl.parent.stem:
 			site.navigation_pages.append(level_index_page)
 
+	# Write the html to files
 	for p in pages:
 		page_path = build_dir / p.file_path
 		page_path.parent.mkdir(exist_ok=True)
@@ -165,3 +178,15 @@ def to_href(path: Path) -> str:
 		return "/" + path.parent.__str__()
 	else:
 		return "/" + path.with_suffix("").__str__()
+
+def copy_static_data(from_static_dir: Path, build_dir: Path):
+	if from_static_dir.exists():
+		for path in from_static_dir.glob("**/*"):
+			if not path.is_file():
+				continue
+
+			build_path = build_dir / path.relative_to(from_static_dir)
+			if not build_path.parent.exists():
+				build_path.parent.mkdir(parents=True)
+
+			shutil.copy2(path.resolve(), build_path)
