@@ -1,11 +1,11 @@
-<section>
+<div class="page">
 	{% if page.front_matter.get("title") %}
-	<h1>{{ page.front_matter["title"] }}</h1>
+	<h1 class="page-title">{{ page.front_matter["title"] }}</h1>
 	{% endif %}
 	{{ page.content|safe }}
 	{% for aggregated_page in page.aggregated_pages %}
-		<article>
-			<h1><a href="{{ aggregated_page.href }}">
+		<div class="post">
+			<h1 class="post-title"><a href="{{ aggregated_page.href }}">
 				{% if aggregated_page.front_matter.get("title") %}
 					{{ aggregated_page.front_matter["title"] }}
 				{% else %}
@@ -13,7 +13,6 @@
 				{% endif %}
 			</a></h1>
 			{{ aggregated_page.content|safe }}
-		</article>
+		</div>
 	{% endfor %}
-</section>
-
+</div>

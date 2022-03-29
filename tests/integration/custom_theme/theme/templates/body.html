@@ -1,0 +1,9 @@
+<div class="content container">
+	{% filter indent(width=4) %}
+	{% if page.is_top_level %}
+		{% include "page.html" %}
+	{% else %}
+		{% include "post.html" %}
+	{% endif %}
+	{% endfilter %}
+</div>

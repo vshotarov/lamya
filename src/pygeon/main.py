@@ -120,15 +120,12 @@ def build(site_name, root_dir=None):
 			filter(lambda p: p.file_path == Path(hl / "index.html"), pages), None)
 		if not level_index_page:
 			if hl.__str__() in site.aggregate:
-				pages_at_this_level = filter(lambda p: p.file_path.parent.parent == hl, pages)
-
-				# TODO: Aggregate properly with titles, potentially using pages, excerpts, etc.
-				aggregated_content = "\n".join([
-					("<a href=%s>%s</a>\n" % (p.href, p.front_matter.get("title",p.name)))\
-					+ p.content for p in pages_at_this_level])
+				pages_at_this_level = list(
+					filter(lambda p: p.file_path.parent.parent == hl, pages))
 
 				level_index_page = Page(name=hl.stem, description=hl.stem + " desc",
-					href=to_href(hl),content=aggregated_content,file_path=hl / "index.html")
+					href=to_href(hl),content="",file_path=hl / "index.html",
+					aggregated_pages=pages_at_this_level)
 				pages.append(level_index_page)
 			else:
 				# Otherwise, seems like we really don't want an index page at
@@ -155,14 +152,16 @@ def build(site_name, root_dir=None):
 
 class Page(object):
 	def __init__(self, name, description, href, content, file_path,
-			template="index.html", front_matter={}):
+			template="index.html", aggregated_pages=[], front_matter={}):
 		self.name = name
 		self.description = description
 		self.href = href
 		self.content = content
 		self.file_path = file_path
 		self.template = template
+		self.aggregated_pages = aggregated_pages
 		self.front_matter = front_matter 
+		self.is_top_level = len([x for x in href.split("/") if x]) <= 1
 
 class Site(object):
 	def __init__(self, name, config):

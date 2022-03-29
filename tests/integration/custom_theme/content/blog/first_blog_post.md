@@ -1,8 +1,6 @@
 +++
 title = "First Blog Post"
 +++
-# First blog post
-
 ## Manu de nec esse at rerum iam
 
 Lorem markdownum Pentheus pleno. Nubila se feruntur musco intercipe nasci

@@ -1,8 +1,6 @@
 +++
 title = "My third blog post"
 +++
-# Mihi quove amplexa mea
-
 ## Temptabimus vobis nymphae ipse
 
 Lorem markdownum saevis tui, coniecto increpat *Myrrha*, funale venti mortemque

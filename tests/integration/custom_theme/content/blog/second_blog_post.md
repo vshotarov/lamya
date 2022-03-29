@@ -1,5 +1,3 @@
-# Second blog post
-
 ## Et inque si solet dixit vulnera cupit
 
 Lorem markdownum quinque Hippolytus movere **foedoque ut illic**, ait ista ultor

@@ -9,6 +9,7 @@
 - make the automatically build home page an aggregate of all the content on the website by default, but with the support of specifying the content to be aggregated, so it can be limited down to say all the blog posts only
 - at the moment rebuliding the website deletes the whole `build` folder and recreates it from scratch, which can become quite slow on huge websites, so i need some sort of a smart rebuild.
 - aggregate content properly
+- at the moment the base templates are very opinionated and don't provide anything useful. Let's either remove them or make them even more stripped down
 
 # Done
 - Now, if I navigate to a level in the hierarchy, which doesn't have an index file, im presented with a file browser in the web browser, which is definitely not what we want. Do I need to write a 404 page for those instances?
