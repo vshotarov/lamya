@@ -1,0 +1,9 @@
+<main class="main">
+	{% filter indent(width=4) %}
+	{% if page.href == "/" %}
+		{% include "profile.html" %}
+	{% else %}
+		{% include "post.html" %}
+	{% endif %}
+	{% endfilter %}
+</main>

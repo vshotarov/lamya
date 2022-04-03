@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>{{ site.title_template.format(page=page,site=site) }}</title>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width,initial-scale=1">
+		<meta name="description" content="{{ page.description }}">
+
+		<link rel="stylesheet" href="/css/theme-vars.css">
+		<link rel="stylesheet" href="/css/reset.css">
+		<link rel="stylesheet" href="/css/zmedia.css">
+
+		<link rel="stylesheet" href="/css/404.css">
+		<link rel="stylesheet" href="/css/archive.css">
+		<link rel="stylesheet" href="/css/header.css">
+		<link rel="stylesheet" href="/css/main.css">
+		<link rel="stylesheet" href="/css/post-entry.css">
+		<link rel="stylesheet" href="/css/post-single.css">
+		<link rel="stylesheet" href="/css/profile-mode.css">
+		<link rel="stylesheet" href="/css/footer.css">
+		<link rel="stylesheet" href="/css/terms.css">
+	</head>
+	<body class="{% if site.dark_mode %}dark{% endif %}">
+	{% filter indent(width=4) %}
+	{% include "header.html" %}
+	{% endfilter %}
