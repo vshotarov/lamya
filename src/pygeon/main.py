@@ -2,6 +2,7 @@ from pathlib import Path
 import markdown
 import shutil
 import jinja2
+from datetime import datetime
 
 
 def build(site_name, root_dir=None):
@@ -64,7 +65,14 @@ def build(site_name, root_dir=None):
 			evaluated_front_matter = {}
 			exec(front_matter, {}, evaluated_front_matter)
 
-			html = markdown.markdown(source_content)
+			# Process date if it exists in the front matter
+			if "publish_date" in evaluated_front_matter.keys():
+				evaluated_front_matter["publish_date"] = datetime.strptime(
+					evaluated_front_matter["publish_date"], "%d-%m-%Y")
+			evaluated_front_matter["auto_publish_date"] =\
+				datetime.fromtimestamp(path.stat().st_mtime)
+
+			html = markdown.markdown(source_content, extensions=["tables","fenced_code"])
 			# TODO: Process html
 
 			relative_path = path.relative_to(root_dir / "content")
@@ -108,7 +116,7 @@ def build(site_name, root_dir=None):
 		trim_blocks=True, autoescape=True)
 
 	# Go through all hierarchy levels and create the folders
-	for hl in hierarchy_levels:
+	for hl in sorted(hierarchy_levels, key=lambda x:x.__str__().count("/")):
 		hl_in_build = build_dir / hl
 		if not hl_in_build.exists():
 			hl_in_build.mkdir(exist_ok=True)
