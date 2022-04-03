@@ -1,0 +1,10 @@
+{% set crumbs = page.href.split("/") %}
+{% if crumbs | length > 2 %}
+	<div class="breadcrumbs">
+		<a href="/">home</a>
+		{% for crumb in crumbs[1:-1] %}
+			{% set href = "/".join(crumbs[:(loop.index)+1]) %}
+			&nbsp;»&nbsp;<a href={{ href }}>{{ crumb }}</a>
+		{% endfor %}
+	</div>
+{% endif %}

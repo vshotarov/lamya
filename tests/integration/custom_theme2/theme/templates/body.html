@@ -1,7 +1,9 @@
 <main class="main">
 	{% filter indent(width=4) %}
-	{% if page.href == "/" %}
+	{% if page.href in ["/.","/"] %}
 		{% include "profile.html" %}
+	{% elif page.aggregated_pages %}
+		{% include "list.html" %}
 	{% else %}
 		{% include "post.html" %}
 	{% endif %}

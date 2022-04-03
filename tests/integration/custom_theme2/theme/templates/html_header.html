@@ -21,7 +21,7 @@
 		<link rel="stylesheet" href="/css/footer.css">
 		<link rel="stylesheet" href="/css/terms.css">
 	</head>
-	<body class="{% if site.dark_mode %}dark{% endif %}">
+	<body class="{% if site.dark_mode %}dark{% endif %} {% if page.aggregated_pages %}list{% endif %}">
 	{% filter indent(width=4) %}
 	{% include "header.html" %}
 	{% endfilter %}

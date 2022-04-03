@@ -1,0 +1,51 @@
+<header class="page-header">
+	{% include "breadcrumbs.html" %}
+	<h1>
+		{% if page.front_matter.get("title") %}
+			{{ page["title"] }}
+		{% else %}
+			{{ page.name }}
+		{% endif %}
+	</h1>
+	{% if page.description %}
+		<div class="Post-description">
+			{{ page.description }}
+		</div>
+	{%endif %}
+</header>
+
+{% if page.content %}
+	<div class="post-content">
+		{{ page.content | safe }}
+	</div>
+{% endif %}
+
+{% for aggregated_page in page.aggregated_pages %}
+<article class="post-entry">
+	{% set cover_caption = aggregated_page.front_matter.get("cover_caption") %}
+	{% if aggregated_page.front_matter.get("cover_image_in_list") %}
+		{% set cover_image = aggregated_page.front_matter["cover_image_in_list"] %}
+		{% include "cover.html" %}
+	{% elif aggregated_page.front_matter.get("cover_image") %}
+		{% set cover_image = aggregated_page.front_matter["cover_image"] %}
+		{% include "cover.html" %}
+	{% endif %}
+	<header class="entry-header">
+		<h2>
+			{% if aggregated_page.front_matter.get("title") %}
+				{{ aggregated_page.front_matter["title"] }}
+			{% else %}
+				{{ aggregated_page.name }}
+			{% endif %}
+		</h2>
+		<section class="entry-content">
+			<p>{{ aggregated_page.content[:150] | safe }}</p>
+		</section>
+		<footer class="entry-footer">
+			{% set front_matter = aggregated_page.front_matter %}
+			{% include "post_meta.html" %}
+		</footer>
+		<a class="entry-link" href="{{ aggregated_page.href }}"></a>
+	</header>
+</article>
+{% endfor %}
