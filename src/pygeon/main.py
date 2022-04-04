@@ -3,6 +3,11 @@ import markdown
 import shutil
 import jinja2
 from datetime import datetime
+import re
+
+
+class PygeonError(Exception):
+	pass
 
 
 def build(site_name, root_dir=None):
@@ -72,7 +77,15 @@ def build(site_name, root_dir=None):
 			evaluated_front_matter["auto_publish_date"] =\
 				datetime.fromtimestamp(path.stat().st_mtime)
 
-			html = markdown.markdown(source_content, extensions=["tables","fenced_code"])
+			# Process shortcodes
+			shortcode_processed_content = source_content
+			for shortcode in re.finditer("\[%-\s*(\S*)\s*(.*)-%\]", source_content):
+				shortcode_processed_content = shortcode_processed_content.replace(
+					shortcode.group(0), process_shortcode(shortcode.group(1),
+						shortcode.group(2) if len(shortcode.groups()) else ""))
+
+			html = markdown.markdown(shortcode_processed_content,
+				extensions=["tables","fenced_code"])
 			# TODO: Process html
 
 			relative_path = path.relative_to(root_dir / "content")
@@ -201,3 +214,19 @@ def copy_static_data(from_static_dir: Path, build_dir: Path):
 				build_path.parent.mkdir(parents=True)
 
 			shutil.copy2(path.resolve(), build_path)
+
+def process_shortcode(_type, args_string):
+	args = args_string.strip().split(" ") # NOTE: very naive
+
+	if _type == "gist":
+		if len(args) != 2:
+			raise PygeonError("gist shortcode requires exactly 2 arguments. It got " + str(args))
+		return '<script type="application/javascript" src="https://gist.github.com/%s/%s.js"></script>' % (args[0], args[1])
+	if _type == "vimeo":
+		if len(args) != 1:
+			raise PygeonError("vimeo shortcode requires exactly 1 arguments. It got " + str(args))
+		return """<div style="position: relative; padding-bottom: 56.25%%; height: 0; overflow: hidden;">
+  <iframe src="https://player.vimeo.com/video/%s" style="position: absolute; top: 0; left: 0; width: 100%%; height: 100%%; border:0;" title="vimeo video" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+</div>""" % args[0]
+	
+	return "HELLO"
