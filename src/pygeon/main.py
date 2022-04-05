@@ -23,7 +23,7 @@ def build(site_name, root_dir=None):
 	# Gather the theme information
 	# NOTE: We'd likely want the theme to be specified by the config, rather
 	# than directly reading it from the theme folder
-	theme_path = root_dir / "theme"
+	theme_path = Path(config.get("theme_path", root_dir / "theme"))
 	
 	# Create Site object from config
 	site = Site(site_name, config=config)
