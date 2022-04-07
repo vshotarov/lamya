@@ -90,8 +90,9 @@ def build(site_name, root_dir=None):
 
 			relative_path = path.relative_to(root_dir / "content")
 
-			pages.append(Page(name=relative_path.stem,
+			pages.append(Page(name=evaluated_front_matter.get("title", relative_path.stem),
 				description="desc", href=to_href(relative_path), content=html,
+				excerpt=evaluated_front_matter.get("excerpt", remove_html(source_content[:150])),
 				file_path=relative_path.with_suffix(".html") if relative_path.name == "index.md"\
 						  else relative_path.with_suffix("") / "index.html",
 				front_matter=evaluated_front_matter))
@@ -172,13 +173,14 @@ def build(site_name, root_dir=None):
 			f.write(environment.get_template(p.template).render(site=site,page=p))
 
 class Page(object):
-	def __init__(self, name, description, href, content, file_path,
+	def __init__(self, name, description, href, content, file_path, excerpt="",
 			template="index.html", aggregated_pages=[], front_matter={}):
 		self.name = name
 		self.description = description
 		self.href = href
 		self.content = content
 		self.file_path = file_path
+		self.excerpt = excerpt
 		self.template = template
 		self.aggregated_pages = aggregated_pages
 		self.front_matter = front_matter 
@@ -230,3 +232,8 @@ def process_shortcode(_type, args_string):
 </div>""" % args[0]
 	
 	return "HELLO"
+
+def remove_html(x):
+	# https://stackoverflow.com/questions/9662346/python-code-to-remove-html-tags-from-a-string
+	CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+	return re.sub(CLEANR, "", x)

@@ -39,7 +39,7 @@
 			{% endif %}
 		</h2>
 		<section class="entry-content">
-			<p>{{ aggregated_page.content[:150] | safe }}</p>
+			<p>{{ aggregated_page.excerpt }}</p>
 		</section>
 		<footer class="entry-footer">
 			{% set front_matter = aggregated_page.front_matter %}
