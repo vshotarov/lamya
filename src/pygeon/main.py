@@ -98,7 +98,7 @@ def build(site_name, root_dir=None):
 				front_matter=evaluated_front_matter))
 
 			if relative_path.parent == Path("."):
-				site.navigation_pages.append(pages[-1])
+				site.navigation.append(pages[-1])
 			else:
 				# This is further down the hierarchy, so let's store all the
 				# unique parents to content, so we can create folders for them
@@ -111,13 +111,18 @@ def build(site_name, root_dir=None):
 	if not any([p.file_path == Path("index.html") for p in pages]):
 		pages.append(Page(name="home",description="home desc",
 			href="/",content="",file_path=Path("index.html")))
-		site.navigation_pages.insert(0,pages[-1])
+		site.navigation.insert(0,pages[-1])
 	else:
 		# Make sure the home page is at the front
 		home_page = next(filter(lambda p: p.file_path == Path("index.html"), pages))
-		site.navigation_pages.remove(home_page)
-		site.navigation_pages.insert(0, home_page)
+		site.navigation.remove(home_page)
+		site.navigation.insert(0, home_page)
 		home_page.name = "home" # NOTE: Expose this to the front matter
+	
+	# If we have defined navigation in the config use that, otherwise
+	# conform the format of the aggregated navigation to the config's one
+	site.navigation = config.get("navigation",
+		[{"href":p.href, "name":p.name, "children":[]} for p in site.navigation])
 	
 	# Render
 	environment = jinja2.Environment(
@@ -163,7 +168,7 @@ def build(site_name, root_dir=None):
 
 		# If it's a top level directory add it to the navigation
 		if not hl.parent.stem:
-			site.navigation_pages.append(level_index_page)
+			site.navigation.append(level_index_page)
 
 	# Write the html to files
 	for p in pages:
@@ -197,7 +202,7 @@ class Site(object):
 		for k,v in config.items():
 			setattr(self, k, v)
 
-		self.navigation_pages = []
+		self.navigation = []
 
 def to_href(path: Path) -> str:
 	if path.name == "index.md":

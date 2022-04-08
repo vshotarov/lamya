@@ -6,7 +6,7 @@
 		</div>
 
 		<nav class="sidebar-nav">
-			{% for item in site.navigation_pages %}
+			{% for item in site.navigation %}
 			<a class="sidebar-nav-item {% if page.href == item.href %} active{%endif%}" href="{{ item.href }}">{{ item.name }}</a>
 			{% endfor %}
 

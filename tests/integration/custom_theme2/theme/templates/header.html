@@ -10,7 +10,7 @@
 			</a>
 		</div>
 		<ul id="menu">
-			{% for item in site.navigation_pages %}
+			{% for item in site.navigation %}
 				{% if item.href not in ["/.","/"] %}
 					<li><a href="{{ item.href }}">
 							<span class="{% if item.href == page.href %}active {% endif %}">{{ item.name }}</span>
