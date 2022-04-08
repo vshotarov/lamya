@@ -15,4 +15,10 @@
 			{{ aggregated_page.content|safe }}
 		</div>
 	{% endfor %}
+	{% if page.pagination_nav %}
+		<nav>
+			<a href="{{ page.pagination_nav['prev'] }}" style="{% if not page.pagination_nav['prev'] %}pointer-events: none;{% endif %}">Previous</a>
+			<a href="{{ page.pagination_nav['next'] }}" style="{% if not page.pagination_nav['next'] %}pointer-events: none;{% endif %}">Next</a>
+		</nav>
+	{% endif %}
 </div>

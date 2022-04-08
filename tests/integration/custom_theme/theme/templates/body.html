@@ -1,6 +1,6 @@
 <div class="content container">
 	{% filter indent(width=4) %}
-	{% if page.is_top_level %}
+	{% if page.is_top_level or page.aggregated_pages %}
 		{% include "page.html" %}
 	{% else %}
 		{% include "post.html" %}

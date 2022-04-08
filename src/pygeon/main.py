@@ -4,6 +4,7 @@ import shutil
 import jinja2
 from datetime import datetime
 import re
+import math
 
 
 class PygeonError(Exception):
@@ -146,14 +147,42 @@ def build(site_name, root_dir=None):
 		level_index_page = next(
 			filter(lambda p: p.file_path == Path(hl / "index.html"), pages), None)
 		if not level_index_page:
+			hierarchy_entry_point = None
 			if hl.__str__() in site.aggregate:
-				pages_at_this_level = list(
+				posts_at_this_level = list(
 					filter(lambda p: p.file_path.parent.parent == hl, pages))
 
-				level_index_page = Page(name=hl.stem, description=hl.stem + " desc",
-					href=to_href(hl),content="",file_path=hl / "index.html",
-					aggregated_pages=pages_at_this_level)
-				pages.append(level_index_page)
+				pagination = config.get("pagination",float("inf"))
+				num_pages = math.ceil(len(posts_at_this_level) / pagination)
+				if num_pages > 1:
+					per_page = int(pagination)
+					for page in range(num_pages):
+						paginated_posts = posts_at_this_level[(page*per_page):((page+1)*per_page)]
+						level_index_page = Page(name=hl.stem, description=hl.stem + " desc",
+							href=to_href(hl / ("page%i" % (page+1))),content="",
+							file_path=hl / ("page%i" % (page+1)) / "index.html",
+							aggregated_pages=paginated_posts,
+							pagination_nav={
+								"prev":to_href(hl / ("page%i" % (page))) if page != 0 else None,
+								"next":to_href(hl / ("page%i" % (page+2))) if page != num_pages-1 else None})
+						pages.append(level_index_page)
+
+						if page == 0:
+							hierarchy_entry_point = level_index_page
+
+					# Also create a 404 at the base hierarchy level
+					with open(hl_in_build / "index.html", "w") as f:
+						# NOTE: Creating a dummy page here doesn't feel great. I need
+						# a way of separating the 404 from the rest
+						# NOTE: Also, duplicate code
+						pages.append(Page(name="404",description="",href="",
+							content="",file_path=hl / "index.html",template="404.html"))
+				else:
+					level_index_page = Page(name=hl.stem, description=hl.stem + " desc",
+						href=to_href(hl),content="",file_path=hl / "index.html",
+						aggregated_pages=posts_at_this_level)
+					pages.append(level_index_page)
+					hierarchy_entry_point = level_index_page
 			else:
 				# Otherwise, seems like we really don't want an index page at
 				# this level, so let's use the 404 template to prevent the web browser
@@ -165,10 +194,11 @@ def build(site_name, root_dir=None):
 						content="",file_path=hl / "index.html",template="404.html"))
 		else:
 			level_index_page.name = hl
+			hierarchy_entry_point = level_index_page
 
 		# If it's a top level directory add it to the navigation
 		if not hl.parent.stem:
-			site.navigation.append(level_index_page)
+			site.navigation.append(hierarchy_entry_point)
 
 	# Write the html to files
 	for p in pages:
@@ -179,7 +209,8 @@ def build(site_name, root_dir=None):
 
 class Page(object):
 	def __init__(self, name, description, href, content, file_path, excerpt="",
-			template="index.html", aggregated_pages=[], front_matter={}):
+			template="index.html", aggregated_pages=[], front_matter={},
+			pagination_nav={"prev":None,"next":None}):
 		self.name = name
 		self.description = description
 		self.href = href
@@ -190,6 +221,7 @@ class Page(object):
 		self.aggregated_pages = aggregated_pages
 		self.front_matter = front_matter 
 		self.is_top_level = len([x for x in href.split("/") if x]) <= 1
+		self.pagination_nav = pagination_nav
 
 class Site(object):
 	def __init__(self, name, config):

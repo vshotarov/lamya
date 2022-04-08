@@ -11,11 +11,11 @@
 - at the moment rebuliding the website deletes the whole `build` folder and recreates it from scratch, which can become quite slow on huge websites, so i need some sort of a smart rebuild.
 - aggregate content properly
 - at the moment the base templates are very opinionated and don't provide anything useful. Let's either remove them or make them even more stripped down
-- implement pagination
 
 # Done
 - Now, if I navigate to a level in the hierarchy, which doesn't have an index file, im presented with a file browser in the web browser, which is definitely not what we want. Do I need to write a 404 page for those instances?
 - implement support for adding nested hierarchies into the navigation. Can I just have a nav dict on the config file that specifies that?
+- implement pagination
 
 # Acknowledgements
 - I used [The excellent lorem ipsum markdown generator by Jasper Van der Jeugt](https://jaspervdj.be/lorem-markdownum/) to generate some example markdown for the unit tests
