@@ -96,9 +96,19 @@ def build(site_name, root_dir=None):
 
 			relative_path = path.relative_to(root_dir / "content")
 
+			# Build a smarter excerpt
+			if "excerpt" not in evaluated_front_matter.keys():
+				# Find the first space after the 150th character
+				plain_content = remove_html(content_html)
+				for char_pos, char in enumerate(plain_content[150:]):
+					if char == " ":
+						break
+				excerpt = plain_content[:150+char_pos] + "..."
+			else:
+				excerpt = evaluated_front_matter["excerpt"]
+
 			pages.append(Page(name=evaluated_front_matter.get("title", relative_path.stem),
-				description="desc", href=to_href(relative_path), content=content_html,
-				excerpt=evaluated_front_matter.get("excerpt", remove_html(content_html[:150])),
+				description="desc", href=to_href(relative_path), content=content_html, excerpt=excerpt,
 				file_path=relative_path.with_suffix(".html") if relative_path.name == "index.md"\
 						  else relative_path.with_suffix("") / "index.html",
 				front_matter=evaluated_front_matter))
