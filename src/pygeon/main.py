@@ -3,8 +3,13 @@ import markdown
 import shutil
 import jinja2
 from datetime import datetime
+import time
 import re
 import math
+import html
+import xml.etree.cElementTree as ET
+from xml.dom import minidom
+from copy import deepcopy
 
 
 class PygeonError(Exception):
@@ -85,15 +90,15 @@ def build(site_name, root_dir=None):
 					shortcode.group(0), process_shortcode(shortcode.group(1),
 						shortcode.group(2) if len(shortcode.groups()) else ""))
 
-			html = markdown.markdown(shortcode_processed_content,
+			content_html = markdown.markdown(shortcode_processed_content,
 				extensions=["tables","fenced_code"])
 			# TODO: Process html
 
 			relative_path = path.relative_to(root_dir / "content")
 
 			pages.append(Page(name=evaluated_front_matter.get("title", relative_path.stem),
-				description="desc", href=to_href(relative_path), content=html,
-				excerpt=evaluated_front_matter.get("excerpt", remove_html(source_content[:150])),
+				description="desc", href=to_href(relative_path), content=content_html,
+				excerpt=evaluated_front_matter.get("excerpt", remove_html(content_html[:150])),
 				file_path=relative_path.with_suffix(".html") if relative_path.name == "index.md"\
 						  else relative_path.with_suffix("") / "index.html",
 				front_matter=evaluated_front_matter))
@@ -107,6 +112,11 @@ def build(site_name, root_dir=None):
 
 		if path.suffix.lower() == ".html":
 			raise NotImplementedError("No support for compiling .html files yet")
+
+	# All of the pages defined up to now are read directly from the content
+	# folder, so let's store them separately before we move on to procedurally
+	# generate some pages as well
+	content_pages = deepcopy(pages)
 
 	# Insert home page if it's not manually defined
 	if not any([p.file_path == Path("index.html") for p in pages]):
@@ -158,7 +168,8 @@ def build(site_name, root_dir=None):
 					per_page = int(pagination)
 					for page in range(num_pages):
 						paginated_posts = posts_at_this_level[(page*per_page):((page+1)*per_page)]
-						level_index_page = Page(name=hl.stem, description=hl.stem + " desc",
+						level_index_page = Page(name=hl.stem.__str__(),
+							description=hl.stem + " desc",
 							href=to_href(hl / ("page%i" % (page+1))),content="",
 							file_path=hl / ("page%i" % (page+1)) / "index.html",
 							aggregated_pages=paginated_posts,
@@ -207,6 +218,35 @@ def build(site_name, root_dir=None):
 		with open(page_path, "w") as f:
 			f.write(environment.get_template(p.template).render(site=site,page=p))
 
+	# Write the RSS feed
+	utc_offset = time.localtime().tm_gmtoff / 60 / 60
+	rss_date_format = "%a, %d %b %Y %H:%M:%S " +\
+		("%s%02d00" % ("+" if utc_offset >= 0 else "", utc_offset))
+	rss_tag = ET.Element("rss", attrib={"version":"2.0",
+		"xmlns:atom":"http://www.w3.org/2005/Atom"})
+	channel_tag = ET.SubElement(rss_tag, "channel")
+	for k,v in {"title": site.name, "link": site.url, "description": site.description,
+			"pubDate": datetime.now().strftime(rss_date_format),
+			"docs":"https://validator.w3.org/feed/docs/rss2.html#comments"}.items():
+		ET.SubElement(channel_tag, k).text = v
+	ET.SubElement(channel_tag, "atom:link", attrib={"href":site.url + "/rss", "rel":"self",
+		"type":"application/rss+xml"})
+
+	for cp in sorted(content_pages,
+			key=lambda x:x.front_matter.get("publish_date", x.front_matter["auto_publish_date"])):
+		item_tag = ET.SubElement(channel_tag, "item")
+		for k,v in {"title": cp.name, "link": site.url + "/" + cp.href.__str__(),
+				"description": "<![CDATA[%s]]>" % cp.content,
+				"pubDate": cp.front_matter.get("publish_date", cp.front_matter["auto_publish_date"]
+					).strftime(rss_date_format)}.items():
+			ET.SubElement(item_tag, k).text = v
+		ET.SubElement(item_tag, "guid", attrib={"isPermaLink":"true"}).text = site.url + "/" + cp.href.__str__()
+		ET.SubElement(item_tag, "source", attrib={"url": site.url + "/rss"}).text = site.name
+
+	with open(build_dir / "rss", "w") as f:
+		f.write(html.unescape(minidom.parseString(ET.tostring(rss_tag,method="xml")).toprettyxml()))
+
+
 class Page(object):
 	def __init__(self, name, description, href, content, file_path, excerpt="",
 			template="index.html", aggregated_pages=[], front_matter={},
@@ -228,6 +268,7 @@ class Site(object):
 		# Initialize defaults
 		self.name = name
 		self.title_template = "{site.name} - {page.name}"
+		self.description = ""
 		self.aggregate = []
 
 		# Read config
