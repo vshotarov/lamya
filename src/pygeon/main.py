@@ -103,7 +103,10 @@ def build(site_name, root_dir=None):
 				for char_pos, char in enumerate(plain_content[150:]):
 					if char == " ":
 						break
-				excerpt = plain_content[:150+char_pos] + "..."
+				if len(plain_content) < 150:
+					excerpt = plain_content
+				else:
+					excerpt = plain_content[:150+char_pos] + "..."
 			else:
 				excerpt = evaluated_front_matter["excerpt"]
 
@@ -140,11 +143,6 @@ def build(site_name, root_dir=None):
 		site.navigation.insert(0, home_page)
 		home_page.name = "home" # NOTE: Expose this to the front matter
 	
-	# If we have defined navigation in the config use that, otherwise
-	# conform the format of the aggregated navigation to the config's one
-	site.navigation = config.get("navigation",
-		[{"href":p.href, "name":p.name, "children":[]} for p in site.navigation])
-	
 	# Render
 	environment = jinja2.Environment(
 		loader=jinja2.ChoiceLoader([
@@ -171,6 +169,7 @@ def build(site_name, root_dir=None):
 			if hl.__str__() in site.aggregate:
 				posts_at_this_level = list(
 					filter(lambda p: p.file_path.parent.parent == hl, pages))
+				site.all_aggregated_posts += posts_at_this_level
 
 				pagination = config.get("pagination",float("inf"))
 				num_pages = math.ceil(len(posts_at_this_level) / pagination)
@@ -220,6 +219,11 @@ def build(site_name, root_dir=None):
 		# If it's a top level directory add it to the navigation
 		if not hl.parent.stem:
 			site.navigation.append(hierarchy_entry_point)
+	
+	# If we have defined navigation in the config use that, otherwise
+	# conform the format of the aggregated navigation to the config's one
+	site.navigation = config.get("navigation",
+		[{"href":p.href, "name":p.name, "children":[]} for p in site.navigation])
 
 	# Write the html to files
 	for p in pages:
@@ -280,6 +284,8 @@ class Site(object):
 		self.title_template = "{site.name} - {page.name}"
 		self.description = ""
 		self.aggregate = []
+		self.all_aggregated_posts = []
+		self.build_datetime = datetime.now()
 
 		# Read config
 		for k,v in config.items():
