@@ -217,7 +217,7 @@ def build(site_name, root_dir=None):
 			hierarchy_entry_point = level_index_page
 
 		# If it's a top level directory add it to the navigation
-		if not hl.parent.stem:
+		if not hl.parent.stem and hierarchy_entry_point:
 			site.navigation.append(hierarchy_entry_point)
 	
 	# If we have defined navigation in the config use that, otherwise
