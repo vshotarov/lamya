@@ -15,5 +15,17 @@
 			{{ aggregated_page.content|safe }}
 		</article>
 	{% endfor %}
+	{% if site.create_archive and page.href == "/archive" %}
+		{% for year,archive_pages in site.archive["by_year"].items() %}
+		<figure>
+			<figcaption>{{ year }}</figcaption>
+			<ul>
+				{% for archive_page in archive_pages %}
+				<li><a href="{{ archive_page.href }}">{{ archive_page.name }}</a></li>
+				{% endfor %}
+			</ul>
+		</figure>
+		{% endfor %}
+	{% endif %}
 </section>
 

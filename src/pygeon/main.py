@@ -219,6 +219,39 @@ def build(site_name, root_dir=None):
 		# If it's a top level directory add it to the navigation
 		if not hl.parent.stem and hierarchy_entry_point:
 			site.navigation.append(hierarchy_entry_point)
+
+	# Generate an archive page
+	if getattr(site, "create_archive", False):
+		archive_page = Page("archive", description="", href="/archive",
+			content="", file_path=Path("archive") / "index.html")
+
+		for p in pages:
+			date = p.front_matter.get("publish_date", p.front_matter.get("auto_publish_date"))
+
+			if p.is_top_level or not date:
+				continue
+
+			if date.year not in site.archive["by_year"].keys():
+				site.archive["by_year"][date.year] = []
+			site.archive["by_year"][date.year].append(p)
+
+			if date.strftime("%B, %Y") not in site.archive["by_month"].keys():
+				site.archive["by_month"][date.strftime("%B, %Y")] = []
+			site.archive["by_month"][date.strftime("%B, %Y")].append(p)
+
+		pages.append(archive_page)
+
+		# Create pages for each month of the archive
+		for month, posts in site.archive["by_month"].items():
+			pages.append(Page(month, description="",
+				href=to_href(Path("archive") / month.replace(", ","_")),
+				content="", file_path=Path("archive") / month.replace(", ","_") / "index.html",
+				aggregated_pages=posts))
+
+		# Check if there already is an archive page in the navigation and if so
+		# don't add it again
+		if not any([p.href == "/archive" for p in site.navigation]):
+			site.navigation.append(archive_page)
 	
 	# If we have defined navigation in the config use that, otherwise
 	# conform the format of the aggregated navigation to the config's one
@@ -285,6 +318,7 @@ class Site(object):
 		self.description = ""
 		self.aggregate = []
 		self.all_aggregated_posts = []
+		self.archive = {"by_month":{}, "by_year":{}}
 		self.build_datetime = datetime.now()
 
 		# Read config
