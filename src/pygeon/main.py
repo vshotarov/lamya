@@ -130,18 +130,6 @@ def build(site_name, root_dir=None):
 	# folder, so let's store them separately before we move on to procedurally
 	# generate some pages as well
 	content_pages = deepcopy(pages)
-
-	# Insert home page if it's not manually defined
-	if not any([p.file_path == Path("index.html") for p in pages]):
-		pages.append(Page(name="home",description="home desc",
-			href="/",content="",file_path=Path("index.html")))
-		site.navigation.insert(0,pages[-1])
-	else:
-		# Make sure the home page is at the front
-		home_page = next(filter(lambda p: p.file_path == Path("index.html"), pages))
-		site.navigation.remove(home_page)
-		site.navigation.insert(0, home_page)
-		home_page.name = "home" # NOTE: Expose this to the front matter
 	
 	# Render
 	environment = jinja2.Environment(
@@ -171,26 +159,13 @@ def build(site_name, root_dir=None):
 					filter(lambda p: p.file_path.parent.parent == hl, pages))
 				site.all_aggregated_posts += posts_at_this_level
 
-				pagination = config.get("pagination",float("inf"))
-				num_pages = math.ceil(len(posts_at_this_level) / pagination)
-				if num_pages > 1:
-					per_page = int(pagination)
-					for page in range(num_pages):
-						paginated_posts = posts_at_this_level[(page*per_page):((page+1)*per_page)]
-						level_index_page = Page(name=hl.stem.__str__(),
-							description=hl.stem + " desc",
-							href=to_href(hl / ("page%i" % (page+1))),content="",
-							file_path=hl / ("page%i" % (page+1)) / "index.html",
-							aggregated_pages=paginated_posts,
-							pagination_nav={
-								"prev":to_href(hl / ("page%i" % (page))) if page != 0 else None,
-								"next":to_href(hl / ("page%i" % (page+2))) if page != num_pages-1 else None})
-						pages.append(level_index_page)
+				paginated_pages = paginate(posts_at_this_level,
+					config.get("pagination",float("inf")), hl, hl, hl.stem.__str__())
 
-						if page == 0:
-							hierarchy_entry_point = level_index_page
+				if paginated_pages:
+					pages += paginated_pages
+					hierarchy_entry_point = paginated_pages[0]
 
-					# Also create a 404 at the base hierarchy level
 					with open(hl_in_build / "index.html", "w") as f:
 						# NOTE: Creating a dummy page here doesn't feel great. I need
 						# a way of separating the 404 from the rest
@@ -252,6 +227,38 @@ def build(site_name, root_dir=None):
 		# don't add it again
 		if not any([p.href == "/archive" for p in site.navigation]):
 			site.navigation.append(archive_page)
+	
+	# If we are paginating and all_aggregated_posts has more than one page of
+	# content in it, we have to paginate it as well
+	site.all_aggregated_posts_paginated = paginate(
+		site.all_aggregated_posts, config.get("pagination", float("inf")),
+		Path(""), Path(""), "home")
+	if site.all_aggregated_posts_paginated:
+		site.all_aggregated_posts_paginated[0].href = "/"
+		site.all_aggregated_posts_paginated[0].file_path = "index.html"
+		site.all_aggregated_posts_paginated[1].pagination_nav["prev"] = "/"
+
+	# Insert home page if it's not manually defined
+	if not any([p.file_path == Path("index.html") for p in pages]):
+		if not config.get("aggregate_all_on_home_page", False):
+			pages.append(Page(name="home",description="home desc",
+				href="/",content="",file_path=Path("index.html")))
+			site.navigation.insert(0,pages[-1])
+		else:
+			if site.all_aggregated_posts_paginated:
+				pages += site.all_aggregated_posts_paginated
+				site.navigation.insert(0,site.all_aggregated_posts_paginated[0])
+			else:
+				pages.append(Page(name="home",description="home desc",
+					href="/",content="",file_path=Path("index.html"),
+					aggregated_pages=site.all_aggregated_posts))
+				site.navigation.insert(0,pages[-1])
+	else:
+		# Make sure the home page is at the front
+		home_page = next(filter(lambda p: p.file_path == Path("index.html"), pages))
+		site.navigation.remove(home_page)
+		site.navigation.insert(0, home_page)
+		home_page.name = "home" # NOTE: Expose this to the front matter
 	
 	# If we have defined navigation in the config use that, otherwise
 	# conform the format of the aggregated navigation to the config's one
@@ -318,6 +325,7 @@ class Site(object):
 		self.description = ""
 		self.aggregate = []
 		self.all_aggregated_posts = []
+		self.all_aggregated_posts_paginated = []
 		self.archive = {"by_month":{}, "by_year":{}}
 		self.build_datetime = datetime.now()
 
@@ -365,3 +373,20 @@ def remove_html(x):
 	# https://stackoverflow.com/questions/9662346/python-code-to-remove-html-tags-from-a-string
 	CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 	return re.sub(CLEANR, "", x)
+
+def paginate(posts, pagination, href_base, file_path_base, name):
+	num_pages = math.ceil(len(posts) / pagination)
+	pages = []
+	if num_pages > 1:
+		per_page = int(pagination)
+		for page in range(num_pages):
+			paginated_posts = posts[(page*per_page):((page+1)*per_page)]
+			level_index_page = Page(name=name, description=name + " desc",
+				href=to_href(href_base / ("page%i" % (page+1))),content="",
+				file_path=file_path_base / ("page%i" % (page+1)) / "index.html",
+				aggregated_pages=paginated_posts,
+				pagination_nav={
+					"prev":to_href(href_base / ("page%i" % (page))) if page != 0 else None,
+					"next":to_href(href_base / ("page%i" % (page+2))) if page != num_pages-1 else None})
+			pages.append(level_index_page)
+	return pages
