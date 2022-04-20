@@ -16,8 +16,9 @@ navigation = [
 
 def build():
 	content = pygeon.ContentTree.from_directory(Path(__file__).parent / "content")
+
+	content.get(".").add_child(pygeon.AggregatedPage("sup", content.get("blog").children))
+
 	content.titlify()
-	print(content)
-	print(content.get("Blog/{0}"))
-	content.get(".").add_child(content.get("Blog/{1}"))
+
 	print(content)

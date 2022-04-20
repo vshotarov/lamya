@@ -6,10 +6,10 @@ from copy import deepcopy
 
 
 class ContentTree(object):
-	def __init__(self, name, parent, real_path):
+	def __init__(self, name, source_path):
 		self.name = name
-		self._parent = parent
-		self._real_path = real_path
+		self._parent = None
+		self._source_path = source_path
 
 		self._children = []
 	
@@ -30,18 +30,19 @@ class ContentTree(object):
 		self._children = new_children
 	
 	def add_child(self, child):
+		child.parent = self
 		self.children.append(child)
 
 	def remove_child(self, child):
 		self.children.remove(child)
 	
 	@property
-	def real_path(self):
-		return self._real_path
+	def source_path(self):
+		return self._source_path
 
-	@real_path.setter
-	def real_path(self, new_real_path):
-		self._real_path = new_real_path
+	@source_path.setter
+	def source_path(self, new_source_path):
+		self._source_path = new_source_path
 	
 	def pprint(self, level=0):
 		return "%s%s(%s) {\n%s%s\n%s}" % (" "*level, self.__class__.__name__,
@@ -62,9 +63,9 @@ class ContentTree(object):
 		root = Root("Content", Path(directory))
 
 		def recursive_builder(parent):
-			for child_path in sorted(parent.real_path.iterdir()):
-				child = recursive_builder(ContentTree(child_path.name, parent, child_path))\
-					if child_path.is_dir() else Leaf(child_path.stem, parent, child_path)
+			for child_path in sorted(parent.source_path.iterdir()):
+				child = recursive_builder(ContentTree(child_path.name, child_path))\
+					if child_path.is_dir() else Post(child_path.stem, child_path)
 				parent.add_child(child)
 
 			return parent
@@ -136,13 +137,15 @@ class ContentTree(object):
 			setattr(x, "name", x.name.replace("_"," ").title())):
 		self.map_in_place(title_func)
 
+
 class Root(ContentTree):
-	def __init__(self, name, real_path):
-		super(Root, self).__init__(name=name, parent=None, real_path=real_path)
+	def __init__(self, name, source_path):
+		super(Root, self).__init__(name=name, source_path=source_path)
+
 
 class Leaf(ContentTree):
-	def __init__(self, name, parent, real_path):
-		super(Leaf, self).__init__(name=name, parent=parent, real_path=real_path)
+	def __init__(self, name, source_path):
+		super(Leaf, self).__init__(name=name, source_path=source_path)
 	
 	@property
 	def children(self):
@@ -153,4 +156,21 @@ class Leaf(ContentTree):
 		raise AttributeError("Leaf nodes can't have children")
 	
 	def pprint(self, level=0):
-		return "%sLeaf(%s)" % (" "*level, self.name)
+		return "%s%s(%s)" % (" "*level, self.__class__.__name__, self.name)
+
+
+class Post(Leaf):
+	def __init__(self, name, source_path):
+		super(Post, self).__init__(name=name, source_path=source_path)
+
+
+class AggregatedPage(Leaf):
+	def __init__(self, name, aggregated_posts, source_path=None):
+		# NOTE: Of course, an aggregated page doesn't need a source path
+		super(AggregatedPage, self).__init__(name=name, source_path=source_path)
+
+		self.aggregated_posts = aggregated_posts
+	
+	def pprint(self, level=0):
+		return "%sAggregatedPage(%s) [%s]" % (" "*level, self.name,
+			",".join(p.name for p in self.aggregated_posts))
