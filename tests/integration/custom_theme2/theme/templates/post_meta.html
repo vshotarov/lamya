@@ -1,8 +1,0 @@
-<span>
-{% if front_matter.get("publish_date") %}
-	{% set str_date = front_matter["publish_date"].strftime("%B %-d, %Y") %}
-{% else %}
-	{% set str_date = front_matter["auto_publish_date"].strftime("%B %-d, %Y") %}
-{% endif %}
-{{ str_date }}
-</span>

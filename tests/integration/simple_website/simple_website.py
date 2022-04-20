@@ -1,3 +1,7 @@
+import pygeon
+from pathlib import Path
+
+
 url = "https://simple_website.xyz"
 title_template = "{page.name} - {page.description}"
 navigation = [
@@ -9,3 +13,11 @@ navigation = [
 		]},
 		{"name": "contact", "href": "/contact"}
 ]
+
+def build():
+	content = pygeon.ContentTree.from_directory(Path(__file__).parent / "content")
+	content.titlify()
+	print(content)
+	print(content.get("Blog/{0}"))
+	content.get(".").add_child(content.get("Blog/{1}"))
+	print(content)

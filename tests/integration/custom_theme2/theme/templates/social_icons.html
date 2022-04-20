@@ -1,7 +1,0 @@
-<div class="social-icons">
-	{% for social_icon in site.social_icons %}
-		<a href="{{ social_icon['href'] }}" target="_blank" rel="noopener noreferrer me" title="{{ social_icon['title'] }}">
-			<img src="{{ social_icon.img }}" width=24 style="{%if site.dark_mode %}filter: invert(100%){% endif %}"/>
-		</a>
-	{% endfor %}
-</div>

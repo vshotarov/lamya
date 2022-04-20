@@ -1,12 +1,13 @@
 import unittest
 
 from .. import context # Add the path to pygeon to sys.path
+import sys
+from pathlib import Path
+sys.path.append((Path(__file__).parent / "simple_website").__str__())
 
-import pygeon.main
+import simple_website
+
 
 class TestSimpleWebsite(unittest.TestCase):
 	def test_simple_website(self):
-		pygeon.main.build("simple_website",
-			root_dir="tests/integration/simple_website/")
-
-		# TODO: Compare the built website with a prebuilt ground truth version
+		simple_website.build()

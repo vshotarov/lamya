@@ -1,5 +1,7 @@
 +++
 title = "First Blog Post"
+category = "Category1"
+publish_date = "5-01-2018"
 +++
 ## Manu de nec esse at rerum iam
 
