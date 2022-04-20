@@ -12,7 +12,7 @@ class ContentTree(object):
 		self._source_path = source_path
 
 		self._children = []
-	
+
 	@property
 	def parent(self):
 		return self._parent
@@ -20,7 +20,7 @@ class ContentTree(object):
 	@parent.setter
 	def parent(self, new_parent):
 		self._parent = new_parent
-	
+
 	@property
 	def children(self):
 		return self._children
@@ -28,14 +28,14 @@ class ContentTree(object):
 	@children.setter
 	def children(self, new_children):
 		self._children = new_children
-	
+
 	def add_child(self, child):
 		child.parent = self
 		self.children.append(child)
 
 	def remove_child(self, child):
 		self.children.remove(child)
-	
+
 	@property
 	def source_path(self):
 		return self._source_path
@@ -43,13 +43,13 @@ class ContentTree(object):
 	@source_path.setter
 	def source_path(self, new_source_path):
 		self._source_path = new_source_path
-	
+
 	def pprint(self, level=0):
 		return "%s%s(%s) {\n%s%s\n%s}" % (" "*level, self.__class__.__name__,
 			self.name, " "*(level+1),
 			("\n" + " "*(level+1)).join([x.pprint(level+1) for x in self.children]),
 			" "*(level+1))
-	
+
 	def __str__(self):
 		return self.pprint()
 
@@ -57,7 +57,7 @@ class ContentTree(object):
 		return self.__str__()
 	# end of basic tree class functions
 
-	# static constructors	
+	# static constructors
 	@staticmethod
 	def from_directory(directory):
 		root = Root("Content", Path(directory))
@@ -146,7 +146,7 @@ class Root(ContentTree):
 class Leaf(ContentTree):
 	def __init__(self, name, source_path):
 		super(Leaf, self).__init__(name=name, source_path=source_path)
-	
+
 	@property
 	def children(self):
 		raise AttributeError("Leaf nodes can't have children")
@@ -154,7 +154,7 @@ class Leaf(ContentTree):
 	@children.setter
 	def children(self, _):
 		raise AttributeError("Leaf nodes can't have children")
-	
+
 	def pprint(self, level=0):
 		return "%s%s(%s)" % (" "*level, self.__class__.__name__, self.name)
 
@@ -170,7 +170,7 @@ class AggregatedPage(Leaf):
 		super(AggregatedPage, self).__init__(name=name, source_path=source_path)
 
 		self.aggregated_posts = aggregated_posts
-	
+
 	def pprint(self, level=0):
 		return "%sAggregatedPage(%s) [%s]" % (" "*level, self.name,
 			",".join(p.name for p in self.aggregated_posts))
