@@ -15,10 +15,13 @@ navigation = [
 ]
 
 def build():
-	content = pygeon.ContentTree.from_directory(Path(__file__).parent / "content")
+	site = pygeon.Site(name="Simple Website", directory=Path(__file__).parent)
+	site.build_content_tree()
 
-	content.get(".").add_child(pygeon.AggregatedPage("sup", content.get("blog").children))
+	site.content.get(".").add_child(pygeon.AggregatedPage("sup", site.content.get("blog").children))
 
-	content.titlify()
+	site.content.titlify()
 
-	print(content)
+	print(site.content)
+
+	site.render()
