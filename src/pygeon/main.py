@@ -5,6 +5,10 @@ from datetime import datetime
 from copy import deepcopy
 
 
+class LeafChildrenError(Exception):
+	pass
+
+
 class ContentTree(object):
 	def __init__(self, name, source_path):
 		self.name = name
@@ -91,8 +95,8 @@ class ContentTree(object):
 
 		try:
 			children = self.children
-		except AttributeError as e:
-			raise AttributeError("Can't `get` a path from a leaf node")
+		except LeafChildrenError as e:
+			raise LeafChildrenError("Can't `get` a path from a leaf node")
 
 		next_step = None
 		for i, child in enumerate(children):
@@ -119,7 +123,7 @@ class ContentTree(object):
 		for child in copy.children:
 			try:
 				child.map_in_place(func)
-			except AttributeError:
+			except LeafChildrenError:
 				pass
 
 		return copy
@@ -130,12 +134,8 @@ class ContentTree(object):
 		for child in self.children:
 			try:
 				child.map_in_place(func)
-			except AttributeError:
+			except LeafChildrenError:
 				pass
-
-	def titlify(self, title_func=lambda x:\
-			setattr(x, "name", x.name.replace("_"," ").title())):
-		self.map_in_place(title_func)
 
 
 class Root(ContentTree):
@@ -149,11 +149,11 @@ class Leaf(ContentTree):
 
 	@property
 	def children(self):
-		raise AttributeError("Leaf nodes can't have children")
+		raise LeafChildrenError("Leaf nodes can't have children")
 
 	@children.setter
 	def children(self, _):
-		raise AttributeError("Leaf nodes can't have children")
+		raise LeafChildrenError("Leaf nodes can't have children")
 
 	def pprint(self, level=0):
 		return "%s%s(%s)" % (" "*level, self.__class__.__name__, self.name)

@@ -15,10 +15,15 @@ navigation = [
 ]
 
 def build():
+	## Preprocess stage
+	# Read the content structure and build a ContentTree out of it
 	content = pygeon.ContentTree.from_directory(Path(__file__).parent / "content")
 
-	content.get(".").add_child(pygeon.AggregatedPage("sup", content.get("blog").children))
+	## Process stage
+	# Aggregate all blog posts in the blog page
+	content.get("blog").add_child(pygeon.AggregatedPage("index", content.get("blog").children))
 
-	content.titlify()
+	## Render stage
+
 
 	print(content)
