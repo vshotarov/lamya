@@ -1,1 +1,1 @@
-from .main import ContentTree, Post, AggregatedPage # NOTE: Change main name
+from .contentTree import ContentTree, Post, AggregatedPage
