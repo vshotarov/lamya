@@ -8,6 +8,9 @@ from copy import deepcopy
 class LeafChildrenError(Exception):
 	pass
 
+class SetIndexError(Exception):
+	pass
+
 
 class ContentTree(object):
 	def __init__(self, name, source_path):
@@ -16,6 +19,16 @@ class ContentTree(object):
 		self._source_path = source_path
 
 		self._children = []
+		self._has_index = False
+		self.is_index = False
+
+	@property
+	def has_index(self):
+		return self._has_index
+
+	@has_index.setter
+	def has_index(self, _):
+		raise SetIndexError("'has_index' can NEVER be set manually")
 
 	@property
 	def parent(self):
@@ -36,6 +49,8 @@ class ContentTree(object):
 	def add_child(self, child):
 		child.parent = self
 		self.children.append(child)
+		if child.is_index:
+			self._has_index = True
 
 	def remove_child(self, child):
 		self.children.remove(child)
@@ -47,6 +62,12 @@ class ContentTree(object):
 	@source_path.setter
 	def source_path(self, new_source_path):
 		self._source_path = new_source_path
+
+	def path(self):
+		return (self.parent.path() / self.name) if self.parent else Path()
+
+	def href(self):
+		return Path("/") / (self.path() if self.name != "index" else self.path().parent)
 
 	def pprint(self, level=0):
 		return "%s%s(%s) {\n%s%s\n%s}" % (" "*level, self.__class__.__name__,
@@ -64,12 +85,15 @@ class ContentTree(object):
 	# static constructors
 	@staticmethod
 	def from_directory(directory):
-		root = Root("Content", Path(directory))
+		root = Root("/", Path(directory))
 
 		def recursive_builder(parent):
 			for child_path in sorted(parent.source_path.iterdir()):
-				child = recursive_builder(ContentTree(child_path.name, child_path))\
-					if child_path.is_dir() else Post(child_path.stem, child_path)
+				child = recursive_builder(
+					ContentTree(child_path.name, child_path)) \
+					if child_path.is_dir() else Post(child_path.stem, child_path,
+						is_index=child_path.stem == "index")
+
 				parent.add_child(child)
 
 			return parent
@@ -113,6 +137,33 @@ class ContentTree(object):
 			raise LookupError(
 				"The path '%s' does not exist under %s" % (path, self))
 
+	def filter(self, filter_func):
+		filtered = [] if not filter_func(self) else [self]
+
+		try:
+			for child in self.children:
+				filtered += child.filter(filter_func)
+		except LeafChildrenError:
+			pass
+
+		return filtered
+
+	def group_by(self, group_func):
+		grouped = {group_func(self) : [self]}
+
+		try:
+			for child in self.children:
+				child_grouped = child.group_by(group_func)
+
+				for k,v in child_grouped.items():
+					if k not in grouped.keys():
+						grouped[k] = []
+					grouped[k] += v
+		except LeafChildrenError:
+			pass
+
+		return grouped
+
 	# end of tree accessors
 
 	# pygeon content operators (until the end of the class definition)
@@ -144,8 +195,10 @@ class Root(ContentTree):
 
 
 class Leaf(ContentTree):
-	def __init__(self, name, source_path):
+	def __init__(self, name, source_path, is_index=False):
 		super(Leaf, self).__init__(name=name, source_path=source_path)
+
+		self.is_index = is_index
 
 	@property
 	def children(self):
@@ -158,16 +211,22 @@ class Leaf(ContentTree):
 	def pprint(self, level=0):
 		return "%s%s(%s)" % (" "*level, self.__class__.__name__, self.name)
 
+	def get_source(self):
+		with open(self.source_path, "r") as f:
+			return f.read()
+
 
 class Post(Leaf):
-	def __init__(self, name, source_path):
-		super(Post, self).__init__(name=name, source_path=source_path)
+	def __init__(self, name, source_path, is_index=False):
+		super(Post, self).__init__(
+			name=name, source_path=source_path, is_index=is_index)
 
 
 class AggregatedPage(Leaf):
-	def __init__(self, name, aggregated_posts, source_path=None):
+	def __init__(self, name, aggregated_posts, source_path=None, is_index=False):
 		# NOTE: Of course, an aggregated page doesn't need a source path
-		super(AggregatedPage, self).__init__(name=name, source_path=source_path)
+		super(AggregatedPage, self).__init__(
+			name=name, source_path=source_path, is_index=is_index)
 
 		self.aggregated_posts = aggregated_posts
 

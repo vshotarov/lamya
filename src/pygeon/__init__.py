@@ -1,1 +1,1 @@
-from .contentTree import ContentTree, Post, AggregatedPage
+from .contentTree import ContentTree, Post, AggregatedPage, Leaf
