@@ -1,2 +1,5 @@
 DEFAULT TEMPLATE
 {{ content | safe }}
+{% for post in aggregated_posts %}
+{{ post.name }}
+{% endfor %}
