@@ -1,4 +1,5 @@
 import pygeon
+import pygeon.contentProcessing
 import jinja2
 import markdown
 import shutil
@@ -51,14 +52,28 @@ def build():
 
 	def render_single(pageOrPost):
 		path = pageOrPost.render_path(build_directory)
+		renderable_page = RenderablePage(pageOrPost)
 
 		if not path.parent.exists():
 			os.makedirs(path.parent)
 
 		with open(path, "w") as f:
-			f.write(renderer.get_template("default.html").render(
-				content=markdown.markdown(pageOrPost.source),
-				aggregated_posts=getattr(pageOrPost, "aggregated_posts", [])))
+			f.write(renderer.get_template("default.html").render(page=renderable_page))
 
 	for pageOrPost in content.leaves():
 		render_single(pageOrPost)
+
+
+class RenderablePage:
+	def __init__(self, pageOrPost):
+		self.name = pageOrPost.name
+		self.href = pageOrPost.href
+		self.title = self.name.replace("_"," ").title()
+		self.source = pageOrPost.source
+		self.front_matter, self.raw_content =\
+			pygeon.contentProcessing.split_front_matter(self.source)
+		self.content = markdown.markdown(self.raw_content)
+		self.excerpt = pygeon.contentProcessing.get_excerpt(self.content)
+		self.aggregated_posts = []
+		if isinstance(pageOrPost, pygeon.AggregatedPage):
+			self.aggregated_posts = [RenderablePage(p) for p in pageOrPost.aggregated_posts]
