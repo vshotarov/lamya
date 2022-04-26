@@ -1,0 +1,115 @@
+from . import contentTree
+from pathlib import Path
+try:
+	from markdown import markdown
+except ImportError:
+	markdown = None
+try:
+	import jinja2
+except ImportError:
+	jinja2 = None
+
+
+class AggregateError(Exception):
+	pass
+
+
+class SiteGenerator:
+	def __init__(self, name, content_directory="content", theme_directory="theme",
+			static_directory="static", templates_directory="templates",
+			build_directory="build", locally_aggregate_whitelist=[],
+			locally_aggregate_blacklist=[], globally_aggregate_whitelist=[],
+			globally_aggregate_blacklist=[],
+			is_page_func=lambda x: isinstance(x.parent, contentTree.Root)):
+		self.name = name
+		self.content_directory = Path(content_directory)
+		self.theme_directory = Path(theme_directory)
+		self.static_directory = Path(static_directory)
+		self.templates_directory = Path(templates_directory)
+		self.build_directory = Path(build_directory)
+		self.locally_aggregate_whitelist = locally_aggregate_whitelist
+		self.locally_aggregate_blacklist = locally_aggregate_blacklist
+		self.globally_aggregate_whitelist = globally_aggregate_whitelist
+		self.globally_aggregate_blacklist = globally_aggregate_blacklist
+		self.is_page_func = is_page_func
+
+		if locally_aggregate_whitelist and locally_aggregate_blacklist:
+			raise AggregateError("Both 'locally_aggregate_whitelist' and"
+				" 'locally_aggregate_blacklist' have been specified, which is"
+				" not supported, as the aggregation strategies is chosen depending"
+				" on which one is specified, and if neither is, aggregation is"
+				" enabled on everything by default.")
+
+		self.title_formatting = self.name + " | {page.title}"
+		self.contentTree  = contentTree.ContentTree.from_directory(content_directory)
+		self.initialize_renderer()
+
+	def initialize_renderer(self):
+		if jinja2 is None:
+			raise NotImplementedError("jinja2 was not found, so it either"
+				" needs to be installed or you need to overwrite the"
+				" 'initialize_renderer' method on the 'Site' class to use"
+				" your own templating engine.")
+
+		self.renderer = Jinja2Renderer([
+			self.templates_directory, self.theme_directory / "templates"])
+
+	def process_content_tree(self):
+		## Aggregate folders with no index pages
+		# Check if any folder is missing an index page, which would mean
+		# we need to create one. NOTE: most of the time I would imagine this
+		# would be the case, as the way I understand using folders is to
+		# separate different types of content - blog, archive, portfolio, etc.
+		folders_with_no_index = list(filter(
+			lambda x: isinstance(x, contentTree.Folder) and x.index_page is None,
+			self.contentTree.flat(include_index_pages=False)))
+
+		# Depending on the aggregate whitelists we have different strategies
+		to_locally_aggregate = folders_with_no_index
+
+		if self.locally_aggregate_blacklist:
+			to_locally_aggregate = [x for x in folders_with_no_index\
+				if x.name not in self.locally_aggregate_blacklist and\
+				   str(x.path) not in self.locally_aggregate_blacklist]
+
+		if self.locally_aggregate_whitelist:
+			to_locally_aggregate = [x for x in folders_with_no_index\
+				if x.name in self.locally_aggregate_whitelist or\
+				   str(x.path) in self.locally_aggregate_whitelist]
+
+		for folder in to_locally_aggregate:
+			folder.index_page = contentTree.AggregatedPage(
+				folder.name, folder.children)
+
+		## Aggregate all posts to optionally be used on the home page
+		to_globally_aggregate = list(filter(
+			lambda x: not self.is_page_func(x),
+			self.contentTree.leaves(include_index_pages=False)))
+
+		if self.globally_aggregate_blacklist:
+			to_globally_aggregate = [x for x in to_globally_aggregate\
+				if x.name not in self.globally_aggregate_blacklist and\
+				   str(x.path) not in self.globally_aggregate_blacklist]
+
+		if self.globally_aggregate_whitelist:
+			to_globally_aggregate = [x for x in to_globally_aggregate\
+				if x.name in self.globally_aggregate_whitelist or\
+				   str(x.path) in self.globally_aggregate_whitelist]
+
+		# Check if we have a home index page in which case we'll just store
+		# the globally aggregated content and if not we'll create an AggregatedPage
+		self.globally_aggregated_posts = to_globally_aggregate
+		if not self.contentTree.index_page:
+			self.contentTree.index_page = contentTree.AggregatedPage(
+				"home", to_globally_aggregate)
+
+
+class Jinja2Renderer:
+	def __init__(self, template_directories):
+		self.environment = jinja2.Environment(
+			loader=jinja2.ChoiceLoader(
+				[jinja2.FileSystemLoader(x) for x in template_directories]),
+			autoescape=jinja2.select_autoescape())
+
+	def render(self, template, **render_data):
+		return self.environment.get_template(template).render(**render_data)

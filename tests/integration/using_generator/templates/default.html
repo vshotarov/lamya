@@ -1,0 +1,10 @@
+DEFAULT TEMPLATE
+{{ page.content | safe }}
+{% for post in page.aggregated_posts %}
+	<article>
+		<header><h3>{{ post.title }}</h3></header>
+		<section>
+		{{ post.excerpt }}
+		</section>
+	</article>
+{% endfor %}
