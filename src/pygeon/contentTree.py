@@ -116,7 +116,8 @@ class Folder(ContentTree):
 	@index_page.setter
 	def index_page(self, new_index_page):
 		self._index_page = new_index_page
-		new_index_page._parent = self
+		if new_index_page:
+			new_index_page._parent = self
 
 	def pprint(self, level=0):
 		return "{indent1}{type}({name}) {{\n{indent2}{children}\n{indent2}}}".format(
@@ -295,3 +296,12 @@ class AggregatedPage(ProceduralPage):
 	def pprint(self, level=0):
 		return "%sAggregatedPage(%s) [%s]" % (" "*2*level, self.name,
 			",".join(p.name for p in self.aggregated_posts))
+
+	@property
+	def source(self):
+		if self._source is not None:
+			return self._source
+		elif self._source_path:
+			with open(self._source_path, "r") as f:
+				return f.read()
+		return None
