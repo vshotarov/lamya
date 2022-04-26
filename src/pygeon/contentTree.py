@@ -16,7 +16,7 @@ def warning(*args):
 	print("PygeonWarning:", *args)
 
 
-class ContentTree(object):
+class ContentTree:
 	"""A tree implementation specific to parsing the content for a static website"""
 	def __init__(self, name):
 		super(ContentTree, self).__init__()
