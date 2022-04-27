@@ -75,5 +75,8 @@ class RenderablePage:
 		self.content = markdown.markdown(self.raw_content)
 		self.excerpt = pygeon.contentProcessing.get_excerpt(self.content)
 		self.aggregated_posts = []
+		self.pagination = None
 		if isinstance(pageOrPost, pygeon.AggregatedPage):
 			self.aggregated_posts = [RenderablePage(p) for p in pageOrPost.aggregated_posts]
+			if isinstance(pageOrPost, pygeon.PaginatedAggregatedPage):
+				self.pagination = pageOrPost.pagination.as_navigation_dict()

@@ -5,7 +5,6 @@
 # Todos
 - because im using relative urls, make sure to define a canonical one
 - add user data to ContentTree classes?
-- implement pagination on the AggregatedPage
 - make the automatically build home page an aggregate of all the content on the website by default, but with the support of specifying the content to be aggregated, so it can be limited down to say all the blog posts only
 - at the moment rebuliding the website deletes the whole `build` folder and recreates it from scratch, which can become quite slow on huge websites, so i need some sort of a smart rebuild.
 

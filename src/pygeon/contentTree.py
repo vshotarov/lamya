@@ -4,12 +4,16 @@ import markdown
 from datetime import datetime
 from copy import deepcopy
 from collections import OrderedDict
+from math import ceil
 
 
 class LeafChildError(Exception):
 	pass
 
 class PageOrPostWithoutSourceError(Exception):
+	pass
+
+class PaginationError(Exception):
 	pass
 
 def warning(*args):
@@ -144,7 +148,9 @@ class Folder(ContentTree):
 
 		next_step = None
 		for i,child in enumerate(self._children):
-			if first_part in ["{%i}" % i, child.name]:
+			if first_part in ["{%i}" % i, child.name] + (
+					["page%i" % child.pagination.page_number]\
+					if isinstance(child, PaginatedAggregatedPage) else []):
 				next_step = child
 				break
 
@@ -305,3 +311,72 @@ class AggregatedPage(ProceduralPage):
 			with open(self._source_path, "r") as f:
 				return f.read()
 		return None
+
+	def paginate(self, num_posts_per_page):
+		if num_posts_per_page <= 0:
+			raise PaginationError("Can't paginate with less than 1 posts per page")
+
+		pages = []
+		for i in range(0, len(self.aggregated_posts), num_posts_per_page):
+			pages.append(PaginatedAggregatedPage(
+				self.name,self.aggregated_posts[i:i+num_posts_per_page],
+				Pagination(i/num_posts_per_page+1,
+					ceil(len(self.aggregated_posts) / num_posts_per_page) + 1,
+					None, None, prev_page=None if i == 0 else pages[-1]),
+				source_path=self.source_path, source=self._source))
+			pages[-1]._parent = self.parent
+
+			if len(pages) > 1:
+				pages[-2].pagination.next_page = pages[-1]
+
+		for p in pages:
+			p.pagination.first_page = pages[0]
+			p.pagination.last_page = pages[-1]
+
+		if self.parent.index_page == self:
+			self.parent.index_page = pages[0]
+			self.parent._children = pages[1:] + self.parent.children
+		else:
+			self.parent.children.remove(self)
+			self.parent._children += pages
+
+
+class PaginatedAggregatedPage(AggregatedPage):
+	def __init__(self, name, aggregated_posts, pagination,
+			source_path=None, source=None):
+		super(PaginatedAggregatedPage, self).__init__(
+			name, aggregated_posts, source_path, source)
+		self.pagination = pagination
+
+	def pprint(self, level=0):
+		return "%sPaginatedAggregatedPage(%s, %i) [%s]" % (
+			" "*2*level, self.name, self.pagination.page_number,
+			",".join(p.name for p in self.aggregated_posts))
+
+	def paginate(self, _):
+		raise PaginationError("The page '%s' is already paginated." % self.name)
+
+	@property
+	def path(self):
+		return self.parent.path / ("page%i" % self.pagination.page_number)
+
+
+class Pagination:
+	def __init__(self, page_number, max_page_number, first_page, last_page,
+			prev_page=None, next_page=None):
+		self.page_number = page_number
+		self.max_page_number = max_page_number
+		self.first_page = first_page
+		self.last_page = last_page
+		self.prev_page = prev_page
+		self.next_page = next_page
+
+	def as_navigation_dict(self):
+		return {
+			"page_number" : self.page_number,
+			"max_page_number" : self.max_page_number,
+			"first_page_href" : self.first_page.href,
+			"last_page_href" : self.last_page.href,
+			"prev_page_href" : self.prev_page.href if self.prev_page else None,
+			"next_page_href" : self.next_page.href if self.next_page else None,
+		}

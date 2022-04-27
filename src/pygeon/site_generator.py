@@ -19,7 +19,7 @@ class SiteGenerator:
 			static_directory="static", templates_directory="templates",
 			build_directory="build", locally_aggregate_whitelist=[],
 			locally_aggregate_blacklist=[], globally_aggregate_whitelist=[],
-			globally_aggregate_blacklist=[],
+			globally_aggregate_blacklist=[], num_posts_per_page=5,
 			is_page_func=lambda x: isinstance(x.parent, contentTree.Root)):
 		self.name = name
 		self.content_directory = Path(content_directory)
@@ -31,6 +31,7 @@ class SiteGenerator:
 		self.locally_aggregate_blacklist = locally_aggregate_blacklist
 		self.globally_aggregate_whitelist = globally_aggregate_whitelist
 		self.globally_aggregate_blacklist = globally_aggregate_blacklist
+		self.num_posts_per_page = num_posts_per_page
 		self.is_page_func = is_page_func
 
 		if locally_aggregate_whitelist and locally_aggregate_blacklist:
@@ -80,6 +81,8 @@ class SiteGenerator:
 		for folder in to_locally_aggregate:
 			folder.index_page = contentTree.AggregatedPage(
 				folder.name, folder.children)
+			if self.num_posts_per_page > 0:
+				folder.index_page.paginate(self.num_posts_per_page)
 
 		## Aggregate all posts to optionally be used on the home page
 		to_globally_aggregate = list(filter(
@@ -102,6 +105,8 @@ class SiteGenerator:
 		if not self.contentTree.index_page:
 			self.contentTree.index_page = contentTree.AggregatedPage(
 				"home", to_globally_aggregate)
+			if self.num_posts_per_page > 0:
+				self.contentTree.index_page.paginate(self.num_posts_per_page)
 
 
 class Jinja2Renderer:

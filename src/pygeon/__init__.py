@@ -1,2 +1,2 @@
 from .contentTree import ContentTree, Folder, Root, AbstractPageOrPost,\
-	PageOrPost, ProceduralPage, AggregatedPage
+	PageOrPost, ProceduralPage, AggregatedPage, PaginatedAggregatedPage
