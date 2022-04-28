@@ -29,6 +29,9 @@ def build():
 		static_directory=site_path / "static",
 		build_directory=site_path / "build")
 	site.process_content_tree()
+	print(site.contentTree.group(
+		lambda x: x.user_data["front_matter"].get("category")\
+			if x.user_data else None))
 	print(site.contentTree.get("blog/{1}").user_data["publish_date"], "<<")
 
 	print(site.contentTree)

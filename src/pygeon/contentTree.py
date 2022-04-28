@@ -331,6 +331,7 @@ class AggregatedPage(ProceduralPage):
 					None, None, prev_page=None if i == 0 else pages[-1]),
 				source_path=self.source_path, source=self._source))
 			pages[-1]._parent = self.parent
+			pages[-1].user_data = dict(self.user_data)
 
 			if len(pages) > 1:
 				pages[-2].pagination.next_page = pages[-1]

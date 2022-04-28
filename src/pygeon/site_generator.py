@@ -79,6 +79,8 @@ class SiteGenerator:
 				page.user_data["front_matter"], page.user_data["raw_content"] =\
 					contentProcessing.split_front_matter(
 						source, self.front_matter_delimiter)
+			else:
+				page.user_data["front_matter"] = {}
 
 			# We will be sorting content by date, so let's make sure all content
 			# has some sort of a date, either explicit in the front matter or
@@ -130,6 +132,7 @@ class SiteGenerator:
 			folder.index_page = contentTree.AggregatedPage(
 				folder.name, sorted(folder.children, reverse=True,
 					key=lambda x: x.user_data["publish_date"]))
+			folder.index_page.user_data["front_matter"] = {}
 			if self.num_posts_per_page > 0:
 				folder.index_page.paginate(self.num_posts_per_page)
 
@@ -154,6 +157,7 @@ class SiteGenerator:
 		if not self.contentTree.index_page:
 			self.contentTree.index_page = contentTree.AggregatedPage(
 				"home", to_globally_aggregate)
+			self.contentTree.index_page.user_data["front_matter"] = {}
 			if self.num_posts_per_page > 0:
 				self.contentTree.index_page.paginate(self.num_posts_per_page)
 
