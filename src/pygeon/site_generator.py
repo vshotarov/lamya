@@ -1,5 +1,8 @@
 from . import contentTree
+from . import contentProcessing
 from pathlib import Path
+from datetime import datetime
+import os
 try:
 	from markdown import markdown
 except ImportError:
@@ -14,13 +17,19 @@ class AggregateError(Exception):
 	pass
 
 
+class FrontMatterConfig:
+	key_publish_date = "publish_date"
+	date_format = "%d-%m-%Y %H:%M"
+
+
 class SiteGenerator:
 	def __init__(self, name, content_directory="content", theme_directory="theme",
 			static_directory="static", templates_directory="templates",
 			build_directory="build", locally_aggregate_whitelist=[],
 			locally_aggregate_blacklist=[], globally_aggregate_whitelist=[],
 			globally_aggregate_blacklist=[], num_posts_per_page=5,
-			is_page_func=lambda x: isinstance(x.parent, contentTree.Root)):
+			is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
+			front_matter_delimiter="+"):
 		self.name = name
 		self.content_directory = Path(content_directory)
 		self.theme_directory = Path(theme_directory)
@@ -33,6 +42,7 @@ class SiteGenerator:
 		self.globally_aggregate_blacklist = globally_aggregate_blacklist
 		self.num_posts_per_page = num_posts_per_page
 		self.is_page_func = is_page_func
+		self.front_matter_delimiter = front_matter_delimiter
 
 		if locally_aggregate_whitelist and locally_aggregate_blacklist:
 			raise AggregateError("Both 'locally_aggregate_whitelist' and"
@@ -56,6 +66,44 @@ class SiteGenerator:
 			self.templates_directory, self.theme_directory / "templates"])
 
 	def process_content_tree(self):
+		## At this point we have the main hierarchy. Let's now read the source
+		# store their front matter in the .user_data field for each page, so
+		# we can start optionally grouping the content using different heuristics
+		for page in self.contentTree.leaves():
+			# Store the front matter
+			source = page.source
+			if source:
+				# Let's cache the source, so we don't read it from disk, if it's
+				# ever requested again
+				page._source = source
+				page.user_data["front_matter"], page.user_data["raw_content"] =\
+					contentProcessing.split_front_matter(
+						source, self.front_matter_delimiter)
+
+			# We will be sorting content by date, so let's make sure all content
+			# has some sort of a date, either explicit in the front matter or
+			# we take the last modified time as a backup
+			if "publish_date" not in page.user_data:
+				# Use an `if`, so we can support the user manually setting
+				# the publish date beforehand if need by
+				last_modified_time = datetime.fromtimestamp(
+					os.path.getmtime(page.source_path) if page.source_path else 0)
+
+				front_matter_publish_date = page.user_data["front_matter"].get(
+					FrontMatterConfig.key_publish_date)
+				front_matter_publish_date = datetime.strptime(
+					front_matter_publish_date, FrontMatterConfig.date_format) if\
+					front_matter_publish_date else None
+
+				page.user_data["publish_date"] =\
+					front_matter_publish_date or last_modified_time
+
+				if not page.user_data["publish_date"]:
+					contentTree.warning("There's no '%s' key in the front matter for"
+						" '%s' and neither is there a 'source_path' that we can read"
+						" the last modified time from, so the date is going to be 0"
+						% (FrontMatterConfig.key_publish_date, self.path))
+
 		## Aggregate folders with no index pages
 		# Check if any folder is missing an index page, which would mean
 		# we need to create one. NOTE: most of the time I would imagine this
@@ -80,7 +128,8 @@ class SiteGenerator:
 
 		for folder in to_locally_aggregate:
 			folder.index_page = contentTree.AggregatedPage(
-				folder.name, folder.children)
+				folder.name, sorted(folder.children, reverse=True,
+					key=lambda x: x.user_data["publish_date"]))
 			if self.num_posts_per_page > 0:
 				folder.index_page.paginate(self.num_posts_per_page)
 

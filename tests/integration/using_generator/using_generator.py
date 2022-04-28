@@ -29,5 +29,6 @@ def build():
 		static_directory=site_path / "static",
 		build_directory=site_path / "build")
 	site.process_content_tree()
+	print(site.contentTree.get("blog/{1}").user_data["publish_date"], "<<")
 
 	print(site.contentTree)
