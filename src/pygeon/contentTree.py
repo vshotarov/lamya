@@ -22,10 +22,11 @@ def warning(*args):
 
 class ContentTree:
 	"""A tree implementation specific to parsing the content for a static website"""
-	def __init__(self, name):
+	def __init__(self, name, user_data={}):
 		super(ContentTree, self).__init__()
 		self.name = name
 		self._parent = None
+		self.user_data = dict(user_data)
 
 	@property
 	def parent(self):
@@ -70,7 +71,7 @@ class ContentTree:
 	def __repr__(self): return self.pprint()
 
 	@staticmethod
-	def from_directory(directory):
+	def from_directory(directory, accepted_file_types=[".md"]):
 		root = Root()
 
 		def recursive_builder(parent, directory):
@@ -78,6 +79,9 @@ class ContentTree:
 				if child_path.is_dir():
 					child = recursive_builder(Folder(child_path.name), child_path)
 					parent.add_child(child)
+
+				elif child_path.suffix not in accepted_file_types:
+					continue
 
 				elif child_path.stem == "index":
 					child = CustomIndexPage(parent, source_path=child_path)
@@ -96,8 +100,8 @@ class ContentTree:
 
 class Folder(ContentTree):
 	"""Subtree"""
-	def __init__(self, name):
-		super(Folder, self).__init__(name)
+	def __init__(self, name, user_data={}):
+		super(Folder, self).__init__(name, user_data)
 		self._children = []
 		self._index_page = None
 
@@ -200,8 +204,8 @@ class Folder(ContentTree):
 		# NOTE: Should we return a 404 page or a ProceduralIndexPage if
 		# include_index_pages is True and there's no include_index_pages
 		# Or maybe an extra argument to specify that?
-		return filter(lambda x: isinstance(x, AbstractPageOrPost),
-			self.flat(include_index_pages))
+		return list(filter(lambda x: isinstance(x, AbstractPageOrPost),
+			self.flat(include_index_pages)))
 
 	def filter(self, func, include_index_pages=True, recursive=True):
 		copy = deepcopy(self)
@@ -238,14 +242,14 @@ class Folder(ContentTree):
 
 
 class Root(Folder):
-	def __init__(self):
-		super(Root, self).__init__("/")
+	def __init__(self, user_data={}):
+		super(Root, self).__init__("/", user_data)
 
 
 class AbstractPageOrPost(ContentTree):
 	"""Leaf"""
-	def __init__(self, name, source_path=None, source=None):
-		super(AbstractPageOrPost, self).__init__(name)
+	def __init__(self, name, source_path=None, source=None, user_data={}):
+		super(AbstractPageOrPost, self).__init__(name, user_data)
 		self._source_path = source_path
 		self._source = source
 
@@ -285,8 +289,9 @@ class PageOrPost(AbstractPageOrPost):
 
 
 class CustomIndexPage(PageOrPost):
-	def __init__(self, parent, source_path=None, source=None):
-		super(CustomIndexPage, self).__init__(parent.name, source_path, source)
+	def __init__(self, parent, source_path=None, source=None, user_data={}):
+		super(CustomIndexPage, self).__init__(
+			parent.name, source_path, source, user_data)
 		self._parent = parent
 
 
@@ -295,8 +300,9 @@ class ProceduralPage(AbstractPageOrPost):
 
 
 class AggregatedPage(ProceduralPage):
-	def __init__(self, name, aggregated_posts, source_path=None, source=None):
-		super(AggregatedPage, self).__init__(name, source_path, source)
+	def __init__(self, name, aggregated_posts, source_path=None, source=None,
+			user_data={}):
+		super(AggregatedPage, self).__init__(name, source_path, source, user_data)
 		self.aggregated_posts = aggregated_posts
 
 	def pprint(self, level=0):
@@ -343,9 +349,9 @@ class AggregatedPage(ProceduralPage):
 
 class PaginatedAggregatedPage(AggregatedPage):
 	def __init__(self, name, aggregated_posts, pagination,
-			source_path=None, source=None):
+			source_path=None, source=None, user_data={}):
 		super(PaginatedAggregatedPage, self).__init__(
-			name, aggregated_posts, source_path, source)
+			name, aggregated_posts, source_path, source, user_data={})
 		self.pagination = pagination
 
 	def pprint(self, level=0):
