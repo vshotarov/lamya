@@ -1,6 +1,7 @@
 # Notes
 - I am not keen on the name `build` for the output folder
 - The way i handle reading the config file means is not very developer friendly, as then you have no auto completion on the config and site properties
+- I don't like page.user_data["front_matter"], but i also don't want to add the front matter to the contentTree classes, so im leaning towards just defining it on the contentTree instances inside a site generator
 
 # Todos
 - because im using relative urls, make sure to define a canonical one
