@@ -29,9 +29,8 @@ def build():
 		templates_directory=site_path / "templates",
 		static_directory=site_path / "static",
 		build_directory=site_path / "build")
-	site.process_content_tree()
+	site.process_contentTree()
+	site.aggregate_posts()
 	site.build_category_pages()
 
-	print(site.contentTree.get("Category1").href)
-	print(site.contentTree.get("blog").index_page.href)
 	print(site.contentTree)

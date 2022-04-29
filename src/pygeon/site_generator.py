@@ -81,7 +81,7 @@ class SiteGenerator:
 		self.renderer = Jinja2Renderer([
 			self.templates_directory, self.theme_directory / "templates"])
 
-	def process_content_tree(self):
+	def process_contentTree(self):
 		## At this point we have the main hierarchy. Let's now read the source
 		# store their front matter in the .user_data field for each page, so
 		# we can start optionally grouping the content using different heuristics
@@ -122,6 +122,7 @@ class SiteGenerator:
 						" the last modified time from, so the date is going to be 0"
 						% (FrontMatterConfig.key_publish_date, self.path))
 
+	def aggregate_posts(self):
 		## Aggregate folders with no index pages
 		# Check if any folder is missing an index page, which would mean
 		# we need to create one. NOTE: most of the time I would imagine this
