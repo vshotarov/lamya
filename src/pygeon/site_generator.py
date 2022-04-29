@@ -4,8 +4,9 @@ from pathlib import Path
 from datetime import datetime
 from functools import partial
 import os
+import shutil
 try:
-	from markdown import markdown
+	import markdown
 except ImportError:
 	markdown = None
 try:
@@ -18,6 +19,9 @@ class AggregateError(Exception):
 	pass
 
 class UncategorizedNotAllowedError(Exception):
+	pass
+
+class MarkupProcessorError(Exception):
 	pass
 
 
@@ -70,6 +74,7 @@ class SiteGenerator:
 		self.contentTree  = contentTree.ContentTree.from_directory(content_directory,
 			post_create_callback=partial(callbacks.post_contentTree_entity_create, self))
 		self.initialize_renderer()
+		self.initialize_markup_processor()
 
 	def initialize_renderer(self):
 		if jinja2 is None:
@@ -80,6 +85,15 @@ class SiteGenerator:
 
 		self.renderer = Jinja2Renderer([
 			self.templates_directory, self.theme_directory / "templates"])
+
+	def initialize_markup_processor(self):
+		if markdown is None:
+			raise NotImplementedError("SiteGenerator requires a"
+				" 'markup_processor_func' to be initialized , which is set to"
+				" markdown by default, but markdown is not included in the"
+				" requirements list, so you need to install it separately.")
+
+		self.markup_processor_func = markdown.markdown
 
 	def process_contentTree(self):
 		## At this point we have the main hierarchy. Let's now read the source
@@ -201,11 +215,32 @@ class SiteGenerator:
 		parent = parent or self.contentTree
 		for category, pages in grouped.items():
 			aggregatedPage = contentTree.AggregatedPage(
-				category, pages, {"front_matter":{}})
+				category, pages, user_data={"front_matter":{}})
 			parent.add_child(aggregatedPage)
 
 			if self.num_posts_per_page > 0:
 				aggregatedPage.paginate(self.num_posts_per_page)
+
+	def render(self, to_renderable_page=None, to_site_info=None, **kwargs):
+		if to_renderable_page is None:
+			to_renderable_page = partial(RenderablePage, self.markup_processor_func)
+		to_site_info = to_site_info or SiteInfo
+
+		if self.build_directory.exists():
+			shutil.rmtree(self.build_directory)
+
+		self.build_directory.mkdir()
+
+		for leaf in self.contentTree.leaves():
+			path = leaf.render_path(self.build_directory)
+
+			if not path.parent.exists():
+				os.makedirs(path.parent)
+
+			with open(path, "w") as f:
+				f.write(self.renderer.render("default.html",
+					page=to_renderable_page(leaf),
+					site_info=to_site_info(self), **kwargs))
 
 class Jinja2Renderer:
 	def __init__(self, template_directories):
@@ -216,3 +251,24 @@ class Jinja2Renderer:
 
 	def render(self, template, **render_data):
 		return self.environment.get_template(template).render(**render_data)
+
+
+class RenderablePage:
+	def __init__(self, markup_processor_func, pageOrPost):
+		self.name = pageOrPost.name
+		self.title = self.name.replace("_"," ").title()
+		self.content = markup_processor_func(
+			pageOrPost.user_data.get("raw_content",
+				contentProcessing.split_front_matter(pageOrPost.source)[1]))
+		self.excerpt = contentProcessing.get_excerpt(self.content)
+		self.href = pageOrPost.href
+		self.aggregated_posts = [] if not isinstance(pageOrPost, contentTree.AggregatedPage)\
+			else [RenderablePage(markup_processor_func, x) for x in pageOrPost.aggregated_posts]
+		self.pagination = pageOrPost.pagination.as_navigation_dict()\
+			if hasattr(pageOrPost, "pagination") else {}
+		self.user_data = pageOrPost.user_data # NOTE: not keen on these two lines
+		self.front_matter = pageOrPost.user_data # <<
+
+class SiteInfo:
+	def __init__(self, site_generator):
+		self.name = site_generator.name

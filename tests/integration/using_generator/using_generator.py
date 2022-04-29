@@ -32,5 +32,6 @@ def build():
 	site.process_contentTree()
 	site.aggregate_posts()
 	site.build_category_pages()
+	site.render()
 
 	print(site.contentTree)
