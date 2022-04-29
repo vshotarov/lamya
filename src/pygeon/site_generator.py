@@ -2,6 +2,7 @@ from . import contentTree
 from . import contentProcessing
 from pathlib import Path
 from datetime import datetime
+from functools import partial
 import os
 try:
 	from markdown import markdown
@@ -16,10 +17,23 @@ except ImportError:
 class AggregateError(Exception):
 	pass
 
+class UncategorizedNotAllowedError(Exception):
+	pass
+
 
 class FrontMatterConfig:
 	key_publish_date = "publish_date"
 	date_format = "%d-%m-%Y %H:%M"
+
+
+class Callbacks:
+	@staticmethod
+	def post_contentTree_entity_create(siteGenerator, entity):
+		# NOTE: I can use these callbacks to make sure all data that I would
+		# like to exist on the contentTree entities actually does, rather
+		# than defining everything on the contentTree definitions, which
+		# im still not sure is a good/bad idea
+		pass
 
 
 class SiteGenerator:
@@ -29,7 +43,7 @@ class SiteGenerator:
 			locally_aggregate_blacklist=[], globally_aggregate_whitelist=[],
 			globally_aggregate_blacklist=[], num_posts_per_page=5,
 			is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
-			front_matter_delimiter="+"):
+			front_matter_delimiter="+", callbacks=Callbacks()):
 		self.name = name
 		self.content_directory = Path(content_directory)
 		self.theme_directory = Path(theme_directory)
@@ -43,6 +57,7 @@ class SiteGenerator:
 		self.num_posts_per_page = num_posts_per_page
 		self.is_page_func = is_page_func
 		self.front_matter_delimiter = front_matter_delimiter
+		self.callbacks = callbacks
 
 		if locally_aggregate_whitelist and locally_aggregate_blacklist:
 			raise AggregateError("Both 'locally_aggregate_whitelist' and"
@@ -52,7 +67,8 @@ class SiteGenerator:
 				" enabled on everything by default.")
 
 		self.title_formatting = self.name + " | {page.title}"
-		self.contentTree  = contentTree.ContentTree.from_directory(content_directory)
+		self.contentTree  = contentTree.ContentTree.from_directory(content_directory,
+			post_create_callback=partial(callbacks.post_contentTree_entity_create, self))
 		self.initialize_renderer()
 
 	def initialize_renderer(self):
@@ -131,8 +147,9 @@ class SiteGenerator:
 		for folder in to_locally_aggregate:
 			folder.index_page = contentTree.AggregatedPage(
 				folder.name, sorted(folder.children, reverse=True,
-					key=lambda x: x.user_data["publish_date"]))
-			folder.index_page.user_data["front_matter"] = {}
+					key=lambda x: x.user_data["publish_date"]),
+					user_data={"front_matter":{}})
+			self.callbacks.post_contentTree_entity_create(self, folder.index_page)
 			if self.num_posts_per_page > 0:
 				folder.index_page.paginate(self.num_posts_per_page)
 
@@ -156,11 +173,38 @@ class SiteGenerator:
 		self.globally_aggregated_posts = to_globally_aggregate
 		if not self.contentTree.index_page:
 			self.contentTree.index_page = contentTree.AggregatedPage(
-				"home", to_globally_aggregate)
-			self.contentTree.index_page.user_data["front_matter"] = {}
+				"home", to_globally_aggregate, user_data={"front_matter": {}})
+			self.callbacks.post_contentTree_entity_create(
+					self, self.contentTree.index_page)
 			if self.num_posts_per_page > 0:
 				self.contentTree.index_page.paginate(self.num_posts_per_page)
 
+	def build_category_pages(self, parent=None,
+			category_accessor=lambda x: x.user_data.get("front_matter",{}).get("category"),
+			allow_uncategorized=True, uncategorized_name="Uncategorized",
+			leaves_filter=lambda x: True):
+		grouped = {}
+		for p in filter(lambda x: leaves_filter(x)\
+							  and isinstance(x, contentTree.PageOrPost)\
+							  and not self.is_page_func(x),
+				self.contentTree.leaves()):
+			grouped.setdefault(category_accessor(p), []).append(p)
+
+		if None in grouped:
+			if not allow_uncategorized:
+				raise UncategorizedNotAllowedError("The following pages don't have"
+					" categories, but 'allow_uncategorized' is False " + str(grouped[None]))
+			else:
+				grouped[uncategorized_name] = grouped.pop(None)
+
+		parent = parent or self.contentTree
+		for category, pages in grouped.items():
+			aggregatedPage = contentTree.AggregatedPage(
+				category, pages, {"front_matter":{}})
+			parent.add_child(aggregatedPage)
+
+			if self.num_posts_per_page > 0:
+				aggregatedPage.paginate(self.num_posts_per_page)
 
 class Jinja2Renderer:
 	def __init__(self, template_directories):

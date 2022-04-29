@@ -56,12 +56,12 @@ class ContentTree:
 
 	def render_path(self, build_path):
 		return Path(build_path) / (self.parent.path.relative_to("/")\
-				if self.parent.index_page == self else self.path.relative_to("/"))\
+				if self.is_index_page() else self.path.relative_to("/"))\
 				/ "index.html"
 
 	@property
 	def href(self):
-		return self.parent.path if self.parent.index_page == self else self.path
+		return self.parent.path if self.is_index_page() else self.path
 
 	def pprint(self, level=0):
 		return "{indent1}{type}({name})".format(indent1=" "*2*level,
@@ -71,8 +71,11 @@ class ContentTree:
 	def __repr__(self): return self.pprint()
 
 	@staticmethod
-	def from_directory(directory, accepted_file_types=[".md"]):
+	def from_directory(directory, accepted_file_types=[".md"],
+			post_create_callback=None):
+		post_create_callback = post_create_callback or (lambda _: None)
 		root = Root()
+		post_create_callback(root)
 
 		def recursive_builder(parent, directory):
 			for child_path in sorted(directory.iterdir()):
@@ -90,6 +93,8 @@ class ContentTree:
 				else:
 					child = PageOrPost(child_path.stem, source_path=child_path)
 					parent.add_child(child)
+
+				post_create_callback(child)
 
 			return parent
 
@@ -283,6 +288,9 @@ class AbstractPageOrPost(ContentTree):
 				" 'source_path' has already been set, so the newly set 'source'"
 				" will override that" % self.name)
 
+	def is_index_page(self):
+		return False if not self.parent else self.parent.index_page == self
+
 
 class PageOrPost(AbstractPageOrPost):
 	pass
@@ -340,7 +348,7 @@ class AggregatedPage(ProceduralPage):
 			p.pagination.first_page = pages[0]
 			p.pagination.last_page = pages[-1]
 
-		if self.parent.index_page == self:
+		if self.is_index_page():
 			self.parent.index_page = pages[0]
 			self.parent._children = pages[1:] + self.parent.children
 		else:
@@ -365,7 +373,10 @@ class PaginatedAggregatedPage(AggregatedPage):
 
 	@property
 	def path(self):
-		return self.parent.path / ("page%i" % self.pagination.page_number)
+		if self.pagination.first_page.is_index_page():
+			return self.parent.path / ("page%i" % self.pagination.page_number)
+		else:
+			return self.parent.path / self.name / ("page%i" % self.pagination.page_number)
 
 
 class Pagination:

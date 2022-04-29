@@ -4,6 +4,7 @@
 - I don't like page.user_data["front_matter"], but i also don't want to add the front matter to the contentTree classes, so im leaning towards just defining it on the contentTree instances inside a site generator
 
 # Todos
+- properly structure the `__init__.py`
 - because im using relative urls, make sure to define a canonical one
 - add user data to ContentTree classes?
 - make the automatically build home page an aggregate of all the content on the website by default, but with the support of specifying the content to be aggregated, so it can be limited down to say all the blog posts only
