@@ -301,13 +301,13 @@ class SiteGenerator:
 
 		if group_categories and self.category_pages:
 			category_paths = [p.path for p in self.category_pages]
-			navigatable_tree.groupTEMPORARY("Categories",
+			navigatable_tree.group("Categories",
 				[p for p in navigatable_tree.flat() if p.path in category_paths])
 
 		if group_archive and hasattr(self, "archive") and self.archive:
 			archive_paths = [p.path for p in\
 				self.archive.pages_by_month + self.archive.pages_by_year]
-			navigatable_tree.groupTEMPORARY("Archive",
+			navigatable_tree.group("Archive",
 				[p for p in navigatable_tree.flat() if p.path in archive_paths])
 
 		self.navigation = navigatable_tree.as_dict(lambda x: x.href)

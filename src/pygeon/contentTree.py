@@ -182,7 +182,7 @@ class Folder(ContentTree):
 			if isinstance(child, Folder) and recursive:
 				child.apply_func(func, include_index_pages)
 
-	def group(self, grouping_func, include_index_pages=True, recursive=True,
+	def to_groups(self, grouping_func, include_index_pages=True, recursive=True,
 			filter_func=lambda x: True):
 		grouped = {}
 		for child in self.children + ([self.index_page] if\
@@ -191,7 +191,7 @@ class Folder(ContentTree):
 				grouped.setdefault(grouping_func(child), []).append(child)
 
 			if isinstance(child, Folder) and recursive:
-				for k,v in child.group(grouping_func, include_index_pages,
+				for k,v in child.to_groups(grouping_func, include_index_pages,
 						filter_func=filter_func).items():
 					existing_values = grouped.setdefault(k, [])
 					existing_values += v
@@ -245,7 +245,7 @@ class Folder(ContentTree):
 		if include_index_pages and self.index_page and not func(self.index_page):
 			self._index_page = None
 
-	def groupTEMPORARY(self, name, entities):
+	def group(self, name, entities):
 		if not entities:
 			raise GroupError("Can't group an empty list of entities")
 

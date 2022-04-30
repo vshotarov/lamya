@@ -33,7 +33,7 @@ def build():
 	# All first level content i.e. content leaves whose parent is the root will
 	# be treated as pages rather than posts, so let's split our leaves into
 	# `pages` and `posts` groups
-	page_post_groups = content.group(
+	page_post_groups = content.to_groups(
 		lambda x: "page" if x.parent == content else "post", False)
 
 	# Build a navigation structure
