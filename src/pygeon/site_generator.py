@@ -28,6 +28,9 @@ class MarkupProcessorError(Exception):
 class ArchivePagesError(Exception):
 	pass
 
+class NavigationError(Exception):
+	pass
+
 
 class FrontMatterConfig:
 	key_publish_date = "publish_date"
@@ -217,13 +220,16 @@ class SiteGenerator:
 				grouped[uncategorized_name] = grouped.pop(None)
 
 		parent = parent or self.contentTree
+		self.category_pages = []
 		for category, pages in grouped.items():
 			aggregatedPage = contentTree.AggregatedPage(
 				category, pages, user_data={"front_matter":{}})
 			parent.add_child(aggregatedPage)
 
 			if self.num_posts_per_page > 0:
-				aggregatedPage.paginate(self.num_posts_per_page)
+				self.category_pages += aggregatedPage.paginate(self.num_posts_per_page)
+			else:
+				self.category_pages.append(aggregatedPage)
 
 	def build_archive(self, by_month_format="%B, %Y", by_year_format="%Y"):
 		by_month, by_year = {}, {}
@@ -275,6 +281,36 @@ class SiteGenerator:
 	def posts(self):
 		return [x for x in self.contentTree.leaves() if\
 				isinstance(x, contentTree.PageOrPost) and not self.is_page_func(x)]
+
+	def build_navigation(self, filter_func=None,
+			group_categories=True, group_archive=True):
+		if hasattr(self, "navigation"):
+			contentTree.warning("Navigation already exists, overwriting..")
+
+		# NOTE: Temporary for testing
+		old = self.is_page_func
+		self.is_page_func = lambda x: old(x) or "second" in x.name
+
+		filter_func = filter_func or (lambda x:\
+			(self.is_page_func(x) or x.parent == self.contentTree) and\
+			(True if not hasattr(x, "is_index_page") else not x.is_index_page()) and\
+			(True if not isinstance(x, contentTree.PaginatedAggregatedPage) else\
+			 x.pagination.page_number == 1))
+
+		navigatable_tree = self.contentTree.filter(filter_func, True)
+
+		if group_categories and self.category_pages:
+			category_paths = [p.path for p in self.category_pages]
+			navigatable_tree.groupTEMPORARY("Categories",
+				[p for p in navigatable_tree.flat() if p.path in category_paths])
+
+		if group_archive and hasattr(self, "archive") and self.archive:
+			archive_paths = [p.path for p in\
+				self.archive.pages_by_month + self.archive.pages_by_year]
+			navigatable_tree.groupTEMPORARY("Archive",
+				[p for p in navigatable_tree.flat() if p.path in archive_paths])
+
+		self.navigation = navigatable_tree.as_dict(lambda x: x.href)
 
 	def render(self, to_renderable_page=None, to_site_info=None, **kwargs):
 		if to_renderable_page is None:
@@ -328,6 +364,7 @@ class RenderablePage:
 class SiteInfo:
 	def __init__(self, site_generator):
 		self.name = site_generator.name
+		self.navigation = site_generator.navigation
 
 
 class Archive:

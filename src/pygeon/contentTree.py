@@ -16,6 +16,9 @@ class PageOrPostWithoutSourceError(Exception):
 class PaginationError(Exception):
 	pass
 
+class GroupError(Exception):
+	pass
+
 def warning(*args):
 	print("PygeonWarning:", *args)
 
@@ -241,6 +244,16 @@ class Folder(ContentTree):
 
 		if include_index_pages and self.index_page and not func(self.index_page):
 			self._index_page = None
+
+	def groupTEMPORARY(self, name, entities):
+		if not entities:
+			raise GroupError("Can't group an empty list of entities")
+
+		group = Folder(name)
+		group.parent_to(self)
+
+		for entity in entities:
+			entity.parent_to(group)
 
 	def as_dict(self, map_leaf=lambda x: x):
 		return OrderedDict([

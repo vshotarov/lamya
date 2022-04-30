@@ -1,4 +1,5 @@
 DEFAULT TEMPLATE
+{{ site_info.navigation }}
 <h1>{{ site_info.name }} | {{ page.title }} </h1>
 {{ page.content | safe }}
 {% for post in page.aggregated_posts %}
