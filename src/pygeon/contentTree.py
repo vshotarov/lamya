@@ -179,14 +179,17 @@ class Folder(ContentTree):
 			if isinstance(child, Folder) and recursive:
 				child.apply_func(func, include_index_pages)
 
-	def group(self, grouping_func, include_index_pages=True, recursive=True):
+	def group(self, grouping_func, include_index_pages=True, recursive=True,
+			filter_func=lambda x: True):
 		grouped = {}
 		for child in self.children + ([self.index_page] if\
 				self.index_page and include_index_pages else []):
-			grouped.setdefault(grouping_func(child), []).append(child)
+			if filter_func(child):
+				grouped.setdefault(grouping_func(child), []).append(child)
 
 			if isinstance(child, Folder) and recursive:
-				for k,v in child.group(grouping_func, include_index_pages).items():
+				for k,v in child.group(grouping_func, include_index_pages,
+						filter_func=filter_func).items():
 					existing_values = grouped.setdefault(k, [])
 					existing_values += v
 
@@ -335,7 +338,7 @@ class AggregatedPage(ProceduralPage):
 			pages.append(PaginatedAggregatedPage(
 				self.name,self.aggregated_posts[i:i+num_posts_per_page],
 				Pagination(i/num_posts_per_page+1,
-					ceil(len(self.aggregated_posts) / num_posts_per_page) + 1,
+					ceil(len(self.aggregated_posts) / num_posts_per_page),
 					None, None, prev_page=None if i == 0 else pages[-1]),
 				source_path=self.source_path, source=self._source))
 			pages[-1]._parent = self.parent
@@ -354,6 +357,8 @@ class AggregatedPage(ProceduralPage):
 		else:
 			self.parent.children.remove(self)
 			self.parent._children += pages
+
+		return pages
 
 
 class PaginatedAggregatedPage(AggregatedPage):
@@ -375,6 +380,8 @@ class PaginatedAggregatedPage(AggregatedPage):
 	def path(self):
 		if self.pagination.first_page.is_index_page():
 			return self.parent.path / ("page%i" % self.pagination.page_number)
+		elif self.pagination.max_page_number == 1:
+			return self.parent.path / self.name
 		else:
 			return self.parent.path / self.name / ("page%i" % self.pagination.page_number)
 

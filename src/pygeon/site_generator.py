@@ -5,6 +5,7 @@ from datetime import datetime
 from functools import partial
 import os
 import shutil
+from collections import OrderedDict
 try:
 	import markdown
 except ImportError:
@@ -22,6 +23,9 @@ class UncategorizedNotAllowedError(Exception):
 	pass
 
 class MarkupProcessorError(Exception):
+	pass
+
+class ArchivePagesError(Exception):
 	pass
 
 
@@ -45,7 +49,7 @@ class SiteGenerator:
 			static_directory="static", templates_directory="templates",
 			build_directory="build", locally_aggregate_whitelist=[],
 			locally_aggregate_blacklist=[], globally_aggregate_whitelist=[],
-			globally_aggregate_blacklist=[], num_posts_per_page=5,
+			globally_aggregate_blacklist=[], num_posts_per_page=1,
 			is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
 			front_matter_delimiter="+", callbacks=Callbacks()):
 		self.name = name
@@ -221,6 +225,57 @@ class SiteGenerator:
 			if self.num_posts_per_page > 0:
 				aggregatedPage.paginate(self.num_posts_per_page)
 
+	def build_archive(self, by_month_format="%B, %Y", by_year_format="%Y"):
+		by_month, by_year = {}, {}
+		for post in self.posts():
+			by_month.setdefault(post.user_data["publish_date"]\
+				.strftime(by_month_format),[]).append(post)
+			by_year.setdefault(post.user_data["publish_date"]\
+				.strftime(by_year_format),[]).append(post)
+
+		self.archive = Archive(
+			OrderedDict(sorted(by_month.items(), reverse=1,
+				key=lambda x: datetime.strptime(x[0], by_month_format))),
+			OrderedDict(sorted(by_year.items(), reverse=1,
+				key=lambda x: datetime.strptime(x[0], by_year_format))))
+
+		return self.archive
+
+	def build_archive_pages(self, parent=None, by_month=True, by_year=False):
+		if not hasattr(self, "archive"):
+			raise ArchivePagesError(
+				"The archive must first be initialized using 'build_archive'"
+				" before pages can be made out of it.")
+
+		parent = parent or self.contentTree
+		archives = (
+			(list(self.archive.posts_by_month.items()) if by_month else []),
+			(list(self.archive.posts_by_year.items()) if by_year else []))
+
+		if not (archives[0] or archives[1]):
+			raise ArchivePagesError("No posts to put in archive")
+
+		archive_pages = []
+		for archive in archives:
+			archive_pages.append([])
+			for archive_key, posts in archive:
+				aggregatedPage = contentTree.AggregatedPage(archive_key,
+					posts, user_data={"front_matter":{}})
+				parent.add_child(aggregatedPage)
+
+				if self.num_posts_per_page > 0:
+					archive_pages[-1] +=\
+						aggregatedPage.paginate(self.num_posts_per_page)
+				else:
+					archive_pages[-1].append(aggregatedPage)
+
+		self.archive.pages_by_month = archive_pages[0]
+		self.archive.pages_by_year = archive_pages[1]
+
+	def posts(self):
+		return [x for x in self.contentTree.leaves() if\
+				isinstance(x, contentTree.PageOrPost) and not self.is_page_func(x)]
+
 	def render(self, to_renderable_page=None, to_site_info=None, **kwargs):
 		if to_renderable_page is None:
 			to_renderable_page = partial(RenderablePage, self.markup_processor_func)
@@ -269,6 +324,23 @@ class RenderablePage:
 		self.user_data = pageOrPost.user_data # NOTE: not keen on these two lines
 		self.front_matter = pageOrPost.user_data # <<
 
+
 class SiteInfo:
 	def __init__(self, site_generator):
 		self.name = site_generator.name
+
+
+class Archive:
+	def __init__(self, posts_by_month, posts_by_year):
+		self.posts_by_month = posts_by_month
+		self.posts_by_year = posts_by_year
+		self.pages_by_month = []
+		self.pages_by_year = []
+
+	def as_navigation_dict(self):
+		return {
+			"by_month": [(p.name, p.href) for p in self.pages_by_month\
+				if p.pagination.page_number == 1],
+			"by_year": [(p.name, p.href) for p in self.pages_by_year\
+				if p.pagination.page_number == 1]
+			}
