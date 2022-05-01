@@ -47,6 +47,27 @@ class Callbacks:
 		pass
 
 
+class RenderablePage:
+	def __init__(self, pageOrPost):
+		self.name = pageOrPost.name
+		self.title = self.name.replace("_"," ").title()
+		self.content = pageOrPost.content
+		self.excerpt = contentProcessing.get_excerpt(self.content)
+		self.href = pageOrPost.href
+		self.aggregated_posts = [] if not isinstance(pageOrPost, contentTree.AggregatedPage)\
+			else [RenderablePage(x) for x in pageOrPost.aggregated_posts]
+		self.pagination = pageOrPost.pagination.as_navigation_dict()\
+			if hasattr(pageOrPost, "pagination") else {}
+		self.user_data = pageOrPost.user_data # NOTE: not keen on these two lines
+		self.front_matter = pageOrPost.front_matter # <<
+
+
+class SiteInfo:
+	def __init__(self, site_generator):
+		self.name = site_generator.name
+		self.navigation = site_generator.navigation
+
+
 class SiteGenerator:
 	def __init__(self, name, content_directory="content", theme_directory="theme",
 			static_directory="static", templates_directory="templates",
@@ -103,32 +124,21 @@ class SiteGenerator:
 		self.markup_processor_func = markdown.markdown
 
 	def process_contentTree(self):
-		## At this point we have the main hierarchy. Let's now read the source
-		# store their front matter in the .user_data field for each page, so
+		## At this point we have the main hierarchy. Let's now read the source, so
 		# we can start optionally grouping the content using different heuristics
 		for page in self.contentTree.leaves():
-			# Store the front matter
-			source = page.source
-			if source:
-				# Let's cache the source, so we don't read it from disk, if it's
-				# ever requested again
-				page._source = source
-				page.user_data["front_matter"], page.user_data["raw_content"] =\
-					contentProcessing.split_front_matter(
-						source, self.front_matter_delimiter)
-			else:
-				page.user_data["front_matter"] = {}
+			page.parse_front_matter_and_content()
 
 			# We will be sorting content by date, so let's make sure all content
 			# has some sort of a date, either explicit in the front matter or
 			# we take the last modified time as a backup
 			if "publish_date" not in page.user_data:
 				# Use an `if`, so we can support the user manually setting
-				# the publish date beforehand if need by
+				# the publish date beforehand if need be
 				last_modified_time = datetime.fromtimestamp(
 					os.path.getmtime(page.source_path) if page.source_path else 0)
 
-				front_matter_publish_date = page.user_data["front_matter"].get(
+				front_matter_publish_date = page.front_matter.get(
 					FrontMatterConfig.key_publish_date)
 				front_matter_publish_date = datetime.strptime(
 					front_matter_publish_date, FrontMatterConfig.date_format) if\
@@ -169,8 +179,7 @@ class SiteGenerator:
 		for folder in to_locally_aggregate:
 			folder.index_page = contentTree.AggregatedPage(
 				folder.name, sorted(folder.children, reverse=True,
-					key=lambda x: x.user_data["publish_date"]),
-					user_data={"front_matter":{}})
+					key=lambda x: x.user_data["publish_date"]))
 			self.callbacks.post_contentTree_entity_create(self, folder.index_page)
 			if self.num_posts_per_page > 0:
 				folder.index_page.paginate(self.num_posts_per_page)
@@ -195,14 +204,15 @@ class SiteGenerator:
 		self.globally_aggregated_posts = to_globally_aggregate
 		if not self.contentTree.index_page:
 			self.contentTree.index_page = contentTree.AggregatedPage(
-				"home", to_globally_aggregate, user_data={"front_matter": {}})
+				"home", sorted(to_globally_aggregate, reverse=True,
+					key=lambda x: x.user_data["publish_date"]))
 			self.callbacks.post_contentTree_entity_create(
 					self, self.contentTree.index_page)
 			if self.num_posts_per_page > 0:
 				self.contentTree.index_page.paginate(self.num_posts_per_page)
 
 	def build_category_pages(self, parent=None,
-			category_accessor=lambda x: x.user_data.get("front_matter",{}).get("category"),
+			category_accessor=lambda x: x.front_matter.get("category"),
 			allow_uncategorized=True, uncategorized_name="Uncategorized",
 			leaves_filter=lambda x: True):
 		grouped = {}
@@ -222,8 +232,7 @@ class SiteGenerator:
 		parent = parent or self.contentTree
 		self.category_pages = []
 		for category, pages in grouped.items():
-			aggregatedPage = contentTree.AggregatedPage(
-				category, pages, user_data={"front_matter":{}})
+			aggregatedPage = contentTree.AggregatedPage(category, pages)
 			parent.add_child(aggregatedPage)
 
 			if self.num_posts_per_page > 0:
@@ -265,8 +274,7 @@ class SiteGenerator:
 		for archive in archives:
 			archive_pages.append([])
 			for archive_key, posts in archive:
-				aggregatedPage = contentTree.AggregatedPage(archive_key,
-					posts, user_data={"front_matter":{}})
+				aggregatedPage = contentTree.AggregatedPage(archive_key, posts)
 				parent.add_child(aggregatedPage)
 
 				if self.num_posts_per_page > 0:
@@ -312,17 +320,22 @@ class SiteGenerator:
 
 		self.navigation = navigatable_tree.as_dict(lambda x: x.href)
 
-	def render(self, to_renderable_page=None, to_site_info=None, **kwargs):
-		if to_renderable_page is None:
-			to_renderable_page = partial(RenderablePage, self.markup_processor_func)
-		to_site_info = to_site_info or SiteInfo
-
+	def render(self, to_renderable_page=RenderablePage, to_site_info=SiteInfo,
+			markup_processor_func=markdown.markdown if markdown else None,
+			**kwargs):
 		if self.build_directory.exists():
 			shutil.rmtree(self.build_directory)
 
 		self.build_directory.mkdir()
 
-		for leaf in self.contentTree.leaves():
+		# We want to render aggregated pages last, so we make sure that all
+		# posts that they aggregate already have their content processed
+		for leaf in sorted(self.contentTree.leaves(),
+				key=lambda x: len(getattr(x, "aggregated_posts", []))):
+			# Make sure the content has been read and processed
+			leaf.parse_front_matter_and_content()
+			leaf.process_content(markup_processor_func)
+
 			path = leaf.render_path(self.build_directory)
 
 			if not path.parent.exists():
@@ -333,6 +346,7 @@ class SiteGenerator:
 					page=to_renderable_page(leaf),
 					site_info=to_site_info(self), **kwargs))
 
+
 class Jinja2Renderer:
 	def __init__(self, template_directories):
 		self.environment = jinja2.Environment(
@@ -342,29 +356,6 @@ class Jinja2Renderer:
 
 	def render(self, template, **render_data):
 		return self.environment.get_template(template).render(**render_data)
-
-
-class RenderablePage:
-	def __init__(self, markup_processor_func, pageOrPost):
-		self.name = pageOrPost.name
-		self.title = self.name.replace("_"," ").title()
-		self.content = markup_processor_func(
-			pageOrPost.user_data.get("raw_content",
-				contentProcessing.split_front_matter(pageOrPost.source)[1]))
-		self.excerpt = contentProcessing.get_excerpt(self.content)
-		self.href = pageOrPost.href
-		self.aggregated_posts = [] if not isinstance(pageOrPost, contentTree.AggregatedPage)\
-			else [RenderablePage(markup_processor_func, x) for x in pageOrPost.aggregated_posts]
-		self.pagination = pageOrPost.pagination.as_navigation_dict()\
-			if hasattr(pageOrPost, "pagination") else {}
-		self.user_data = pageOrPost.user_data # NOTE: not keen on these two lines
-		self.front_matter = pageOrPost.user_data # <<
-
-
-class SiteInfo:
-	def __init__(self, site_generator):
-		self.name = site_generator.name
-		self.navigation = site_generator.navigation
 
 
 class Archive:

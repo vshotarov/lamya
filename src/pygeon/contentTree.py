@@ -5,6 +5,12 @@ from datetime import datetime
 from copy import deepcopy
 from collections import OrderedDict
 from math import ceil
+try:
+	import markdown
+except ImportError:
+	markdown = None
+
+from pygeon.contentProcessing import split_front_matter
 
 
 class LeafChildError(Exception):
@@ -274,6 +280,10 @@ class AbstractPageOrPost(ContentTree):
 		self._source_path = source_path
 		self._source = source
 
+		self._front_matter = None
+		self._raw_content = None
+		self._content = None
+
 	@property
 	def source_path(self):
 		return self._source_path
@@ -306,6 +316,38 @@ class AbstractPageOrPost(ContentTree):
 
 	def is_index_page(self):
 		return False if not self.parent else self.parent.index_page == self
+
+	@property
+	def front_matter(self):
+		if self._front_matter is None:
+			warning("'front_matter' was requested on %s, but it's not been "
+				"read and parsed yet. Use 'parse_front_matter_and_content()' first"
+				% self.name)
+		return self._front_matter
+
+	@property
+	def raw_content(self):
+		if self._raw_content is None:
+			warning("'raw_content' was requested on %s, but it's not been "
+				"read and parsed yet. Use 'parse_front_matter_and_content()' first"
+				% self.name)
+		return self._raw_content
+
+	@property
+	def content(self):
+		if self._content is None:
+			warning("'content' was requested on %s, but it's not been "
+				"generated yet. Use 'process_content()' first"
+				% self.name)
+		return self._content
+
+	def parse_front_matter_and_content(self,
+			front_matter_and_content_split_func=split_front_matter):
+		self._front_matter, self._raw_content = split_front_matter(self.source)
+
+	def process_content(self,
+			markup_processor_func=markdown.markdown if markdown else None):
+		self._content = markup_processor_func(self._raw_content)
 
 
 class PageOrPost(AbstractPageOrPost):
@@ -355,6 +397,9 @@ class AggregatedPage(ProceduralPage):
 					None, None, prev_page=None if i == 0 else pages[-1]),
 				source_path=self.source_path, source=self._source))
 			pages[-1]._parent = self.parent
+			pages[-1]._front_matter = self._front_matter
+			pages[-1]._raw_content = self._raw_content
+			pages[-1]._content = self._content
 			pages[-1].user_data = dict(self.user_data)
 
 			if len(pages) > 1:
