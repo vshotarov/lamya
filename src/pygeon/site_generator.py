@@ -1,11 +1,10 @@
-from . import contentTree
-from . import contentProcessing
 from pathlib import Path
 from datetime import datetime
 from functools import partial
 import os
 import shutil
 from collections import OrderedDict
+
 try:
 	import markdown
 except ImportError:
@@ -14,6 +13,9 @@ try:
 	import jinja2
 except ImportError:
 	jinja2 = None
+
+from pygeon import contentTree
+from pygeon import contentProcessing
 
 
 class AggregateError(Exception):

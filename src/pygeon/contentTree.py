@@ -1,10 +1,11 @@
 from pathlib import Path
 import os
-import markdown
 from datetime import datetime
 from copy import deepcopy
 from collections import OrderedDict
 from math import ceil
+
+import markdown
 try:
 	import markdown
 except ImportError:
