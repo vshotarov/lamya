@@ -315,12 +315,12 @@ class SiteGenerator:
 		navigatable_tree = self.contentTree.filter(
 			lambda x: filter_func(x) and extra_filter_func(x), True)
 
-		if group_categories and self.category_pages:
+		if group_categories and getattr(self, "category_pages", None):
 			category_paths = [p.path for p in self.category_pages]
 			navigatable_tree.group(categories_name,
 				[p for p in navigatable_tree.flat() if p.path in category_paths])
 
-		if group_archive and hasattr(self, "archive") and self.archive:
+		if group_archive and getattr(self, "archive", None):
 			archive_paths = [p.path for p in\
 				self.archive.pages_by_month + self.archive.pages_by_year]
 			navigatable_tree.group(archive_name,

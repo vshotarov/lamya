@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 from pathlib import Path
 import json
 
@@ -10,6 +11,10 @@ def parse_args():
 	parser = argparse.ArgumentParser(
 		prog="python -m pygeon",
 		description="An opinionated static site generator using the `pygeon` library")
+	parser.add_argument("-ff","--from_file",
+		help="read the arguments from a python file, e.g. "
+			"`python -m pygeon -ff config.py`. If supplied, all extra command line"
+			" arguments will be treated as overrides for the config file.")
 	parser.add_argument("-n","--name",
 		help="the name of the website. Defaults to current directory name.")
 	parser.add_argument("-pp","--posts_per_page", default=-1, type=int,
@@ -127,6 +132,10 @@ def parse_args():
 
 	parsed_args = parser.parse_args()
 
+	return parsed_args
+
+
+def process_args(parsed_args):
 	if parsed_args.name is None:
 		parsed_args.name = Path(os.getcwd()).stem
 
@@ -139,6 +148,7 @@ def parse_args():
 
 
 def main(args):
+	process_args(args)
 	site_gen = site_generator.SiteGenerator(
 		name=args.name,
 		content_directory=args.content_directory,
@@ -190,4 +200,27 @@ def main(args):
 
 
 if __name__ == "__main__":
-	main(parse_args())
+	parsed_args = parse_args()
+	if parsed_args.from_file is None:
+		main(parse_args())
+	else:
+		# If we are reading from a file, let's get a dict with all the definitions
+		args = {}
+		with open(parsed_args.from_file, "r") as f:
+			exec(f.read(), {}, args)
+
+		# Then create a simple struct mimicking the parsed_args object
+		class ArgsFromFile: pass
+		args_object = ArgsFromFile
+
+		# Set all the config info on it
+		for k,v in args.items():
+			setattr(args_object, k, v)
+
+		# Overwrite any settings if they have been provided via the CLI or
+		# if they are missing
+		for k,v in parsed_args._get_kwargs():
+			if "--"+k in sys.argv or not hasattr(args_object, k):
+				setattr(args_object, k, v)
+
+		main(args_object)
