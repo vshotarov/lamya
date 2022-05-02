@@ -384,7 +384,8 @@ class AggregatedPage(ProceduralPage):
 				return f.read()
 		return None
 
-	def paginate(self, num_posts_per_page):
+	def paginate(self, num_posts_per_page, post_create_callback=None):
+		post_create_callback = post_create_callback or (lambda _: None)
 		if num_posts_per_page <= 0:
 			raise PaginationError("Can't paginate with less than 1 posts per page")
 
@@ -396,6 +397,7 @@ class AggregatedPage(ProceduralPage):
 					ceil(len(self.aggregated_posts) / num_posts_per_page),
 					None, None, prev_page=None if i == 0 else pages[-1]),
 				source_path=self.source_path, source=self._source))
+			post_create_callback(pages[-1])
 			pages[-1]._parent = self.parent
 			pages[-1]._front_matter = self._front_matter
 			pages[-1]._raw_content = self._raw_content

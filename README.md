@@ -1,6 +1,5 @@
 # Notes
 - I am not keen on the name `build` for the output folder
-- I really don't like that I use `user_data` as part of the `site_generator`, so then when I create a `RenderablePage` I have to both take information out of the `user_data` and store it in its own separate attributes, but also store the `user_data`. I think the solution would be to just set my attributes on the contentTree instances inside of the site generator.
 
 # Todos
 - add support for specifying the `template` in the `SiteGenerator.render` function - i think this might be good the way it is, as i'd rather choose a template from within the template engine, and of course `user_data` can always be used

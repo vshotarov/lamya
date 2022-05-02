@@ -44,7 +44,7 @@ class Callbacks:
 		# like to exist on the contentTree entities actually does, rather
 		# than defining everything on the contentTree definitions, which
 		# im still not sure is a good/bad idea
-		pass
+		entity.site_generator_data = {}
 
 
 class RenderablePage:
@@ -58,8 +58,9 @@ class RenderablePage:
 			else [RenderablePage(x) for x in pageOrPost.aggregated_posts]
 		self.pagination = pageOrPost.pagination.as_navigation_dict()\
 			if hasattr(pageOrPost, "pagination") else {}
-		self.user_data = pageOrPost.user_data # NOTE: not keen on these two lines
-		self.front_matter = pageOrPost.front_matter # <<
+		self.publish_date = pageOrPost.site_generator_data.get("publish_date")
+		self.user_data = pageOrPost.user_data
+		self.front_matter = pageOrPost.front_matter
 
 
 class SiteInfo:
@@ -132,7 +133,7 @@ class SiteGenerator:
 			# We will be sorting content by date, so let's make sure all content
 			# has some sort of a date, either explicit in the front matter or
 			# we take the last modified time as a backup
-			if "publish_date" not in page.user_data:
+			if page.site_generator_data.setdefault("publish_date", None) is None:
 				# Use an `if`, so we can support the user manually setting
 				# the publish date beforehand if need be
 				last_modified_time = datetime.fromtimestamp(
@@ -144,14 +145,14 @@ class SiteGenerator:
 					front_matter_publish_date, FrontMatterConfig.date_format) if\
 					front_matter_publish_date else None
 
-				page.user_data["publish_date"] =\
+				page.site_generator_data["publish_date"] =\
 					front_matter_publish_date or last_modified_time
 
-				if not page.user_data["publish_date"]:
+				if not page.site_generator_data["publish_date"]:
 					contentTree.warning("There's no '%s' key in the front matter for"
 						" '%s' and neither is there a 'source_path' that we can read"
 						" the last modified time from, so the date is going to be 0"
-						% (FrontMatterConfig.key_publish_date, self.path))
+						% (FrontMatterConfig.key_publish_date, page.path))
 
 	def aggregate_posts(self):
 		## Aggregate folders with no index pages
@@ -179,10 +180,11 @@ class SiteGenerator:
 		for folder in to_locally_aggregate:
 			folder.index_page = contentTree.AggregatedPage(
 				folder.name, sorted(folder.children, reverse=True,
-					key=lambda x: x.user_data["publish_date"]))
+					key=lambda x: x.site_generator_data["publish_date"]))
 			self.callbacks.post_contentTree_entity_create(self, folder.index_page)
 			if self.num_posts_per_page > 0:
-				folder.index_page.paginate(self.num_posts_per_page)
+				folder.index_page.paginate(self.num_posts_per_page,
+					partial(self.callbacks.post_contentTree_entity_create, self))
 
 		## Aggregate all posts to optionally be used on the home page
 		to_globally_aggregate = list(filter(
@@ -205,11 +207,12 @@ class SiteGenerator:
 		if not self.contentTree.index_page:
 			self.contentTree.index_page = contentTree.AggregatedPage(
 				"home", sorted(to_globally_aggregate, reverse=True,
-					key=lambda x: x.user_data["publish_date"]))
+					key=lambda x: x.site_generator_data["publish_date"]))
 			self.callbacks.post_contentTree_entity_create(
 					self, self.contentTree.index_page)
 			if self.num_posts_per_page > 0:
-				self.contentTree.index_page.paginate(self.num_posts_per_page)
+				self.contentTree.index_page.paginate(self.num_posts_per_page,
+					partial(self.callbacks.post_contentTree_entity_create, self))
 
 	def build_category_pages(self, parent=None,
 			category_accessor=lambda x: x.front_matter.get("category"),
@@ -236,16 +239,17 @@ class SiteGenerator:
 			parent.add_child(aggregatedPage)
 
 			if self.num_posts_per_page > 0:
-				self.category_pages += aggregatedPage.paginate(self.num_posts_per_page)
+				self.category_pages += aggregatedPage.paginate(self.num_posts_per_page,
+					partial(self.callbacks.post_contentTree_entity_create, self))
 			else:
 				self.category_pages.append(aggregatedPage)
 
 	def build_archive(self, by_month_format="%B, %Y", by_year_format="%Y"):
 		by_month, by_year = {}, {}
 		for post in self.posts():
-			by_month.setdefault(post.user_data["publish_date"]\
+			by_month.setdefault(post.site_generator_data["publish_date"]\
 				.strftime(by_month_format),[]).append(post)
-			by_year.setdefault(post.user_data["publish_date"]\
+			by_year.setdefault(post.site_generator_data["publish_date"]\
 				.strftime(by_year_format),[]).append(post)
 
 		self.archive = Archive(
@@ -279,7 +283,8 @@ class SiteGenerator:
 
 				if self.num_posts_per_page > 0:
 					archive_pages[-1] +=\
-						aggregatedPage.paginate(self.num_posts_per_page)
+						aggregatedPage.paginate(self.num_posts_per_page,
+							partial(self.callbacks.post_contentTree_entity_create, self))
 				else:
 					archive_pages[-1].append(aggregatedPage)
 
