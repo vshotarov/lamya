@@ -195,13 +195,13 @@ class SiteGenerator:
 
 		if self.globally_aggregate_blacklist:
 			to_globally_aggregate = [x for x in to_globally_aggregate\
-				if x.name not in self.globally_aggregate_blacklist and\
-				   str(x.path) not in self.globally_aggregate_blacklist]
+				if x.parent.name not in self.globally_aggregate_blacklist and\
+				   str(x.parent.path) not in self.globally_aggregate_blacklist]
 
 		if self.globally_aggregate_whitelist:
 			to_globally_aggregate = [x for x in to_globally_aggregate\
-				if x.name in self.globally_aggregate_whitelist or\
-				   str(x.path) in self.globally_aggregate_whitelist]
+				if x.parent.name in self.globally_aggregate_whitelist or\
+				   str(x.parent.path) in self.globally_aggregate_whitelist]
 
 		# Check if we have a home index page in which case we'll just store
 		# the globally aggregated content and if not we'll create an AggregatedPage
@@ -238,6 +238,7 @@ class SiteGenerator:
 		self.category_pages = []
 		for category, pages in grouped.items():
 			aggregatedPage = contentTree.AggregatedPage(category, pages)
+			self.callbacks.post_contentTree_entity_create(self, aggregatedPage)
 			parent.add_child(aggregatedPage)
 
 			if self.num_posts_per_page > 0:
@@ -281,6 +282,7 @@ class SiteGenerator:
 			archive_pages.append([])
 			for archive_key, posts in archive:
 				aggregatedPage = contentTree.AggregatedPage(archive_key, posts)
+				self.callbacks.post_contentTree_entity_create(self, aggregatedPage)
 				parent.add_child(aggregatedPage)
 
 				if self.num_posts_per_page > 0:
@@ -298,31 +300,30 @@ class SiteGenerator:
 				isinstance(x, contentTree.PageOrPost) and not self.is_page_func(x)]
 
 	def build_navigation(self, filter_func=None,
-			group_categories=True, group_archive=True):
+			group_categories=True, group_archive=True, extra_filter_func=None,
+			categories_name="Categories", archive_name="Archive"):
 		if hasattr(self, "navigation"):
 			contentTree.warning("Navigation already exists, overwriting..")
 
-		# NOTE: Temporary for testing
-		old = self.is_page_func
-		self.is_page_func = lambda x: old(x) or "second" in x.name
-
+		extra_filter_func = extra_filter_func or (lambda _: True)
 		filter_func = filter_func or (lambda x:\
 			(self.is_page_func(x) or x.parent == self.contentTree) and\
 			(True if not hasattr(x, "is_index_page") else not x.is_index_page()) and\
 			(True if not isinstance(x, contentTree.PaginatedAggregatedPage) else\
 			 x.pagination.page_number == 1))
 
-		navigatable_tree = self.contentTree.filter(filter_func, True)
+		navigatable_tree = self.contentTree.filter(
+			lambda x: filter_func(x) and extra_filter_func(x), True)
 
 		if group_categories and self.category_pages:
 			category_paths = [p.path for p in self.category_pages]
-			navigatable_tree.group("Categories",
+			navigatable_tree.group(categories_name,
 				[p for p in navigatable_tree.flat() if p.path in category_paths])
 
 		if group_archive and hasattr(self, "archive") and self.archive:
 			archive_paths = [p.path for p in\
 				self.archive.pages_by_month + self.archive.pages_by_year]
-			navigatable_tree.group("Archive",
+			navigatable_tree.group(archive_name,
 				[p for p in navigatable_tree.flat() if p.path in archive_paths])
 
 		self.navigation = navigatable_tree.as_dict(lambda x: x.href)

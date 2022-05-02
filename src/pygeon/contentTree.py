@@ -71,7 +71,8 @@ class ContentTree:
 
 	@property
 	def href(self):
-		return self.parent.path if self.is_index_page() else self.path
+		return self.parent.path if getattr(self, "is_index_page", lambda: False)()\
+			else self.path
 
 	def pprint(self, level=0):
 		return "{indent1}{type}({name})".format(indent1=" "*2*level,
