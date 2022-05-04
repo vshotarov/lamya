@@ -263,10 +263,12 @@ class Folder(ContentTree):
 		for entity in entities:
 			entity.parent_to(group)
 
-	def as_dict(self, map_leaf=lambda x: x):
+	def as_dict(self, map_leaf=lambda x: x, map_folder=lambda x: x):
 		return OrderedDict([
-			(p.name, (p.as_dict(map_leaf)) if isinstance(p, Folder) and p.children\
-				else map_leaf(p))\
+			(p.name,
+			 {"self": map_folder(p), "children": (p.as_dict(map_leaf,map_folder))}\
+				if isinstance(p, Folder) and p.children else\
+			 map_leaf(p))\
 			for p in self.children])
 
 
