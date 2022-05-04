@@ -69,6 +69,7 @@ class SiteInfo:
 	def __init__(self, site_generator):
 		self.name = site_generator.name
 		self.navigation = site_generator.navigation
+		self.lang = site_generator.lang
 
 
 class SiteGenerator:
@@ -78,7 +79,7 @@ class SiteGenerator:
 			locally_aggregate_blacklist=[], globally_aggregate_whitelist=[],
 			globally_aggregate_blacklist=[], num_posts_per_page=1,
 			is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
-			front_matter_delimiter="+", callbacks=Callbacks()):
+			front_matter_delimiter="+", callbacks=Callbacks(), lang="en"):
 		self.name = name
 		self.content_directory = Path(content_directory)
 		self.theme_directory = Path(theme_directory)
@@ -93,6 +94,7 @@ class SiteGenerator:
 		self.is_page_func = is_page_func
 		self.front_matter_delimiter = front_matter_delimiter
 		self.callbacks = callbacks
+		self.lang = lang
 
 		if locally_aggregate_whitelist and locally_aggregate_blacklist:
 			raise AggregateError("Both 'locally_aggregate_whitelist' and"
@@ -115,7 +117,8 @@ class SiteGenerator:
 				" your own templating engine.")
 
 		self.renderer = Jinja2Renderer([
-			self.templates_directory, self.theme_directory / "templates"])
+			self.templates_directory, self.theme_directory / "templates",
+			Path(__file__).parent / "themes" / "pygeon"])
 
 	def initialize_markup_processor(self):
 		if markdown is None:
@@ -181,8 +184,9 @@ class SiteGenerator:
 
 		for folder in to_locally_aggregate:
 			folder.index_page = contentTree.AggregatedPage(
-				folder.name, sorted(folder.children, reverse=True,
-					key=lambda x: x.site_generator_data["publish_date"]))
+				folder.name, sorted(
+					[x for x in folder.children if isinstance(x,contentTree.AbstractPageOrPost)],
+					reverse=True, key=lambda x: x.site_generator_data["publish_date"]))
 			self.callbacks.post_contentTree_entity_create(self, folder.index_page)
 			if self.num_posts_per_page > 0:
 				folder.index_page.paginate(self.num_posts_per_page,
@@ -306,11 +310,13 @@ class SiteGenerator:
 			contentTree.warning("Navigation already exists, overwriting..")
 
 		extra_filter_func = extra_filter_func or (lambda _: True)
-		filter_func = filter_func or (lambda x:\
-			(self.is_page_func(x) or x.parent == self.contentTree) and\
-			(True if not hasattr(x, "is_index_page") else not x.is_index_page()) and\
-			(True if not isinstance(x, contentTree.PaginatedAggregatedPage) else\
-			 x.pagination.page_number == 1))
+		filter_func = lambda _: True
+		# NOTE: Temporarily add everything to the navigation to test nesting
+		#filter_func = filter_func or (lambda x:\
+		#	(self.is_page_func(x) or x.parent == self.contentTree) and\
+		#	(True if not hasattr(x, "is_index_page") else not x.is_index_page()) and\
+		#	(True if not isinstance(x, contentTree.PaginatedAggregatedPage) else\
+		#	 x.pagination.page_number == 1))
 
 		navigatable_tree = self.contentTree.filter(
 			lambda x: filter_func(x) and extra_filter_func(x), True)
@@ -326,7 +332,7 @@ class SiteGenerator:
 			navigatable_tree.group(archive_name,
 				[p for p in navigatable_tree.flat() if p.path in archive_paths])
 
-		self.navigation = navigatable_tree.as_dict(lambda x: x.href)
+		self.navigation = navigatable_tree.as_dict(lambda x: x.href, lambda x: x.href)
 
 	def render(self, to_renderable_page=RenderablePage, to_site_info=SiteInfo,
 			markup_processor_func=markdown.markdown if markdown else None,
@@ -360,7 +366,8 @@ class Jinja2Renderer:
 		self.environment = jinja2.Environment(
 			loader=jinja2.ChoiceLoader(
 				[jinja2.FileSystemLoader(x) for x in template_directories]),
-			autoescape=jinja2.select_autoescape())
+			autoescape=jinja2.select_autoescape(),
+			trim_blocks=True, lstrip_blocks=True)
 
 	def render(self, template, **render_data):
 		return self.environment.get_template(template).render(**render_data)
