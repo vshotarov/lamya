@@ -140,7 +140,7 @@ def process_args(parsed_args):
 		parsed_args.name = Path(os.getcwd()).stem
 
 	parsed_args.site_directory = Path(parsed_args.site_directory).absolute()
-	for _dir in ["content","theme","templates","static","build"]:
+	for _dir in ["content","templates","static","build"]:
 		if getattr(parsed_args, _dir + "_directory") is None:
 			setattr(parsed_args, _dir + "_directory", parsed_args.site_directory / _dir)
 
