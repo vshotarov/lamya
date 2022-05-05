@@ -1,7 +1,7 @@
 {% macro nested_navigation(navigation_dict, indent_level=0, name="") -%}
 {% filter indent(indent_level*4) %}
 {% if name %}
-<ul aria-label="{{ name }} submenu">
+<ul aria-hidden="true" aria-expanded="false" aria-label="{{ name }} submenu">
 {% else %}
 <ul>
 {% endif %}
@@ -32,5 +32,6 @@
 		</nav>
 	</header>
 	{%- endblock %}
+	<script src="js/nav_aria.js"></script>
 </body>
 </html>
