@@ -24,13 +24,32 @@
 	<title>{{ page.title }} | {{ site_info.name }}</title>
 </head>
 <body>
-	{% block content %}
+	{% block body %}
+	{% block header %}
 	<header>
 		<a href="/" aria-label="go to homepage">{{ site_info.name }}</a>
 		<nav aria-label="main">
 			{{ nested_navigation(site_info.navigation, 3) }}
 		</nav>
 	</header>
+	{%- endblock %}
+	{% block content +%}
+	<main>
+		{% if page.is_post %}
+		{{ page.publish_date }}
+		{%- endif %}
+		{{ page.content | safe | indent(8) }}
+	</main>
+	{%- endblock %}
+	{% if site_info.theme_options.get("sidebar") %}
+	{% block sidebar +%}
+	<aside>
+		{% if site_info.theme_options.get("sidebar_image") %}
+		<img alt="{{ site_info.theme_options.get('sidebar_image_alt','') }}" src="{{ site_info.theme_options.get('sidebar_image','') }}">
+		{% endif %}
+	</aside>
+	{%- endblock %}
+	{%- endif %}
 	{%- endblock %}
 	<script src="js/nav_aria.js"></script>
 </body>

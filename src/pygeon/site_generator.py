@@ -46,7 +46,9 @@ class Callbacks:
 		# like to exist on the contentTree entities actually does, rather
 		# than defining everything on the contentTree definitions, which
 		# im still not sure is a good/bad idea
-		entity.site_generator_data = {}
+		entity.site_generator_data = {
+			"is_post": isinstance(entity, contentTree.PageOrPost) and\
+					not siteGenerator.is_page_func(entity)}
 
 
 class RenderablePage:
@@ -63,6 +65,7 @@ class RenderablePage:
 		self.publish_date = pageOrPost.site_generator_data.get("publish_date")
 		self.user_data = pageOrPost.user_data
 		self.front_matter = pageOrPost.front_matter
+		self.is_post = pageOrPost.site_generator_data.get("is_post",False)
 
 
 class SiteInfo:
@@ -70,6 +73,7 @@ class SiteInfo:
 		self.name = site_generator.name
 		self.navigation = site_generator.navigation
 		self.lang = site_generator.lang
+		self.theme_options = site_generator.theme_options
 
 
 class SiteGenerator:
@@ -79,7 +83,8 @@ class SiteGenerator:
 			locally_aggregate_blacklist=[], globally_aggregate_whitelist=[],
 			globally_aggregate_blacklist=[], num_posts_per_page=1,
 			is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
-			front_matter_delimiter="+", callbacks=Callbacks(), lang="en"):
+			front_matter_delimiter="+", callbacks=Callbacks(), lang="en",
+			theme_options={}):
 		self.name = name
 		self.content_directory = Path(content_directory)
 		self.theme_directory = Path(theme_directory) if theme_directory else\
@@ -96,6 +101,7 @@ class SiteGenerator:
 		self.front_matter_delimiter = front_matter_delimiter
 		self.callbacks = callbacks
 		self.lang = lang
+		self.theme_options = theme_options
 
 		if locally_aggregate_whitelist and locally_aggregate_blacklist:
 			raise AggregateError("Both 'locally_aggregate_whitelist' and"

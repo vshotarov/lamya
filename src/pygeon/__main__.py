@@ -17,6 +17,9 @@ def parse_args():
 			" arguments will be treated as overrides for the config file.")
 	parser.add_argument("-n","--name",
 		help="the name of the website. Defaults to current directory name.")
+	parser.add_argument("-l","--language", default="en",
+		help="the language of the website as required by the HTML `lang` attribute. "
+		"Default is 'en'.")
 	parser.add_argument("-pp","--posts_per_page", default=-1, type=int,
 		help="number of posts on per page (pagination). "
 			"If set to -1 no pagination will be applied.")
@@ -130,9 +133,20 @@ def parse_args():
 		help="the `datetime` fomatting to be used for the archive by year."
 			" Default is '%%Y', e.g. '2022'.")
 
+	theme_group = parser.add_argument_group("Theme options",
+		"Theme may require different options, such as 'dark' or 'light mode, "
+		"including a sidebar or not, social media profile links, etc."
+		"Since they may be anything the theme developer desides a catch-all "
+		"kind of argument is added to allow the user to specify any theme option.")
+	theme_group.add_argument("-tho", "--theme_options",
+		action="append", nargs=2, default=[],
+		help="Specifies a key value pair to be set as a theme option. "
+			"Can be used multiple times.")
+
 	parsed_args = parser.parse_args()
 
-	return parsed_args
+	return parsed_args, {long: short for short,long in\
+		[a.option_strings for a in parser._get_optional_actions()]}
 
 
 def process_args(parsed_args):
@@ -143,6 +157,12 @@ def process_args(parsed_args):
 	for _dir in ["content","templates","static","build"]:
 		if getattr(parsed_args, _dir + "_directory") is None:
 			setattr(parsed_args, _dir + "_directory", parsed_args.site_directory / _dir)
+
+	if isinstance(parsed_args.theme_options, list):
+		theme_options_dict = {}
+		for k,v in parsed_args.theme_options:
+			theme_options_dict[k] = v
+		parsed_args.theme_options = theme_options_dict
 
 	return parsed_args
 
@@ -160,7 +180,8 @@ def main(args):
 		locally_aggregate_blacklist=args.locally_aggregate_blacklist,
 		globally_aggregate_whitelist=args.globally_aggregate_whitelist,
 		globally_aggregate_blacklist=args.globally_aggregate_blacklist,
-		num_posts_per_page=args.posts_per_page)
+		num_posts_per_page=args.posts_per_page, lang=args.language,
+		theme_options=args.theme_options)
 	site_gen.process_contentTree()
 	site_gen.aggregate_posts()
 
@@ -200,9 +221,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-	parsed_args = parse_args()
+	parsed_args,option_strings = parse_args()
 	if parsed_args.from_file is None:
-		main(parse_args())
+		main(parsed_args)
 	else:
 		# If we are reading from a file, let's get a dict with all the definitions
 		args = {}
@@ -220,7 +241,14 @@ if __name__ == "__main__":
 		# Overwrite any settings if they have been provided via the CLI or
 		# if they are missing
 		for k,v in parsed_args._get_kwargs():
-			if "--"+k in sys.argv or not hasattr(args_object, k):
-				setattr(args_object, k, v)
+			if ("--"+k in sys.argv or option_strings["--"+k] in sys.argv)\
+					or not hasattr(args_object, k):
+				if k == "theme_options":
+					if not hasattr(args_object, k):
+						setattr(args_object, k, {})
+					for theme_key, theme_value in v:
+						getattr(args_object, k)[theme_key] = theme_value
+				else:
+					setattr(args_object, k, v)
 
 		main(args_object)
