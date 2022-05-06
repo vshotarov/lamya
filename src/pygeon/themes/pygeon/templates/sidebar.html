@@ -1,0 +1,7 @@
+{% block sidebar %}
+<aside>
+	{% if site_info.theme_options.get("sidebar_image") %}
+	<img alt="{{ site_info.theme_options.get('sidebar_image_alt','') }}" src="{{ site_info.theme_options.get('sidebar_image','') }}">
+	{% endif %}
+</aside>
+{%- endblock %}

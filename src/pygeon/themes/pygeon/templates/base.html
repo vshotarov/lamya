@@ -1,53 +1,20 @@
-{% macro nested_navigation(navigation_dict, indent_level=0, name="") -%}
-{% filter indent(indent_level*4) %}
-{% if name %}
-<ul aria-hidden="true" aria-expanded="false" aria-label="{{ name }} submenu">
-{% else %}
-<ul>
-{% endif %}
-	{% for name,href_or_submenu in navigation_dict.items() %}
-	<li>
-	{% if href_or_submenu is mapping %}
-		<a href="{{ href_or_submenu['self'] }}" aria-haspopup="true">{{ name }}</a>
-		{{ nested_navigation(href_or_submenu["children"], indent_level=2, name=name) }}
-	{% else %}
-		<a href="{{ href_or_submenu }}">{{ name }}</a>
-	{% endif %}
-	</li>
-	{% endfor %}
-</ul>
-{%- endfilter %}
-{%- endmacro %}
 <!DOCTYPE html>
 <html lang="{{ site_info.lang }}">
 <head>
 	<title>{{ page.title }} | {{ site_info.name }}</title>
 </head>
 <body>
-	{% block body %}
+	{%- block body %}
 
-	{%- block header %}
-	<header>
-		<a href="/" aria-label="go to homepage">{{ site_info.name }}</a>
-		<nav aria-label="main">
-			{{ nested_navigation(site_info.navigation, 3) }}
-		</nav>
-	</header>
-	{%- endblock %}
+	{%+ filter indent(4) %}{% include "header.html" %}{%- endfilter %}
 
 	<main>
 	{% block content +%}
 	{%- endblock %}
 	</main>
 
-	{%- if site_info.theme_options.get("sidebar") %}
-	{% block sidebar +%}
-	<aside>
-		{% if site_info.theme_options.get("sidebar_image") %}
-		<img alt="{{ site_info.theme_options.get('sidebar_image_alt','') }}" src="{{ site_info.theme_options.get('sidebar_image','') }}">
-		{% endif %}
-	</aside>
-	{%- endblock %}
+	{%- if site_info.theme_options.get("sidebar") +%}
+	{%+ filter indent(4) %}{% include "sidebar.html" %}{% endfilter %}
 	{%- endif %}
 
 	<footer>
