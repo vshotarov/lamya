@@ -25,7 +25,8 @@
 </head>
 <body>
 	{% block body %}
-	{% block header %}
+
+	{%- block header %}
 	<header>
 		<a href="/" aria-label="go to homepage">{{ site_info.name }}</a>
 		<nav aria-label="main">
@@ -33,15 +34,13 @@
 		</nav>
 	</header>
 	{%- endblock %}
-	{% block content +%}
+
 	<main>
-		{% if page.is_post %}
-		{{ page.publish_date }}
-		{%- endif %}
-		{{ page.content | safe | indent(8) }}
-	</main>
+	{% block content +%}
 	{%- endblock %}
-	{% if site_info.theme_options.get("sidebar") %}
+	</main>
+
+	{%- if site_info.theme_options.get("sidebar") %}
 	{% block sidebar +%}
 	<aside>
 		{% if site_info.theme_options.get("sidebar_image") %}
@@ -50,7 +49,13 @@
 	</aside>
 	{%- endblock %}
 	{%- endif %}
+
+	<footer>
+		Copyright &copy; {{ site_info.theme_options.get("copyright_year", site_info.internal_data["build_date"].year) }} <a href="/" aria-label="home page">{{ site_info.name }}</a>.
+		Powered by <a aria-label="the 'pygeon' site generator github repository" href="https://github.com/vshotarov/pygeon">pygeon</a>.
+	</footer>
 	{%- endblock %}
+
 	<script src="js/nav_aria.js"></script>
 </body>
 </html>

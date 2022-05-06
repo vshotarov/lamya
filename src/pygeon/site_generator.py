@@ -74,6 +74,7 @@ class SiteInfo:
 		self.navigation = site_generator.navigation
 		self.lang = site_generator.lang
 		self.theme_options = site_generator.theme_options
+		self.internal_data = site_generator.internal_data
 
 
 class SiteGenerator:
@@ -115,6 +116,10 @@ class SiteGenerator:
 			post_create_callback=partial(callbacks.post_contentTree_entity_create, self))
 		self.initialize_renderer()
 		self.initialize_markup_processor()
+
+		self.internal_data = {
+			"build_date": datetime.now()
+		}
 
 	def initialize_renderer(self):
 		if jinja2 is None:

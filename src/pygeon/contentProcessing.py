@@ -41,7 +41,7 @@ def get_excerpt(content, remove_html_tags=True, excerpt_start_tag="<!--excerpt-s
 			if char == " ":
 				break
 		excerpt = str(clean_content[:fallback_num_characters+i])
-	return excerpt + suffix
+	return "".join(excerpt.splitlines()) + suffix
 
 
 def remove_html(x):
