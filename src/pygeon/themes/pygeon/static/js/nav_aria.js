@@ -1,18 +1,19 @@
 // https://www.w3.org/WAI/tutorials/menus/flyout/
+function setMouseOutTimeout(event) {
+	let target = event.target;
+	target.timer = setTimeout(function(event){
+		target.className = "has-submenu";
+	}, 1000);
+	target.removeEventListener("mouseleave", setMouseOutTimeout, false);
+}
+
 var menuItems = document.querySelectorAll('li.has-submenu');
-var timer;
 Array.prototype.forEach.call(menuItems, function(el, i){
-	el.addEventListener("mouseover", function(event){
+	el.addEventListener("mouseenter", function(event){
 		this.className = "has-submenu open";
-		clearTimeout(timer);
-	});
-	el.addEventListener("mouseout", function(event){
-		timer = setTimeout(function(event){
-			var opened_submenu = document.querySelector(".has-submenu.open");
-			if(opened_submenu) {
-				opened_submenu.className = "has-submenu";
-			}
-		}, 1000);
+		clearTimeout(this.timer);
+
+		this.addEventListener("mouseleave", setMouseOutTimeout);
 	});
 });
 

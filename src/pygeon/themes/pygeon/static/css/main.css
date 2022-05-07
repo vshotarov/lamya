@@ -1,5 +1,5 @@
 img {
-	max-width: 10%;
+	max-width: 100%;
 }
 
 /*
@@ -20,6 +20,7 @@ img {
 /* Fix scroll bar jumping issue */
 html {
 	overflow-y: scroll;
+	font-size: 16px;
 }
 
 /* Beginning of main layout for a desktop screen */
@@ -41,8 +42,13 @@ body {
 	max-width: 1200px;
 }
 
-.main-and-sidebar-wrapper > header,
-.main-and-sidebar-wrapper > footer {
+.main-and-sidebar-wrapper > *,
+body > footer {
+	padding: 10px;
+	box-sizing: border-box;
+}
+
+.main-and-sidebar-wrapper > header {
 	background: green;
 }
 
@@ -78,13 +84,63 @@ body > footer {
 }
 /* End of main layout for a mobile screen */
 
-/* Navigation */
+/* 1. Header */
+.main-and-sidebar-wrapper > header {
+	display: flex;
+	width: 100%;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+}
+
+/* 1.1 Logo */
+.main-and-sidebar-wrapper > header > a {
+	font-size: 2.2em;
+}
+
+/* 1.2 Navigation */
+header nav {
+	clear: both;
+}
+header nav ul {
+	padding: 0;
+	margin: 0;
+}
+
+header nav li {
+	float: left;
+	list-style: none;
+	display: block;
+	position: relative;
+	padding: 5px;
+	box-sizing: border-box;
+}
+
+header nav li ul {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	background: orange;
+}
+
+header nav li ul li {
+	width: 100%;
+}
+
+header nav li ul ul {
+	top: 0;
+	right: 100%;
+	left: auto;
+}
+
 ul[aria-hidden="true"] {
 	display: none;
 }
 
-nav > ul li       > ul { display: none; }
-nav > ul li:hover > ul { display: inherit;}
+header nav > ul li       > ul { display: none !important; }
+header nav > ul li:hover > ul { display: block!important;}
 li.open > ul {
-	display: inherit;
+	display: block!important;
 }
+/* end 1.2 */
+/* end 1. */
