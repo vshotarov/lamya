@@ -1,0 +1,43 @@
+img {
+	max-width: 100%;
+}
+
+body {
+	background: grey;
+	display: flex;
+	min-height: 100vh;
+	flex-direction: column;
+	align-items: center;
+}
+
+.main-and-sidebar-wrapper {
+	flex: 1;
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: center;
+	align-content: flex-start;
+	column-gap: 10px;
+	max-width: 1200px;
+}
+
+.main-and-sidebar-wrapper > header,
+.main-and-sidebar-wrapper > footer {
+	background: green;
+}
+
+.main-and-sidebar-wrapper > header {
+	flex: 1 100%;
+}
+
+.main-and-sidebar-wrapper > main {
+	flex: 2 0 0;
+}
+
+.main-and-sidebar-wrapper > aside {
+	flex: 1 0 0;
+}
+
+body > footer {
+	width: 100%;
+	max-width: 1200px;
+}

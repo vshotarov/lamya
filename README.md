@@ -2,6 +2,8 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- minify css and js?
+- add all the necessary header meta tags to the theme
 - document the theme and its options
 - add support for specifying the `template` in the `SiteGenerator.render` function - i think this might be good the way it is, as i'd rather choose a template from within the template engine, and of course `user_data` can always be used
 - consider rendering the first page of a paginated page to both `{page}/` and `{page}/page{pageNum}`. I know it can be done with a redirect, but I'd rather not require that

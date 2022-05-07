@@ -2,8 +2,11 @@
 <html lang="{{ site_info.lang }}">
 <head>
 	<title>{{ page.title }} | {{ site_info.name }}</title>
+	<link rel="stylesheet" href="/css/normalize.css">
+	<link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
+	<div class="main-and-sidebar-wrapper">
 	{%- block body %}
 
 	{%+ filter indent(4) %}{% include "header.html" %}{%- endfilter %}
@@ -16,12 +19,13 @@
 	{%- if site_info.theme_options.get("sidebar") +%}
 	{%+ filter indent(4) %}{% include "sidebar.html" %}{% endfilter %}
 	{%- endif %}
+	</div>
 
 	<footer>
 		Copyright &copy; {{ site_info.theme_options.get("copyright_year", site_info.internal_data["build_date"].year) }} <a href="/" aria-label="home page">{{ site_info.name }}</a>.
 		Powered by <a aria-label="the 'pygeon' site generator github repository" href="https://github.com/vshotarov/pygeon">pygeon</a>.
 	</footer>
-	{%- endblock %}
+	{% endblock %}
 
 	<script src="js/nav_aria.js"></script>
 </body>
