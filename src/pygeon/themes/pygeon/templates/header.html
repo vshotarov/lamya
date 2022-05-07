@@ -6,11 +6,13 @@
 <ul>
 {% endif %}
 	{% for name,href_or_submenu in navigation_dict.items() %}
-	<li>
 	{% if href_or_submenu is mapping %}
+	<li class="has-submenu">
 		<a href="{{ href_or_submenu['self'] }}" aria-haspopup="true">{{ name }}</a>
+		<button class="visually-hidden">Toggle submenu for "{{name}}"</button>
 		{{ nested_navigation(href_or_submenu["children"], indent_level=2, name=name) }}
 	{% else %}
+	<li>
 		<a href="{{ href_or_submenu }}">{{ name }}</a>
 	{% endif %}
 	</li>

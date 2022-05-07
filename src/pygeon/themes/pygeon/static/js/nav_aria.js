@@ -1,75 +1,36 @@
-// https://www.a11y-101.com/development/nested-navigation
-if (!Element.prototype.closest) {
-    Element.prototype.closest = function(s) {
-        var el = this;
-        if (!document.documentElement.contains(el)) return null;
-            do {
-                if (el.matches(s)) return el;
-                el = el.parentElement || el.parentNode;
-            } while (el !== null && el.nodeType === 1);
-            return null;
-    };
-}
-
-/*
-/ walk through all links
-/ watch out whether they have an 'aria-haspopup'
-/ as soon as a link has got the 'focus' (also key), then:
-/ set nested UL to 'display:block;'
-/ set attribute 'aria-hidden' of this UL to 'false'
-/ and set attribute 'aria-expanded' to 'true'
-*/
-
-var opened;
-
-// resets currently opened list style to CSS based value
-// sets 'aria-hidden' to 'true'
-// sets 'aria-expanded' to 'false'
-function reset() {
-    if (opened) {
-        opened.style.display = '';
-        opened.setAttribute('aria-hidden', 'true');
-        opened.setAttribute('aria-expanded', 'false');
-    }
-}
-
-// sets given list style to inline 'display: block;'
-// sets 'aria-hidden' to 'false'
-// sets 'aria-expanded' to 'true'
-// stores the opened list for later use
-function open(el) {
-    el.style.display = 'block';
-    el.setAttribute('aria-hidden', 'false');
-    el.setAttribute('aria-expanded', 'true');
-    opened = el;
-}
-
-// event delegation
-// reset navigation on click outside of list
-document.addEventListener('click', function(event) {
-    if (!event.target.closest('[aria-hidden]')) {
-        reset();
-    }
+// https://www.w3.org/WAI/tutorials/menus/flyout/
+var menuItems = document.querySelectorAll('li.has-submenu');
+var timer;
+Array.prototype.forEach.call(menuItems, function(el, i){
+	el.addEventListener("mouseover", function(event){
+		this.className = "has-submenu open";
+		clearTimeout(timer);
+	});
+	el.addEventListener("mouseout", function(event){
+		timer = setTimeout(function(event){
+			var opened_submenu = document.querySelector(".has-submenu.open");
+			if(opened_submenu) {
+				opened_submenu.className = "has-submenu";
+			}
+		}, 1000);
+	});
 });
 
-// event delegation
-document.addEventListener('focusin', function(event) {
-    // reset list style on every focusin
-    reset();
+var menuItems = document.querySelectorAll('li.has-submenu');
+Array.prototype.forEach.call(menuItems, function(el, i){
+	var activatingA = el.querySelector('a');
+	var btn = el.querySelector('button');
 
-    // check if a[aria-haspopup="true"] got focus
-    var target = event.target;
-    var hasPopup = target.getAttribute('aria-haspopup') === 'true';
-    if (hasPopup) {
-        open(event.target.nextElementSibling);
-        return;
-    }
-
-    // check if anchor inside sub menu got focus
-    var popupAnchor = target.parentNode.parentNode.previousElementSibling;
-    var isSubMenuAnchor = popupAnchor && popupAnchor.getAttribute('aria-haspopup') === 'true';
-    if (isSubMenuAnchor) {
-        open(popupAnchor.nextElementSibling);
-        return;
-    }
-})
+	btn.addEventListener("click",  function(event){
+		if (this.parentNode.className == "has-submenu") {
+			this.parentNode.className = "has-submenu open";
+			this.parentNode.querySelector('ul').setAttribute('aria-expanded', "true");
+			this.parentNode.querySelector('ul').setAttribute('aria-hidden', "false");
+		} else {
+			this.parentNode.className = "has-submenu";
+			this.parentNode.querySelector('ul').setAttribute('aria-expanded', "false");
+			this.parentNode.querySelector('ul').setAttribute('aria-hidden', "true");
+		}
+		event.preventDefault();
+	});
+});
