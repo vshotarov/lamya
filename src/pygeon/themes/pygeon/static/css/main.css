@@ -95,7 +95,7 @@ body > footer {
 
 /* 1.1 Logo */
 .main-and-sidebar-wrapper > header > a {
-	font-size: 2.2em;
+	font-size: 2.2rem;
 }
 
 /* 1.2 Navigation */
@@ -147,14 +147,47 @@ li.open > ul {
 
 /* Caret icon */
 header nav li img {
-	height: 0.8em;
+	height: 0.8rem;
 	width: auto;
 	max-width: none;
 }
 
 header nav > ul > li > img {
-	margin-right: -0.4em;
+	margin-right: -0.4rem;
 }
 
 /* end 1.2 */
 /* end 1. */
+
+/* 2. Sidebar */
+.main-and-sidebar-wrapper > aside dl {
+	display: grid;
+	grid-template-columns: auto 1fr;
+}
+
+.main-and-sidebar-wrapper > aside ul {
+	list-style: none;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	margin: 0 auto;
+}
+
+.main-and-sidebar-wrapper > aside #sidebar-social-links img {
+	height: 1.0rem;
+	width: auto;
+	max-width: none;
+	display: block;
+	float: left;
+}
+
+.main-and-sidebar-wrapper > aside #sidebar-social-links > *:after {
+	content: "\B7";
+}
+.main-and-sidebar-wrapper > aside #sidebar-social-links > *:last-child:after {
+	content: "\00a0";
+}
+
+/* end 2. */

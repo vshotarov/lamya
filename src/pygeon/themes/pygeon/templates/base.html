@@ -18,7 +18,7 @@
 
 	{%- if site_info.theme_options.get("sidebar") +%}
 	{%+ filter indent(4) %}{% include "sidebar.html" %}{% endfilter %}
-	{%- endif %}
+	{%- endif +%}
 	</div>
 
 	<footer>

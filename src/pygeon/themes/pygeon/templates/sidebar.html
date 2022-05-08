@@ -3,5 +3,30 @@
 	{% if site_info.theme_options.get("sidebar_image") %}
 	<img alt="{{ site_info.theme_options.get('sidebar_image_alt','') }}" src="{{ site_info.theme_options.get('sidebar_image','') }}">
 	{% endif %}
+	{% if site_info.theme_options.get("social_links") %}
+	<ul id="sidebar-social-links" aria-label="social links">
+	{% for link in site_info.theme_options.get("social_links") %}
+		<li>
+		{% if (link | length) == 3 %}
+			<a aria-label="{{ link[0] }} link" href="{{ link[1] }}"><img alt="" src="{{ link[2] }}"></a>
+		{% else %}
+			<a href="{{ link[1] }}">{{ link[0] }}</a>
+		{% endif %}
+		</li>
+	{% endfor %}
+	</ul>
+	{% endif %}
+	{% if site_info.theme_options.get("links") %}
+	<dl aria-label="links">
+	{% for link in site_info.theme_options.get("links") %}
+		<dt>{{ link[0] }}</dt>
+		{% if (link | length) == 3 %}
+		<dd><a href="{{ link[1] }}">{{ link[2] }}</a></dd>
+		{% else %}
+		<dd><a aria-label="{{ link[0] }} link" href="{{ link[1] }}">link</a></dd>
+		{% endif %}
+	{% endfor %}
+	</dl>
+	{% endif %}
 </aside>
 {%- endblock %}
