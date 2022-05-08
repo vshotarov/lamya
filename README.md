@@ -2,6 +2,7 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- add a reference to tabler somewhere in the default theme. powered by?
 - replace RuntimeError in `__main__.py` with a custom one
 - minify css and js?
 - add all the necessary header meta tags to the theme

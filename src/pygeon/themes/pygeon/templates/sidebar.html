@@ -3,6 +3,7 @@
 	{% if site_info.theme_options.get("sidebar_image") %}
 	<img alt="{{ site_info.theme_options.get('sidebar_image_alt','') }}" src="{{ site_info.theme_options.get('sidebar_image','') }}">
 	{% endif %}
+
 	{% if site_info.theme_options.get("social_links") %}
 	<ul id="sidebar-social-links" aria-label="social links">
 	{% for link in site_info.theme_options.get("social_links") %}
@@ -16,6 +17,11 @@
 	{% endfor %}
 	</ul>
 	{% endif %}
+
+	{% if site_info.theme_options.get("sidebar_description") %}
+	<p>{{ site_info.theme_options.get("sidebar_description") }}</p>
+	{% endif %}
+
 	{% if site_info.theme_options.get("links") %}
 	<dl aria-label="links">
 	{% for link in site_info.theme_options.get("links") %}
