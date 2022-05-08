@@ -1,4 +1,5 @@
 from pathlib import Path
+import glob
 from datetime import datetime
 from functools import partial
 import os
@@ -356,12 +357,17 @@ class SiteGenerator:
 		# Copy over static content
 		def copy_static(static_dir):
 			if static_dir.exists():
-				for x in static_dir.iterdir():
-					destination = self.build_directory / x.relative_to(static_dir)
-					if x.is_file():
-						shutil.copy2(x, destination)
-					else:
-						shutil.copytree(x, destination)
+				for x in glob.glob(str(static_dir) + "/**/*", recursive=True):
+					p = Path(x)
+					if not p.is_file():
+						continue
+
+					destination = self.build_directory / p.relative_to(static_dir)
+					if not destination.parent.exists():
+						os.makedirs(destination.parent)
+
+					shutil.copy2(x,destination)
+
 		copy_static(self.theme_directory / "static")
 		copy_static(self.static_directory)
 
