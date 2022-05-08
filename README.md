@@ -2,6 +2,7 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- replace RuntimeError in `__main__.py` with a custom one
 - minify css and js?
 - add all the necessary header meta tags to the theme
 - document the theme and its options

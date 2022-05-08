@@ -10,7 +10,8 @@ from pygeon import site_generator
 def parse_args():
 	parser = argparse.ArgumentParser(
 		prog="python -m pygeon",
-		description="An opinionated static site generator using the `pygeon` library")
+		description="An opinionated static site generator using the `pygeon` library",
+		formatter_class=argparse.RawTextHelpFormatter)
 	parser.add_argument("-ff","--from_file",
 		help="read the arguments from a python file, e.g. "
 			"`python -m pygeon -ff config.py`. If supplied, all extra command line"
@@ -136,20 +137,25 @@ def parse_args():
 	theme_group = parser.add_argument_group("Theme options",
 		"Theme may require different options, such as 'dark' or 'light mode, "
 		"including a sidebar or not, social media profile links, etc."
-		"Since they may be anything the theme developer desides a catch-all "
-		"kind of argument is added to allow the user to specify any theme option.")
-	theme_group.add_argument("-tho", "--theme_options",
-		action="append", nargs=2, default=[],
-		help="Specifies a key value pair to be set as a theme option. "
-			"Can be used multiple times.")
+		"Since they may be anything the theme developer is responsible for "
+		" outlining what arguments may be set. In order for them to be parsed"
+		" correctly the following 2 rules must be considered:\n\n1. we support "
+		" key-value pairs with up to three values per key. Simple theme args "
+		" must start with `-th_` or `--theme_option`, e.g. `-th_dark_mode` or"
+		" `--theme_option_dark_mode`. Arguments that accept tuples with 2 values"
+		" should be prefixed with `-th2_` or `--theme_option2` and the same goes"
+		" for arguments that accept tuples with 3 values.\n2. Setting the same"
+		" argument twice using `-th_{arg}` will overwrite the previous value."
+		" so if a list of values is required use `-thl_{arg}`,`-thl2_{arg}`,etc."
+		" \n\nNOTE: we only support up to 3 values per key.")
 
-	parsed_args = parser.parse_args()
+	parsed_args, unknown_args = parser.parse_known_args()
 
-	return parsed_args, {long: short for short,long in\
+	return parsed_args, unknown_args, {long: short for short,long in\
 		[a.option_strings for a in parser._get_optional_actions()]}
 
 
-def process_args(parsed_args):
+def process_args(parsed_args, unknown_args):
 	if parsed_args.name is None:
 		parsed_args.name = Path(os.getcwd()).stem
 
@@ -158,17 +164,54 @@ def process_args(parsed_args):
 		if getattr(parsed_args, _dir + "_directory") is None:
 			setattr(parsed_args, _dir + "_directory", parsed_args.site_directory / _dir)
 
-	if isinstance(parsed_args.theme_options, list):
-		theme_options_dict = {}
-		for k,v in parsed_args.theme_options:
-			theme_options_dict[k] = v
-		parsed_args.theme_options = theme_options_dict
+	# Theme options
+	theme_options = {}
+	simple_option_prefixes = ["-th_","-th2_","-th3_","--theme_option_",
+		 "--theme_option2_","--theme_option3_"]
+	list_option_prefixes = ["-thl_","-thl2_","-thl3_","--theme_list_option_",
+		 "--theme_list_option2_","--theme_list_option3_"]
+	while unknown_args:
+		current = unknown_args.pop(0)
+		is_simple_theme_option = any([current.startswith(x) for x in simple_option_prefixes])
+		is_list_theme_option = any([current.startswith(x) for x in list_option_prefixes])
+
+		if not (is_simple_theme_option or is_list_theme_option):
+			raise RuntimeError("Unrecognized argument " + current)
+
+		tuple_size = 1 if any([current.startswith(x) for x in\
+				(["-th_","--theme_option_"] if is_simple_theme_option else\
+				 ["-thl_","--theme_list_option_"])]) else\
+			int(current.split("_")[1 if current.startswith("--") else 0][-1])
+
+		arg_values = []
+		for i in range(tuple_size):
+			if not unknown_args or unknown_args[0].startswith("-"):
+				raise RuntimeError("Not enough values for arg " + current)
+			arg_values.append(unknown_args.pop(0))
+
+		key = current
+		for each in simple_option_prefixes + list_option_prefixes:
+			key = key.replace(each,"")
+
+		value = tuple(arg_values) if len(arg_values) > 1 else arg_values[0]
+
+		if is_simple_theme_option:
+			theme_options[key] = value
+		else:
+			if not isinstance(theme_options.get(key,[]), list):
+				theme_options[key] = []
+			theme_options.setdefault(key,[]).append(value)
+
+	if hasattr(parsed_args,"theme_options"):
+		for k,v in theme_options.items():
+			parsed_args.theme_options[k] = v
+	else:
+		parsed_args.theme_options = theme_options
 
 	return parsed_args
 
 
 def main(args):
-	process_args(args)
 	site_gen = site_generator.SiteGenerator(
 		name=args.name,
 		content_directory=args.content_directory,
@@ -221,9 +264,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-	parsed_args,option_strings = parse_args()
+	parsed_args,unknown_args,option_strings = parse_args()
 	if parsed_args.from_file is None:
-		main(parsed_args)
+		main(process_args(parsed_args, unknown_args))
 	else:
 		# If we are reading from a file, let's get a dict with all the definitions
 		args = {}
@@ -243,12 +286,6 @@ if __name__ == "__main__":
 		for k,v in parsed_args._get_kwargs():
 			if ("--"+k in sys.argv or option_strings["--"+k] in sys.argv)\
 					or not hasattr(args_object, k):
-				if k == "theme_options":
-					if not hasattr(args_object, k):
-						setattr(args_object, k, {})
-					for theme_key, theme_value in v:
-						getattr(args_object, k)[theme_key] = theme_value
-				else:
-					setattr(args_object, k, v)
+				setattr(args_object, k, v)
 
-		main(args_object)
+		main(process_args(args_object, unknown_args))
