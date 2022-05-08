@@ -110,7 +110,9 @@ header nav ul {
 header nav li {
 	float: left;
 	list-style: none;
-	display: block;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 	position: relative;
 	padding: 5px;
 	box-sizing: border-box;
@@ -142,5 +144,17 @@ header nav > ul li:hover > ul { display: block!important;}
 li.open > ul {
 	display: block!important;
 }
+
+/* Caret icon */
+header nav li img {
+	height: 0.8em;
+	width: auto;
+	max-width: none;
+}
+
+header nav > ul > li > img {
+	margin-right: -0.4em;
+}
+
 /* end 1.2 */
 /* end 1. */
