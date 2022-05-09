@@ -58,7 +58,11 @@ class ContentTree:
 
 	@property
 	def path(self):
-		return (self.parent.path / self.name) if self.parent else Path("/")
+		parent_to_take_path_from = self.parent
+		if self.parent and self.parent.skip_in_children_paths:
+			parent_to_take_path_from = self.parent.parent
+		return (parent_to_take_path_from.path / self.name)\
+			if parent_to_take_path_from else Path("/")
 
 	@path.setter
 	def path(self, _):
@@ -116,10 +120,11 @@ class ContentTree:
 
 class Folder(ContentTree):
 	"""Subtree"""
-	def __init__(self, name, user_data={}):
+	def __init__(self, name, user_data={}, skip_in_children_paths=False):
 		super(Folder, self).__init__(name, user_data)
 		self._children = []
 		self._index_page = None
+		self.skip_in_children_paths = skip_in_children_paths
 
 	@property
 	def children(self):
@@ -262,6 +267,8 @@ class Folder(ContentTree):
 
 		for entity in entities:
 			entity.parent_to(group)
+
+		return group
 
 	def as_dict(self, map_leaf=lambda x: x, map_folder=lambda x: x):
 		return OrderedDict([
@@ -442,12 +449,17 @@ class PaginatedAggregatedPage(AggregatedPage):
 
 	@property
 	def path(self):
+		parent_to_take_path_from = self.parent
+		if self.parent and self.parent.skip_in_children_paths:
+			parent_to_take_path_from = self.parent.parent
 		if self.pagination.first_page.is_index_page():
-			return self.parent.path / ("page%i" % self.pagination.page_number)
+			return parent_to_take_path_from.path /\
+				("page%i" % self.pagination.page_number)
 		elif self.pagination.max_page_number == 1:
-			return self.parent.path / self.name
+			return parent_to_take_path_from.path / self.name
 		else:
-			return self.parent.path / self.name / ("page%i" % self.pagination.page_number)
+			return parent_to_take_path_from.path / self.name /\
+				("page%i" % self.pagination.page_number)
 
 
 class Pagination:

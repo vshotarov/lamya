@@ -116,15 +116,12 @@ def parse_args():
 
 	archive_group = parser.add_argument_group("Archive pages",
 			"Building an aggregation of posts based on the date they were posted")
-	archive_group.add_argument("-ba","--build_archive",
+	archive_group.add_argument("-abm","--build_archive_by_month",
 		action="store_const", const=True, default=False,
-		help="whether to build archive pages. Defaults to `False`.")
-	archive_group.add_argument("-abm","--do_not_archive_by_month",
+		help="whether to build an archive by month. Defaults to `False`.")
+	archive_group.add_argument("-aby","--build_archive_by_year",
 		action="store_const", const=True, default=False,
-		help="whether to prevent buildding an archive by month. Defaults to `False`.")
-	archive_group.add_argument("-aby","--do_not_archive_by_year",
-		action="store_const", const=True, default=False,
-		help="whether to prevent buildding an archive by year. Defaults to `False`.")
+		help="whether to build an archive by year. Defaults to `False`.")
 	archive_group.add_argument("-amf","--archive_month_format",
 		default="%B, %Y",
 		help="the `datetime` fomatting to be used for the archive by month."
@@ -233,12 +230,12 @@ def main(args):
 			allow_uncategorized=not args.do_not_allow_uncategorized,
 			uncategorized_name=args.uncategorized_name)
 
-	if args.build_archive:
+	if args.build_archive_by_month or args.build_archive_by_year:
 		site_gen.build_archive(
 			args.archive_month_format, args.archive_year_format)
 		site_gen.build_archive_pages(
-			by_month=not args.do_not_archive_by_month,
-			by_year=not args.do_not_archive_by_year)
+			by_month=args.build_archive_by_month,
+			by_year=args.build_archive_by_year)
 
 	if args.custom_navigation is None:
 		site_gen.build_navigation(

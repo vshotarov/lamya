@@ -341,8 +341,9 @@ class SiteGenerator:
 		if group_archive and getattr(self, "archive", None):
 			archive_paths = [p.path for p in\
 				self.archive.pages_by_month + self.archive.pages_by_year]
-			navigatable_tree.group(archive_name,
+			archive_group = navigatable_tree.group(archive_name,
 				[p for p in navigatable_tree.flat() if p.path in archive_paths])
+			archive_group.skip_in_children_paths = True
 
 		self.navigation = navigatable_tree.as_dict(lambda x: x.href, lambda x: x.href)
 
