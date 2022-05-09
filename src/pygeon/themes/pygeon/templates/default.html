@@ -10,7 +10,9 @@
 					<h2><a href="{{ post.href }}">{{ post.title }}</a></h2>
 					<p>{{ post.publish_date }}</p>
 				</header>
-				<p>{{ post.excerpt | indent(4) }}</p>
+				<div class="article-excerpt">
+					<p>{{ post.excerpt | indent(4) }}</p>
+				</div>
 			</article></li>
 		{% endfor %}
 		</ol>
