@@ -58,7 +58,7 @@ class RenderablePage:
 		self.title = self.name.replace("_"," ").title()
 		self.content = pageOrPost.content
 		self.excerpt = contentProcessing.get_excerpt(self.content)
-		self.href = pageOrPost.href
+		self.href = str(pageOrPost.href)
 		self.aggregated_posts = [] if not isinstance(pageOrPost, contentTree.AggregatedPage)\
 			else [RenderablePage(x) for x in pageOrPost.aggregated_posts]
 		self.pagination = pageOrPost.pagination.as_navigation_dict()\
@@ -76,6 +76,8 @@ class SiteInfo:
 		self.lang = site_generator.lang
 		self.theme_options = site_generator.theme_options
 		self.internal_data = site_generator.internal_data
+		self.archive_nav = site_generator.archive.as_navigation_dict() if\
+			site_generator.archive else {}
 
 
 class SiteGenerator:
@@ -414,7 +416,7 @@ class Archive:
 	def as_navigation_dict(self):
 		return {
 			"by_month": [(p.name, p.href) for p in self.pages_by_month\
-				if p.pagination.page_number == 1],
+				if not hasattr(p, "pagination") or p.pagination.page_number == 1],
 			"by_year": [(p.name, p.href) for p in self.pages_by_year\
-				if p.pagination.page_number == 1]
+				if not hasattr(p, "pagination") or p.pagination.page_number == 1]
 			}
