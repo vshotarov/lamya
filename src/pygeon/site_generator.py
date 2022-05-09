@@ -335,8 +335,9 @@ class SiteGenerator:
 
 		if group_categories and getattr(self, "category_pages", None):
 			category_paths = [p.path for p in self.category_pages]
-			navigatable_tree.group(categories_name,
+			categories_group = navigatable_tree.group(categories_name,
 				[p for p in navigatable_tree.flat() if p.path in category_paths])
+			categories_group.skip_in_children_paths = True
 
 		if group_archive and getattr(self, "archive", None):
 			archive_paths = [p.path for p in\
