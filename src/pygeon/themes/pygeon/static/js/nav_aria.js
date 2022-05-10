@@ -13,7 +13,9 @@ Array.prototype.forEach.call(menuItems, function(el, i){
 		this.className = "has-submenu open";
 		clearTimeout(this.timer);
 
-		this.addEventListener("mouseleave", setMouseOutTimeout);
+		if (window.screen.availWidth > 767) {
+			this.addEventListener("mouseleave", setMouseOutTimeout);
+		}
 	});
 });
 

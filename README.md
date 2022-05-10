@@ -2,6 +2,7 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- add visual indication of hovering over clickable and not clickable nav group items
 - add support for extra js and maybe css to load
 - add a site_info arg with the categories and their pages, so we can link to them from the post metadata
 - move publis_date and date format from the FronMatterConfig to the SiteGenerator and add support for specifying different format to read and display

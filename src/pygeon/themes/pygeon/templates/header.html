@@ -11,7 +11,7 @@
 		{% if href_or_submenu['self'] %}
 		<a href="{{ href_or_submenu['self'] }}" aria-haspopup="true">{{ name }}</a>
 		{% else %}
-		{{ name }}
+		<span>{{ name }}</span>
 		{% endif %}
 		<img alt="" aria-hidden="true" src="/img/caret-down.svg">
 		<button class="visually-hidden">Toggle submenu for "{{name}}"</button>

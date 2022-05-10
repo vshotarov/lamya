@@ -95,11 +95,13 @@ body > footer {
 }
 
 .main-and-sidebar-wrapper > main {
+	margin-top: 1em;
 	flex: 2 0 0;
 	overflow: hidden;
 }
 
 .main-and-sidebar-wrapper > aside {
+	margin-top: 1em;
 	flex: 1 0 0;
 	overflow: hidden;
 }
@@ -144,6 +146,13 @@ body > footer {
 	border-bottom: 1px solid #dedede;
 }
 
+@media screen and (max-width: 767px) {
+	.main-and-sidebar-wrapper > header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
+
 /* 1.1 Logo */
 .main-and-sidebar-wrapper > header > section > a {
 	font-size: 1.6rem;
@@ -154,6 +163,12 @@ body > footer {
 	margin: 0;
 	font-size: .8rem;
 	color: #6a6a6a;
+}
+
+@media screen and (max-width: 767px) {
+	.main-and-sidebar-wrapper > header > section {
+		padding: 10px;
+	}
 }
 
 /* 1.2 Navigation */
@@ -196,14 +211,11 @@ header nav li ul ul {
 	left: auto;
 }
 
-ul[aria-hidden="true"] {
-	display: none;
-}
-
-header nav > ul li       > ul { display: none !important; }
-header nav > ul li:hover > ul { display: block!important;}
+header nav > ul li       > ul { display: none; }
+header nav > ul li:hover > ul,
+header nav > ul li:active > ul,
 li.open > ul {
-	display: block!important;
+	display: block;
 }
 
 /* Caret icon */
@@ -215,6 +227,66 @@ header nav li img {
 
 header nav > ul > li > img {
 	margin-right: -0.4rem;
+}
+
+@media screen and (max-width: 767px) {
+	.main-and-sidebar-wrapper > header {
+		padding: 0;
+	}
+
+	.main-and-sidebar-wrapper > header > nav {
+		width: 100%;
+	}
+
+	header nav ul {
+		width: 100%;
+		background: #cecece;
+	}
+
+	header nav ul li ul,
+	header nav ul li ul li ul {
+		position: relative;
+		top: unset;
+		left: unset;
+		right: unset;
+	}
+
+	header nav ul li {
+		float: unset;
+		width: 100%;
+		flex-wrap: wrap;
+		padding: 0;
+	}
+
+	header nav ul li > a,
+	header nav ul li > span {
+		width: 100%;
+		padding: 15px 10px;
+		border-bottom: 1px solid #aeaeae;
+	}
+
+	header nav ul li ul li > a,
+	header nav ul li ul li > span {
+		padding-left: 30px;
+	}
+
+	header nav ul li ul li ul li > a,
+	header nav ul li ul li ul li > span {
+		padding-left: 50px;
+	}
+
+	header nav ul li ul li ul li ul li > a,
+	header nav ul li ul li ul li ul li > span {
+		padding-left: 70px;
+	}
+
+	header nav > ul li > ul {
+		display: block;
+	}
+
+	header nav ul li img {
+		display: none;
+	}
 }
 
 /* end 1.2 */
