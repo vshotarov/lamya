@@ -24,7 +24,12 @@
 
 {% block header %}
 <header>
-	<a href="/" aria-label="go to homepage">{{ site_info.name }}</a>
+	<section aria-label="site name and description">
+		<a href="/" aria-label="go to homepage">{{ site_info.name }}</a>
+		{% if site_info.subtitle %}
+			<p>{{ site_info.subtitle }}</p>
+		{% endif %}
+	</section>
 	<nav aria-label="main">
 		{{ nested_navigation(site_info.navigation, 2) }}
 	</nav>

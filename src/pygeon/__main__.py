@@ -18,6 +18,8 @@ def parse_args():
 			" arguments will be treated as overrides for the config file.")
 	parser.add_argument("-n","--name",
 		help="the name of the website. Defaults to current directory name.")
+	parser.add_argument("-st","--subtitle",
+		help="the subtitle of the website, usually a short sentence. Defaults to ''.")
 	parser.add_argument("-l","--language", default="en",
 		help="the language of the website as required by the HTML `lang` attribute. "
 		"Default is 'en'.")
@@ -210,7 +212,7 @@ def process_args(parsed_args, unknown_args):
 
 def main(args):
 	site_gen = site_generator.SiteGenerator(
-		name=args.name,
+		name=args.name, subtitle=args.subtitle,
 		content_directory=args.content_directory,
 		theme_directory=args.theme_directory,
 		templates_directory=args.templates_directory,

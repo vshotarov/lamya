@@ -29,9 +29,10 @@ html {
 	/* System Fonts as used by GitHub */
 	font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 	font-size: 20px;
+	color: black;
 }
 
-.article-exceprt,
+.article-excerpt,
 .article-content {
 	/* taken from gwern */
 	font-family: "Source Serif Pro", "Apple Garamond", "Baskerville", "Libre Baskerville", "Droid Serif", "Times New Roman", "Times", serif;
@@ -39,7 +40,19 @@ html {
 }
 
 .main-and-sidebar-wrapper > aside {
-	font-size: 18px;
+	font-size: .9rem;
+}
+
+body > footer {
+	font-size: .8em;
+	color: #6a6a6a;
+}
+
+body > footer a:visited,
+body > footer a:link,
+body > footer a:active,
+body > footer a {
+	color: black;
 }
 
 @media screen and (max-width: 767px) {
@@ -78,14 +91,17 @@ body > footer {
 
 .main-and-sidebar-wrapper > header {
 	flex: 1 100%;
+	min-height: 80px;
 }
 
 .main-and-sidebar-wrapper > main {
 	flex: 2 0 0;
+	overflow: hidden;
 }
 
 .main-and-sidebar-wrapper > aside {
 	flex: 1 0 0;
+	overflow: hidden;
 }
 
 body > footer {
@@ -117,11 +133,27 @@ body > footer {
 	align-items: center;
 }
 
+.main-and-sidebar-wrapper > header a:link,
+.main-and-sidebar-wrapper > header a:visited,
+.main-and-sidebar-wrapper > header a:active {
+	color: black;
+	text-decoration: none;
+}
+
+.main-and-sidebar-wrapper > header {
+	border-bottom: 1px solid #dedede;
+}
+
 /* 1.1 Logo */
-.main-and-sidebar-wrapper > header > a {
+.main-and-sidebar-wrapper > header > section > a {
 	font-size: 1.6rem;
 	font-weight: 700;
-	text-decoration: none;
+}
+
+.main-and-sidebar-wrapper > header > section > p {
+	margin: 0;
+	font-size: .8rem;
+	color: #6a6a6a;
 }
 
 /* 1.2 Navigation */
@@ -141,6 +173,8 @@ header nav li {
 	justify-content: space-between;
 	position: relative;
 	padding: 5px;
+	padding-left: 10px;
+	padding-right: 10px;
 	box-sizing: border-box;
 }
 
@@ -148,6 +182,7 @@ header nav li ul {
 	position: absolute;
 	top: 100%;
 	left: 0;
+	background: #dedede;
 }
 
 header nav li ul li {
@@ -209,7 +244,7 @@ header nav > ul > li > img {
 }
 
 .main-and-sidebar-wrapper > aside #sidebar-social-links > *:after {
-	content: "\B7";
+	content: " \B7 ";
 }
 .main-and-sidebar-wrapper > aside #sidebar-social-links > *:last-child:after {
 	content: "\00a0";
@@ -219,7 +254,67 @@ header nav > ul > li > img {
 	list-style: none;
 	padding: 0;
 }
+
+.main-and-sidebar-wrapper > aside ul li a {
+	color: blue;
+	border-bottom: 1px solid blue;
+	text-decoration: none;
+}
+.main-and-sidebar-wrapper > aside ul li {
+	margin-top: .2em;
+}
+
 /* end 2. */
 
-/* 3. Content */
+/* 3. Post */
+main article header span {
+	font-size: .8em;
+	color: #6a6a6a;
+}
+
+main article header section > span:after {
+	content: " \B7 ";
+}
+main article header section > span:last-child:after {
+	content: "\00a0";
+}
+
+article > header > h1,
+article > header > h2 {
+	margin-bottom: 0;
+}
+
 /* end 3. */
+
+/* 4. List */
+main > ol {
+	list-style: none;
+	padding-left: 0;
+	margin-top: 0;
+}
+
+main > ol > li > article > header > h2 a:link,
+main > ol > li > article > header > h2 a:visited,
+main > ol > li > article > header > h2 a:active,
+main > ol > li > article > header > h2 a {
+	color: blue;
+	text-decoration: none;
+}
+
+main > ol > li:first-of-type > article > header > h2 {
+	margin: 0;
+	padding: 0;
+}
+
+main > ol > li > article {
+	border-bottom: 1px solid #dedede;
+}
+/* end 4. */
+
+/* 5. Content */
+pre {
+	max-width: 100%;
+	white-space: nowrap;
+	overflow-x: auto;
+}
+/* end 5. */

@@ -26,7 +26,7 @@ def split_front_matter(source, front_matter_delimiter="+"):
 
 
 def get_excerpt(content, remove_html_tags=True, excerpt_start_tag="<!--excerpt-start-->",
-		excerpt_end_tag="<!--excerpt-end-->", fallback_num_characters=150, suffix=""):
+		excerpt_end_tag="<!--excerpt-end-->", fallback_num_characters=250, suffix=""):
 	if excerpt_start_tag in content or excerpt_end_tag in content:
 		excerpt = str(content)
 		if excerpt_start_tag in content:
@@ -47,4 +47,4 @@ def get_excerpt(content, remove_html_tags=True, excerpt_start_tag="<!--excerpt-s
 def remove_html(x):
 	# https://stackoverflow.com/questions/9662346/python-code-to-remove-html-tags-from-a-string
 	CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
-	return re.sub(CLEANR, "", x)
+	return re.sub(CLEANR, "", x).replace("\n"," ")

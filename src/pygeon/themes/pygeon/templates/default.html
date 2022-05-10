@@ -8,7 +8,12 @@
 			<li><article>
 				<header>
 					<h2><a href="{{ post.href }}">{{ post.title }}</a></h2>
-					<p>{{ post.publish_date }}</p>
+					<section aria-label="post metadata">
+						<span aria-label="publish date">{{ post.publish_date.strftime("%B %-d, %Y") }}</span>
+						{% if post.front_matter.get("category") %}
+						<span aria-label="category">{{ post.front_matter["category"] }}</span>
+						{% endif %}
+					</section>
 				</header>
 				<div class="article-excerpt">
 					<p>{{ post.excerpt | indent(4) }}</p>
@@ -22,7 +27,12 @@
 			<header>
 				<h1>{{ page.title }}</h1>
 				{% if page.is_post %}
-					<p>{{ page.publish_date }}</p>
+				<section aria-label="post metadata">
+					<span aria-label="publish date">{{ page.publish_date.strftime("%B %-d, %Y") }}</span>
+					{% if page.front_matter.get("category") %}
+					<span aria-label="category">{{ page.front_matter["category"] }}</span>
+					{% endif %}
+				</section>
 				{% endif %}
 			</header>
 			<div class="article-content">

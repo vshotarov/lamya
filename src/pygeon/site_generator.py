@@ -72,6 +72,7 @@ class RenderablePage:
 class SiteInfo:
 	def __init__(self, site_generator):
 		self.name = site_generator.name
+		self.subtitle = site_generator.subtitle
 		self.navigation = site_generator.navigation
 		self.lang = site_generator.lang
 		self.theme_options = site_generator.theme_options
@@ -81,15 +82,16 @@ class SiteInfo:
 
 
 class SiteGenerator:
-	def __init__(self, name, content_directory="content", theme_directory="theme",
-			static_directory="static", templates_directory="templates",
-			build_directory="build", locally_aggregate_whitelist=[],
-			locally_aggregate_blacklist=[], globally_aggregate_whitelist=[],
-			globally_aggregate_blacklist=[], num_posts_per_page=1,
-			is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
+	def __init__(self, name, subtitle="", content_directory="content",
+			theme_directory="theme", static_directory="static",
+			templates_directory="templates", build_directory="build",
+			locally_aggregate_whitelist=[], locally_aggregate_blacklist=[],
+			globally_aggregate_whitelist=[], globally_aggregate_blacklist=[],
+			num_posts_per_page=1, is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
 			front_matter_delimiter="+", callbacks=Callbacks(), lang="en",
 			theme_options={}):
 		self.name = name
+		self.subtitle = subtitle
 		self.content_directory = Path(content_directory)
 		self.theme_directory = Path(theme_directory) if theme_directory else\
 			Path(__file__).parent / "themes" / "pygeon"
@@ -331,17 +333,23 @@ class SiteGenerator:
 		#	(True if not hasattr(x, "is_index_page") else not x.is_index_page()) and\
 		#	(True if not isinstance(x, contentTree.PaginatedAggregatedPage) else\
 		#	 x.pagination.page_number == 1))
+		category_filter = (lambda _: True) if categories_name else\
+			(lambda x: x.path not in [p.path for p in self.category_pages])
+		archive_filter = (lambda _: True) if archive_name else\
+			(lambda x: True if not self.archive else (x.path not in \
+				[p.path for p in self.archive.pages_by_month + self.archive.pages_by_year]))
 
 		navigatable_tree = self.contentTree.filter(
-			lambda x: filter_func(x) and extra_filter_func(x), True)
+			lambda x: filter_func(x) and extra_filter_func(x)\
+					  and category_filter(x) and archive_filter(x), True)
 
-		if group_categories and getattr(self, "category_pages", None):
+		if categories_name and group_categories and getattr(self, "category_pages", None):
 			category_paths = [p.path for p in self.category_pages]
 			categories_group = navigatable_tree.group(categories_name,
 				[p for p in navigatable_tree.flat() if p.path in category_paths])
 			categories_group.skip_in_children_paths = True
 
-		if group_archive and getattr(self, "archive", None):
+		if archive_name and group_archive and getattr(self, "archive", None):
 			archive_paths = [p.path for p in\
 				self.archive.pages_by_month + self.archive.pages_by_year]
 			archive_group = navigatable_tree.group(archive_name,
