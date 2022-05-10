@@ -165,9 +165,31 @@ body > footer {
 	color: #6a6a6a;
 }
 
+.main-and-sidebar-wrapper > header > section > button {
+	display: none;
+}
+
 @media screen and (max-width: 767px) {
 	.main-and-sidebar-wrapper > header > section {
 		padding: 10px;
+		position: relative;
+		width: 100%;
+		box-sizing: border-box;
+		min-height: 80px;
+	}
+
+	.main-and-sidebar-wrapper > header > section > button {
+		display: block;
+		position: absolute;
+		right: 0;
+		top: 0;
+		height: 100%;
+		padding: 5px;
+	}
+
+	.main-and-sidebar-wrapper > header > section > button > img {
+		width: 100%;
+		height: auto;
 	}
 }
 

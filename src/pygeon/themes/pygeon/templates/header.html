@@ -3,7 +3,7 @@
 {% if name %}
 <ul aria-hidden="true" aria-expanded="false" aria-label="{{ name }} submenu">
 {% else %}
-<ul>
+<ul id="menu" aria-expanded="true" aria-label="menu">
 {% endif %}
 	{% for name,href_or_submenu in navigation_dict.items() %}
 	{% if href_or_submenu is mapping %}
@@ -28,11 +28,12 @@
 
 {% block header %}
 <header>
-	<section aria-label="site name and description">
+	<section aria-label="site name, description and mobile menu toggle button">
 		<a href="/" aria-label="go to homepage">{{ site_info.name }}</a>
 		{% if site_info.subtitle %}
 			<p>{{ site_info.subtitle }}</p>
 		{% endif %}
+		<button id="menu-toggle" aria-label="mobile menu toggle"><img alt="" src="/img/menu-2.svg"></button>
 	</section>
 	<nav aria-label="main">
 		{{ nested_navigation(site_info.navigation, 2) }}
