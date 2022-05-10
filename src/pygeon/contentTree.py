@@ -59,7 +59,7 @@ class ContentTree:
 	@property
 	def path(self):
 		parent_to_take_path_from = self.parent
-		if self.parent and self.parent.skip_in_children_paths:
+		if self.parent and self.parent.ignore_in_hrefs:
 			parent_to_take_path_from = self.parent.parent
 		return (parent_to_take_path_from.path / self.name)\
 			if parent_to_take_path_from else Path("/")
@@ -120,11 +120,11 @@ class ContentTree:
 
 class Folder(ContentTree):
 	"""Subtree"""
-	def __init__(self, name, user_data={}, skip_in_children_paths=False):
+	def __init__(self, name, user_data={}, ignore_in_hrefs=False):
 		super(Folder, self).__init__(name, user_data)
 		self._children = []
 		self._index_page = None
-		self.skip_in_children_paths = skip_in_children_paths
+		self.ignore_in_hrefs = ignore_in_hrefs
 
 	@property
 	def children(self):
@@ -147,6 +147,12 @@ class Folder(ContentTree):
 		self._index_page = new_index_page
 		if new_index_page:
 			new_index_page._parent = self
+
+	@property
+	def path(self):
+		if self.ignore_in_hrefs:
+			return ""
+		return super(Folder, self).path
 
 	def pprint(self, level=0):
 		return "{indent1}{type}({name}) {{\n{indent2}{children}\n{indent2}}}".format(
@@ -450,7 +456,7 @@ class PaginatedAggregatedPage(AggregatedPage):
 	@property
 	def path(self):
 		parent_to_take_path_from = self.parent
-		if self.parent and self.parent.skip_in_children_paths:
+		if self.parent and self.parent.ignore_in_hrefs:
 			parent_to_take_path_from = self.parent.parent
 		if self.pagination.first_page.is_index_page():
 			return parent_to_take_path_from.path /\

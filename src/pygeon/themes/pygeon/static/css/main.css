@@ -176,6 +176,7 @@ header nav li {
 	padding-left: 10px;
 	padding-right: 10px;
 	box-sizing: border-box;
+	cursor: default;
 }
 
 header nav li ul {
