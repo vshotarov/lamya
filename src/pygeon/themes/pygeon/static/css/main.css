@@ -100,6 +100,22 @@ body > footer {
 	overflow: hidden;
 }
 
+.main-and-sidebar-wrapper.no-sidebar > main {
+	max-width: 800px;
+}
+
+@media screen and (max-width: 1200px) {
+	.main-and-sidebar-wrapper {
+		max-width: 100%;
+	}
+}
+
+@media screen and (max-width: 800px) {
+	.main-and-sidebar-wrapper.no-sidebar > main {
+		max-width: 100%;
+	}
+}
+
 .main-and-sidebar-wrapper > aside {
 	margin-top: 1em;
 	flex: 1 0 0;
@@ -326,6 +342,12 @@ header nav > ul > li > img {
 .main-and-sidebar-wrapper > aside dl {
 	display: grid;
 	grid-template-columns: auto 1fr;
+}
+
+.main-and-sidebar-wrapper > aside > section:first-child > p,
+.main-and-sidebar-wrapper > aside > section:first-child > dl {
+	/* if the first thing is a <p> tag remove it's upper margin */
+	margin-top: 0;
 }
 
 .main-and-sidebar-wrapper > aside #sidebar-social-links {

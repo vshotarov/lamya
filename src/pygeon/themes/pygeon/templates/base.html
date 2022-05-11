@@ -8,7 +8,7 @@
 	<link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
-	<div class="main-and-sidebar-wrapper">
+	<div class="main-and-sidebar-wrapper {% if not site_info.theme_options.get('sidebar') %}no-sidebar{%endif%}">
 	{%- block body %}
 
 	{%+ filter indent(4) %}{% include "header.html" %}{%- endfilter %}

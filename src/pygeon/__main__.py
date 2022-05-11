@@ -138,15 +138,43 @@ def parse_args():
 		"including a sidebar or not, social media profile links, etc."
 		"Since they may be anything the theme developer is responsible for "
 		" outlining what arguments may be set. In order for them to be parsed"
-		" correctly the following 2 rules must be considered:\n\n1. we support "
+		" correctly the following 3 rules must be considered:\n"
+		" \n1. flags with no values start with `-th_` or `--theme_option_`,"
+		" e.g. `-th_sidebar`.\n"
+		" \n2. we support "
 		" key-value pairs with up to three values per key. Simple theme args "
-		" must start with `-th_` or `--theme_option`, e.g. `-th_dark_mode` or"
-		" `--theme_option_dark_mode`. Arguments that accept tuples with 2 values"
+		" must start with `-th1_` or `--theme1_option`, e.g. `-th1_dark_mode` or"
+		" `--theme_option1_dark_mode`. Arguments that accept tuples with 2 values"
 		" should be prefixed with `-th2_` or `--theme_option2` and the same goes"
-		" for arguments that accept tuples with 3 values.\n2. Setting the same"
-		" argument twice using `-th_{arg}` will overwrite the previous value."
-		" so if a list of values is required use `-thl_{arg}`,`-thl2_{arg}`,etc."
-		" \n\nNOTE: we only support up to 3 values per key.")
+		" for arguments that accept tuples with 3 values.\n"
+		" \n3. Setting the same"
+		" argument twice using `-th1_{arg}` will overwrite the previous value."
+		" so if a list of values is required use `-thl1_{arg}`,`-thl2_{arg}`,etc."
+		"\n\nNOTE: we only support up to 3 values per key.\n\n"
+		"Here are the accepted arguments for the default theme:\n"
+		"\n\n    th_sidebar - whether to build a sidebar or not"
+		"\n\n    th_sidebar_image_in_home_only - whether to have the sidebar "
+		" image only on the home page"
+		"\n\n    th_sidebar_social_in_home_only - whether to have the sidebar "
+		" social icons only on the home page"
+		"\n\n    th_sidebar_description_in_home_only - whether to have the sidebar "
+		" description only on the home page"
+		"\n\n    th1_sidebar_image - an image for the top of the sidebar, e.g. "
+			"`-th1_sidebar_image \"/img/sidebar.png\"`"
+		"\n\n    th1_sidebar_image_alt - the alt text for the sidebar image"
+		"\n\n    th1_sidebar_description - a bit of descriptive text in the sidebar"
+		"\n\n    thl{2/3}_social_links - a list of (name, url, optional img) tuples, e.g."
+		"`-thl3_social_links github \"https://github.com/pygeon\" \"/img/github.svg\""
+		" -thl2_social_links twitter \"https://twitter.com/pygeon\"`, which will"
+		" produce an icon for github and the text 'twitter' for the twitter link."
+		"\n\n    thl{2/3}_links - a list of (name, url, optional nice name) tuples, e.g."
+		"`-thl3_links \"my knitting blog\" \"https://knittingforfunandprofit.com\""
+		" knittingforfunandprofit.com -thl2_links \"favourite knitting pattern\""
+		" \"https://knittingforfunandprofit.com/the-three-crocheters\""
+		"\n\n    th_sidebar_archive_nav - whether to include an archive navigation"
+		" in the sidebar"
+		"\n\n    th1_copyright_year - to be displayed in the footer"
+		)
 
 	parsed_args, unknown_args = parser.parse_known_args()
 
@@ -165,22 +193,23 @@ def process_args(parsed_args, unknown_args):
 
 	# Theme options
 	theme_options = {}
-	simple_option_prefixes = ["-th_","-th2_","-th3_","--theme_option_",
+	simple_option_prefixes = ["-th1_","-th2_","-th3_","--theme1_option_",
 		 "--theme_option2_","--theme_option3_"]
-	list_option_prefixes = ["-thl_","-thl2_","-thl3_","--theme_list_option_",
+	list_option_prefixes = ["-thl1_","-thl2_","-thl3_","--theme1_list_option_",
 		 "--theme_list_option2_","--theme_list_option3_"]
 	while unknown_args:
 		current = unknown_args.pop(0)
 		is_simple_theme_option = any([current.startswith(x) for x in simple_option_prefixes])
 		is_list_theme_option = any([current.startswith(x) for x in list_option_prefixes])
 
+		if current.startswith("-th_") or current.startswith("--theme_option_"):
+			theme_options[current.replace("-th_","").replace("--theme_option_","")] = True
+			continue
+
 		if not (is_simple_theme_option or is_list_theme_option):
 			raise RuntimeError("Unrecognized argument " + current)
 
-		tuple_size = 1 if any([current.startswith(x) for x in\
-				(["-th_","--theme_option_"] if is_simple_theme_option else\
-				 ["-thl_","--theme_list_option_"])]) else\
-			int(current.split("_")[1 if current.startswith("--") else 0][-1])
+		tuple_size = int(current.split("_")[2 if current.startswith("--") else 0][-1])
 
 		arg_values = []
 		for i in range(tuple_size):

@@ -1,12 +1,12 @@
 {% block sidebar %}
 <aside aria-label="sidebar">
-	{% if site_info.theme_options.get("sidebar_image") %}
+	{% if site_info.theme_options.get("sidebar_image") and (not site_info.theme_options.get("sidebar_image_in_home_only") or page.href == "/") %}
 	<section aria-label="sidebar image">
 		<img alt="{{ site_info.theme_options.get('sidebar_image_alt','') }}" src="{{ site_info.theme_options.get('sidebar_image','') }}">
 	</section>
 	{% endif %}
 
-	{% if site_info.theme_options.get("social_links") %}
+	{% if site_info.theme_options.get("social_links") and (not site_info.theme_options.get("sidebar_social_in_home_only") or page.href == "/") %}
 	<section>
 		<ul id="sidebar-social-links" aria-label="social links">
 		{% for link in site_info.theme_options.get("social_links") %}
@@ -22,7 +22,7 @@
 	</section>
 	{% endif %}
 
-	{% if site_info.theme_options.get("sidebar_description") %}
+	{% if site_info.theme_options.get("sidebar_description") and (not site_info.theme_options.get("sidebar_description_in_home_only") or page.href == "/") %}
 	<section aria-label="description">
 		<p>{{ site_info.theme_options.get("sidebar_description") }}</p>
 	</section>
