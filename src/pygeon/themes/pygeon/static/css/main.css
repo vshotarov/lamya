@@ -184,7 +184,15 @@ body > footer {
 		right: 0;
 		top: 0;
 		height: 100%;
-		padding: 5px;
+		min-width: 80px;
+		padding: 20px;
+		border: none;
+		cursor: pointer;
+		background: none;
+	}
+
+	.main-and-sidebar-wrapper > header > section > button:hover {
+		background: #eee;
 	}
 
 	.main-and-sidebar-wrapper > header > section > button > img {
@@ -362,6 +370,10 @@ header nav > ul > li > img {
 /* end 2. */
 
 /* 3. Post */
+main > article > header > h1 {
+	margin-top: 0;
+}
+
 main article header span {
 	font-size: .8em;
 	color: #6a6a6a;
