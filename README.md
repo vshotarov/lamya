@@ -4,8 +4,6 @@
 # Todos
 - the `build_navigation` currently has a hardcoded bit that creates navigation for everything which needs to be removed when im done
 - consider having an archive list page and potentially a category one
-- add fonts licenses both to the theme itself somewhere and on the repo
-- add a reference to tabler somewhere in the default theme. powered by?
 - replace RuntimeError in `__main__.py` with a custom one
 - minify css and js?
 - add all the necessary header meta tags to the theme
@@ -16,6 +14,7 @@
 - at the moment rebuliding the website deletes the whole `build` folder and recreates it from scratch, which can become quite slow on huge websites, so i need some sort of a smart rebuild.
 
 # Acknowledgements
+- I use [Source Sans Pro](https://fonts.google.com/specimen/Source+Sans+Pro) and [Source Serif Pro](https://fonts.google.com/specimen/Source+Serif+Pro) Google fonts for the default theme, under the [SIL Open Font License (OFL)](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
 - [tabler icons](https://tabler-icons.io/) for the default theme
 - I used [The excellent lorem ipsum markdown generator by Jasper Van der Jeugt](https://jaspervdj.be/lorem-markdownum/) to generate some example markdown for the unit tests
 - One of the custom theme tests is implementing the [Jekyll Hyde theme](https://github.com/poole/hyde)
