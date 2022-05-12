@@ -6,6 +6,9 @@
 	<title>{{ page.title }} | {{ site_info.name }}</title>
 	<link rel="stylesheet" href="/css/normalize.css">
 	<link rel="stylesheet" href="/css/main.css">
+	{% for css_file in site_info.theme_options.get("extra_css",[]) %}
+	<link rel="stylesheet" href="{{ css_file }}">
+	{% endfor %}
 </head>
 <body>
 	<div class="main-and-sidebar-wrapper {% if not site_info.theme_options.get('sidebar') %}no-sidebar{%endif%}">
@@ -30,5 +33,8 @@
 	{% endblock %}
 
 	<script src="/js/nav_aria.js"></script>
+	{% for js_file in site_info.theme_options.get("extra_js",[]) %}
+	<script src="{{ js_file }}"></script>
+	{% endfor %}
 </body>
 </html>

@@ -174,6 +174,10 @@ def parse_args():
 		"\n\n    th_sidebar_archive_nav - whether to include an archive navigation"
 		" in the sidebar"
 		"\n\n    th1_copyright_year - to be displayed in the footer"
+		"\n\n    thl1_extra_css - a number of stylesheets to load after"
+		" the theme's ones"
+		"\n\n    thl1_extra_js - a number of javascript files to load after"
+		" the theme's ones"
 		)
 
 	parsed_args, unknown_args = parser.parse_known_args()
