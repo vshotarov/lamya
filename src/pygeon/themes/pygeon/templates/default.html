@@ -1,3 +1,18 @@
+{% macro post_metadata(post, indent_level=0) -%}
+{% filter indent(indent_level*4) %}
+<section aria-label="post metadata">
+	<span aria-label="publish date">{{ post.publish_date.strftime("%B %-d, %Y") }}</span>
+	{% if post.front_matter.get("category") %}
+	{% if site_info.category_nav %}
+	<a aria-label="link to category" href="{{ site_info.category_nav[post.front_matter["category"]] }}">{{ post.front_matter["category"] }}</a>
+	{% else %}
+	<span aria-label="category">{{ post.front_matter["category"] }}</span>
+	{% endif %}
+	{% endif %}
+</section>
+{%- endfilter -%}
+{%- endmacro -%}
+
 {% extends "base.html" %}
 
 {% block content %}
@@ -8,12 +23,7 @@
 			<li><article>
 				<header>
 					<h2><a href="{{ post.href }}">{{ post.title }}</a></h2>
-					<section aria-label="post metadata">
-						<span aria-label="publish date">{{ post.publish_date.strftime("%B %-d, %Y") }}</span>
-						{% if post.front_matter.get("category") %}
-						<span aria-label="category">{{ post.front_matter["category"] }}</span>
-						{% endif %}
-					</section>
+					{{ post_metadata(post, 4) }}
 				</header>
 				<div class="article-excerpt">
 					<p>{{ post.excerpt | indent(4) }}</p>
@@ -27,12 +37,7 @@
 			<header>
 				<h1>{{ page.title }}</h1>
 				{% if page.is_post %}
-				<section aria-label="post metadata">
-					<span aria-label="publish date">{{ page.publish_date.strftime("%B %-d, %Y") }}</span>
-					{% if page.front_matter.get("category") %}
-					<span aria-label="category">{{ page.front_matter["category"] }}</span>
-					{% endif %}
-				</section>
+				{{ post_metadata(page, 3) }}
 				{% endif %}
 			</header>
 			<div class="article-content">

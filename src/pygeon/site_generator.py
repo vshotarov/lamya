@@ -78,7 +78,9 @@ class SiteInfo:
 		self.theme_options = site_generator.theme_options
 		self.internal_data = site_generator.internal_data
 		self.archive_nav = site_generator.archive.as_navigation_dict() if\
-			site_generator.archive else {}
+			hasattr(site_generator,"archive") else {}
+		self.category_nav = site_generator.categories.as_navigation_dict() if\
+			hasattr(site_generator,"categories") else {}
 
 
 class SiteGenerator:
@@ -255,17 +257,19 @@ class SiteGenerator:
 				grouped[uncategorized_name] = grouped.pop(None)
 
 		parent = parent or self.contentTree
-		self.category_pages = []
+		category_pages = {}
 		for category, pages in grouped.items():
 			aggregatedPage = contentTree.AggregatedPage(category, pages)
 			self.callbacks.post_contentTree_entity_create(self, aggregatedPage)
 			parent.add_child(aggregatedPage)
 
 			if self.num_posts_per_page > 0:
-				self.category_pages += aggregatedPage.paginate(self.num_posts_per_page,
-					partial(self.callbacks.post_contentTree_entity_create, self))
+				category_pages[category] = aggregatedPage.paginate(self.num_posts_per_page,
+					partial(self.callbacks.post_contentTree_entity_create, self))[0]
 			else:
-				self.category_pages.append(aggregatedPage)
+				category_pages[category] = aggregatedPage
+
+		self.categories = Categories(grouped, category_pages)
 
 	def build_archive(self, by_month_format="%B, %Y", by_year_format="%Y"):
 		by_month, by_year = {}, {}
@@ -334,7 +338,7 @@ class SiteGenerator:
 		#	(True if not isinstance(x, contentTree.PaginatedAggregatedPage) else\
 		#	 x.pagination.page_number == 1))
 		category_filter = (lambda _: True) if categories_name else\
-			(lambda x: x.path not in [p.path for p in self.category_pages])
+			(lambda x: x.path not in [p.path for p in self.categories.all_pages])
 		archive_filter = (lambda _: True) if archive_name else\
 			(lambda x: True if not self.archive else (x.path not in \
 				[p.path for p in self.archive.pages_by_month + self.archive.pages_by_year]))
@@ -343,8 +347,8 @@ class SiteGenerator:
 			lambda x: filter_func(x) and extra_filter_func(x)\
 					  and category_filter(x) and archive_filter(x), True)
 
-		if categories_name and group_categories and getattr(self, "category_pages", None):
-			category_paths = [p.path for p in self.category_pages]
+		if categories_name and group_categories and getattr(self, "categories", None):
+			category_paths = [p.path for p in self.categories.all_pages]
 			categories_group = navigatable_tree.group(categories_name,
 				[p for p in navigatable_tree.flat() if p.path in category_paths])
 			categories_group.ignore_in_hrefs = True
@@ -412,6 +416,19 @@ class Jinja2Renderer:
 
 	def render(self, template, **render_data):
 		return self.environment.get_template(template).render(**render_data)
+
+
+class Categories:
+	def __init__(self, posts_by_category, pages_by_category):
+		self.posts_by_category = posts_by_category
+		self.pages_by_category = pages_by_category
+
+	@property
+	def all_pages(self):
+		return self.pages_by_category.values()
+
+	def as_navigation_dict(self):
+		return {k: v.href for k,v in self.pages_by_category.items()}
 
 
 class Archive:
