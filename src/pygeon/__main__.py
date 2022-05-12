@@ -7,6 +7,13 @@ import json
 from pygeon import site_generator
 
 
+class UnrecognizedPygeonArgumentError(Exception):
+	pass
+
+class NotEnoughValuesForPygeonArgumentError(Exception):
+	pass
+
+
 def parse_args():
 	parser = argparse.ArgumentParser(
 		prog="python -m pygeon",
@@ -216,14 +223,15 @@ def process_args(parsed_args, unknown_args):
 			continue
 
 		if not (is_simple_theme_option or is_list_theme_option):
-			raise RuntimeError("Unrecognized argument " + current)
+			raise UnrecognizedPygeonArgumentError("Unrecognized argument " + current)
 
 		tuple_size = int(current.split("_")[2 if current.startswith("--") else 0][-1])
 
 		arg_values = []
 		for i in range(tuple_size):
 			if not unknown_args or unknown_args[0].startswith("-"):
-				raise RuntimeError("Not enough values for arg " + current)
+				raise NotEnoughValuesForPygeonArgumentError(
+					"Not enough values for arg " + current)
 			arg_values.append(unknown_args.pop(0))
 
 		key = current
