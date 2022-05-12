@@ -13,6 +13,9 @@ class UnrecognizedPygeonArgumentError(Exception):
 class NotEnoughValuesForPygeonArgumentError(Exception):
 	pass
 
+class MissingRequiredPygeonArgumentError(Exception):
+	pass
+
 
 def parse_args():
 	parser = argparse.ArgumentParser(
@@ -25,8 +28,13 @@ def parse_args():
 			" arguments will be treated as overrides for the config file.")
 	parser.add_argument("-n","--name",
 		help="the name of the website. Defaults to current directory name.")
+	parser.add_argument("-url","--url")
 	parser.add_argument("-st","--subtitle",
 		help="the subtitle of the website, usually a short sentence. Defaults to ''.")
+	parser.add_argument("-al","--author_link", default="",
+		help="author link to be used as a fallback for page/post front matter"
+			" author_link key, when specifying the author using the"
+			" <link rel='author' ..> tag. Defaults to the ''.")
 	parser.add_argument("-l","--language", default="en",
 		help="the language of the website as required by the HTML `lang` attribute. "
 		"Default is 'en'.")
@@ -199,6 +207,9 @@ def parse_args():
 
 
 def process_args(parsed_args, unknown_args):
+	if parsed_args.url is None:
+		raise MissingRequiredPygeonArgumentError("The -url, --url argument is required.")
+
 	if parsed_args.name is None:
 		parsed_args.name = Path(os.getcwd()).stem
 
@@ -258,7 +269,7 @@ def process_args(parsed_args, unknown_args):
 
 def main(args):
 	site_gen = site_generator.SiteGenerator(
-		name=args.name, subtitle=args.subtitle,
+		name=args.name, url=args.url, subtitle=args.subtitle,
 		content_directory=args.content_directory,
 		theme_directory=args.theme_directory,
 		templates_directory=args.templates_directory,
@@ -270,7 +281,8 @@ def main(args):
 		globally_aggregate_blacklist=args.globally_aggregate_blacklist,
 		num_posts_per_page=args.posts_per_page, lang=args.language,
 		read_date_format=args.read_date_format,
-		display_date_format=args.display_date_format, theme_options=args.theme_options)
+		display_date_format=args.display_date_format, author_link=args.author_link,
+		theme_options=args.theme_options)
 	site_gen.process_contentTree()
 	site_gen.aggregate_posts()
 

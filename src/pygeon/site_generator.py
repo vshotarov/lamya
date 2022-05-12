@@ -67,6 +67,7 @@ class RenderablePage:
 class SiteInfo:
 	def __init__(self, site_generator):
 		self.name = site_generator.name
+		self.url = site_generator.url
 		self.subtitle = site_generator.subtitle
 		self.navigation = site_generator.navigation
 		self.lang = site_generator.lang
@@ -77,10 +78,11 @@ class SiteInfo:
 		self.category_nav = site_generator.categories.as_navigation_dict() if\
 			hasattr(site_generator,"categories") else {}
 		self.display_date_format = site_generator.display_date_format
+		self.author_link = site_generator.author_link
 
 
 class SiteGenerator:
-	def __init__(self, name, subtitle="", content_directory="content",
+	def __init__(self, name, url, subtitle="", content_directory="content",
 			theme_directory="theme", static_directory="static",
 			templates_directory="templates", build_directory="build",
 			locally_aggregate_whitelist=[], locally_aggregate_blacklist=[],
@@ -88,8 +90,9 @@ class SiteGenerator:
 			num_posts_per_page=1, is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
 			front_matter_delimiter="+", callbacks=Callbacks(), lang="en",
 			front_matter_publish_date_key="publish_date", read_date_format="%d-%m-%Y %H:%M",
-			display_date_format="%B %-d, %Y", theme_options={}):
+			display_date_format="%B %-d, %Y", author_link="", theme_options={}):
 		self.name = name
+		self.url = url
 		self.subtitle = subtitle
 		self.content_directory = Path(content_directory)
 		self.theme_directory = Path(theme_directory) if theme_directory else\
@@ -109,6 +112,7 @@ class SiteGenerator:
 		self.front_matter_publish_date_key = front_matter_publish_date_key
 		self.read_date_format = read_date_format
 		self.display_date_format = display_date_format
+		self.author_link = author_link
 		self.theme_options = theme_options
 
 		if locally_aggregate_whitelist and locally_aggregate_blacklist:

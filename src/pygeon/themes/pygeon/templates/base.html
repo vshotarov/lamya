@@ -2,6 +2,18 @@
 <html lang="{{ site_info.lang }}">
 <head>
 	<meta charset="utf-8">
+	{% set description = page.front_matter.get('meta_description', page.excerpt) %}
+	{% if description %}
+	<meta name="description" content="{{ description }}">
+	{% endif %}
+	{% if page.front_matter.get("meta_keywords") %}
+	<meta name="keywords" content="{{ page.front_matter['meta_keywords'] }}">
+	{% endif %}
+	{% set author_link = page.front_matter.get("author_link", site_info.author_link) %}
+	{% if author_link %}
+	<link rel="author" href="{{ author_link }}"/>
+	{% endif %}
+	<link rel="canonical" href="{{ site_info.url + page.href }}"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	<title>{{ page.title }} | {{ site_info.name }}</title>
 	<link rel="stylesheet" href="/css/normalize.css">
