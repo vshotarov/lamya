@@ -26,6 +26,11 @@ def parse_args():
 	parser.add_argument("-pp","--posts_per_page", default=-1, type=int,
 		help="number of posts on per page (pagination). "
 			"If set to -1 no pagination will be applied.")
+	parser.add_argument("-rdf","--read_date_format", default="%d-%m-%Y %H:%M",
+		help="the expected date format for reading the 'publish_date' key in the"
+			" front matter. Default is %%d-%%m-%%Y %%H:%%M.")
+	parser.add_argument("-ddf","--display_date_format", default="%B %-d, %Y",
+		help="the format to display the publish date in. Default is %%B %%-d, %%Y.")
 
 	paths_group = parser.add_argument_group("Paths")
 	paths_group.add_argument("-sd","--site_directory", default=".",
@@ -256,7 +261,8 @@ def main(args):
 		globally_aggregate_whitelist=args.globally_aggregate_whitelist,
 		globally_aggregate_blacklist=args.globally_aggregate_blacklist,
 		num_posts_per_page=args.posts_per_page, lang=args.language,
-		theme_options=args.theme_options)
+		read_date_format=args.read_date_format,
+		display_date_format=args.display_date_format, theme_options=args.theme_options)
 	site_gen.process_contentTree()
 	site_gen.aggregate_posts()
 

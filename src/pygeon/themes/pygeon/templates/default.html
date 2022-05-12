@@ -1,7 +1,7 @@
 {% macro post_metadata(post, indent_level=0) -%}
 {% filter indent(indent_level*4) %}
 <section aria-label="post metadata">
-	<span aria-label="publish date">{{ post.publish_date.strftime("%B %-d, %Y") }}</span>
+	<span aria-label="publish date">{{ post.publish_date.strftime(site_info.display_date_format) }}</span>
 	{% if post.front_matter.get("category") %}
 	{% if site_info.category_nav %}
 	<a aria-label="link to category" href="{{ site_info.category_nav[post.front_matter["category"]] }}">{{ post.front_matter["category"] }}</a>

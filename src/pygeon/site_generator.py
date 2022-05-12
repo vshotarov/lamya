@@ -35,11 +35,6 @@ class NavigationError(Exception):
 	pass
 
 
-class FrontMatterConfig:
-	key_publish_date = "publish_date"
-	date_format = "%d-%m-%Y %H:%M"
-
-
 class Callbacks:
 	@staticmethod
 	def post_contentTree_entity_create(siteGenerator, entity):
@@ -81,6 +76,7 @@ class SiteInfo:
 			hasattr(site_generator,"archive") else {}
 		self.category_nav = site_generator.categories.as_navigation_dict() if\
 			hasattr(site_generator,"categories") else {}
+		self.display_date_format = site_generator.display_date_format
 
 
 class SiteGenerator:
@@ -91,7 +87,8 @@ class SiteGenerator:
 			globally_aggregate_whitelist=[], globally_aggregate_blacklist=[],
 			num_posts_per_page=1, is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
 			front_matter_delimiter="+", callbacks=Callbacks(), lang="en",
-			theme_options={}):
+			front_matter_publish_date_key="publish_date", read_date_format="%d-%m-%Y %H:%M",
+			display_date_format="%B %-d, %Y", theme_options={}):
 		self.name = name
 		self.subtitle = subtitle
 		self.content_directory = Path(content_directory)
@@ -109,6 +106,9 @@ class SiteGenerator:
 		self.front_matter_delimiter = front_matter_delimiter
 		self.callbacks = callbacks
 		self.lang = lang
+		self.front_matter_publish_date_key = front_matter_publish_date_key
+		self.read_date_format = read_date_format
+		self.display_date_format = display_date_format
 		self.theme_options = theme_options
 
 		if locally_aggregate_whitelist and locally_aggregate_blacklist:
@@ -163,9 +163,9 @@ class SiteGenerator:
 					os.path.getmtime(page.source_path) if page.source_path else 0)
 
 				front_matter_publish_date = page.front_matter.get(
-					FrontMatterConfig.key_publish_date)
+					self.front_matter_publish_date_key)
 				front_matter_publish_date = datetime.strptime(
-					front_matter_publish_date, FrontMatterConfig.date_format) if\
+					front_matter_publish_date, self.read_date_format) if\
 					front_matter_publish_date else None
 
 				page.site_generator_data["publish_date"] =\
@@ -175,7 +175,7 @@ class SiteGenerator:
 					contentTree.warning("There's no '%s' key in the front matter for"
 						" '%s' and neither is there a 'source_path' that we can read"
 						" the last modified time from, so the date is going to be 0"
-						% (FrontMatterConfig.key_publish_date, page.path))
+						% (self.front_matter_publish_date_key, page.path))
 
 	def aggregate_posts(self):
 		## Aggregate folders with no index pages
