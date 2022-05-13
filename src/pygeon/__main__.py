@@ -71,24 +71,16 @@ def parse_args():
 	navigation_group.add_argument("-hn", "--home_name_in_navigation",
 		help="the name under which the `home` page should "
 			"appear in the navigation. `None` will exclude it. Default is `None`.")
-	navigation_group.add_argument("-can", "--categories_name_in_navigation",
-		default="categories", help="the name under which the `categories` page should "
-			"appear in the navigation. `None` will exclude it. Default is 'categories'.")
-	navigation_group.add_argument("-arn", "--archive_name_in_navigation",
-		default="archive", help="the name under which the `archive` page should "
-			"appear in the navigation. `None` will exclude it. Default is 'archive'.")
+	navigation_group.add_argument("-ecn", "--exclude_categories_from_navigation",
+		default=False, action="store_const", const=True,
+		help="whether to exclude category pages from navigation. Default is False.")
+	navigation_group.add_argument("-ean", "--exclude_archive_from_navigation",
+		default=False, action="store_const", const=True,
+		help="whether to exclude archive pages from navigation. Default is False.")
 	navigation_group.add_argument("-en", "--exclude_from_navigation",
 		default=[], action="extend", nargs="+", type=str,
 		help="pages to exclude from navigation, given as a list of "
 			"names and/or paths, e.g. ['about','blog/personal']. Default is [].")
-	navigation_group.add_argument("-gc", "--do_not_group_categories_in_navigation",
-		action="store_const", const=True, default=False,
-		help="prevents the categories from being grouped under a 'Category' submenu."
-			" Default is `False`.")
-	navigation_group.add_argument("-ga", "--do_not_group_archives_in_navigation",
-		action="store_const", const=True, default=False,
-		help="prevents the archive pages from being grouped under a 'Archive' submenu."
-			" Default is `False`.")
 	navigation_group.add_argument("-cn", "--custom_navigation",
 		help="accepts a `json` dictionary in the format "
 			"{'name1': '/url1', 'name2': {'name2_sub1': '/name2/url_sub2'}, .. }."
@@ -131,6 +123,14 @@ def parse_args():
 		action="store_const", const=True, default=False,
 		help="whether to error if there are uncategorized posts. Defaults to "
 			"`False` (not erroring out).")
+	category_group.add_argument("-cpn","--categories_page_name", default="",
+		help="the name of the `categories` page, which will have a list of all"
+			" categories and their posts. If left empty, no such page will be created."
+			" Default is ''.")
+	category_group.add_argument("-gc","--group_categories",
+		action="store_const", const=True, default=False,
+		help="whether to group category pages under a folder. The folder name will"
+			" be 'categories' if nothing is specified in `categories_page_name`")
 	category_group.add_argument("-un","--uncategorized_name",
 		default="Uncategorized", help="the name for the page containing all"
 			" posts which don't have a `category` key in their front matter."
@@ -144,6 +144,22 @@ def parse_args():
 	archive_group.add_argument("-aby","--build_archive_by_year",
 		action="store_const", const=True, default=False,
 		help="whether to build an archive by year. Defaults to `False`.")
+	archive_group.add_argument("-apn", "--archive_page_name", default="",
+		help="the name of the `archive` page, which will have a list of all"
+			" posts by their month and/or year of publishing. If empty, no"
+			" such page will be created. Default is ''.")
+	archive_group.add_argument("-ga","--group_archive",
+		action="store_const", const=True, default=False,
+		help="whether to group archive pages under a folder. The folder name will"
+			" be 'archive' if nothing is specified in `archive_page_name`")
+	archive_group.add_argument("-damp","--display_archive_by_month_in_list_page",
+		action="store_const", const=True, default=False,
+		help="whether to display the monthly archive in the archive list page."
+			" Default is False.")
+	archive_group.add_argument("-dayp","--display_archive_by_year_in_list_page",
+		action="store_const", const=True, default=False,
+		help="whether to display the yearly archive in the archive list page."
+			" Default is False.")
 	archive_group.add_argument("-amf","--archive_month_format",
 		default="%B, %Y",
 		help="the `datetime` fomatting to be used for the archive by month."
@@ -193,6 +209,10 @@ def parse_args():
 		" \"https://knittingforfunandprofit.com/the-three-crocheters\""
 		"\n\n    th_sidebar_archive_nav - whether to include an archive navigation"
 		" in the sidebar"
+		"\n\n    th_display_archive_by_month_in_sidebar - whether to include"
+		" monthly links from the archive in the sidebar. True if not supplied."
+		"\n\n    th_display_archive_by_year_in_sidebar - whether to include"
+		" yearly links from the archive in the sidebar. False if not supplied."
 		"\n\n    th1_copyright_year - to be displayed in the footer"
 		"\n\n    thl1_extra_css - a number of stylesheets to load after"
 		" the theme's ones"
@@ -289,23 +309,25 @@ def main(args):
 	if args.build_categories:
 		site_gen.build_category_pages(
 			allow_uncategorized=not args.do_not_allow_uncategorized,
-			uncategorized_name=args.uncategorized_name)
+			uncategorized_name=args.uncategorized_name,
+			category_list_page_name=args.categories_page_name,
+			group=args.group_categories)
 
 	if args.build_archive_by_month or args.build_archive_by_year:
 		site_gen.build_archive(
 			args.archive_month_format, args.archive_year_format)
 		site_gen.build_archive_pages(
-			by_month=args.build_archive_by_month,
-			by_year=args.build_archive_by_year)
+			by_month=args.build_archive_by_month, by_year=args.build_archive_by_year,
+			archive_list_page_name=args.archive_page_name, group=args.group_archive,
+			display_by_month_in_list_page=args.display_archive_by_month_in_list_page,
+			display_by_year_in_list_page=args.display_archive_by_year_in_list_page)
 
 	if args.custom_navigation is None:
 		site_gen.build_navigation(
 			extra_filter_func=lambda x: x.name not in args.exclude_from_navigation\
 								    and str(x.path) not in args.exclude_from_navigation,
-			group_categories=not args.do_not_group_categories_in_navigation,
-			group_archive=not args.do_not_group_archives_in_navigation,
-			categories_name=args.categories_name_in_navigation,
-			archive_name=args.archive_name_in_navigation)
+			exclude_categories=args.exclude_categories_from_navigation,
+			exclude_archive=args.exclude_archive_from_navigation)
 
 		if args.home_name_in_navigation is not None:
 			site_gen.navigation.update({args.home_name_in_navigation: Path("/")})

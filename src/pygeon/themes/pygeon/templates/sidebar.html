@@ -48,7 +48,7 @@
 		<h2 id="archive-nav-title">Archive</h2>
 		<nav aria-labelledby="archive-nav-title">
 			<ul>
-			{% for name, href in site_info.archive_nav["by_month"] + site_info.archive_nav["by_year"] %}
+			{% for name, href in (site_info.archive_nav["by_month"] if site_info.theme_options.get("display_archive_by_month_in_sidebar",True) else []) + (site_info.archive_nav["by_year"] if site_info.theme_options.get("display_archive_by_year_in_sidebar",False) else [])%}
 				<li><a href="{{ href }}">{{ name}} </a>
 			{% endfor %}
 			</ul>

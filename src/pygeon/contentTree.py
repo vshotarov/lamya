@@ -58,11 +58,8 @@ class ContentTree:
 
 	@property
 	def path(self):
-		parent_to_take_path_from = self.parent
-		if self.parent and self.parent.ignore_in_hrefs:
-			parent_to_take_path_from = self.parent.parent
-		return (parent_to_take_path_from.path / self.name)\
-			if parent_to_take_path_from else Path("/")
+		return (self.parent.path / self.name)\
+			if self.parent else Path("/")
 
 	@path.setter
 	def path(self, _):
@@ -120,11 +117,10 @@ class ContentTree:
 
 class Folder(ContentTree):
 	"""Subtree"""
-	def __init__(self, name, user_data={}, ignore_in_hrefs=False):
+	def __init__(self, name, user_data={}):
 		super(Folder, self).__init__(name, user_data)
 		self._children = []
 		self._index_page = None
-		self.ignore_in_hrefs = ignore_in_hrefs
 
 	@property
 	def children(self):
@@ -150,8 +146,6 @@ class Folder(ContentTree):
 
 	@property
 	def path(self):
-		if self.ignore_in_hrefs:
-			return ""
 		return super(Folder, self).path
 
 	def pprint(self, level=0):
@@ -382,6 +376,28 @@ class ProceduralPage(AbstractPageOrPost):
 	pass
 
 
+class AggregatedGroupsPage(ProceduralPage):
+	def __init__(self, name, aggregated_grouped_posts, source_path=None,
+			source=None, user_data={}):
+		super(AggregatedGroupsPage, self).__init__(
+			name, source_path, source, user_data)
+		self.aggregated_grouped_posts = aggregated_grouped_posts
+
+	def pprint(self, level=0):
+		return "%sAggregatedGroupsPage(%s) {%s}" % (" "*2*level, self.name,
+			", ".join(k + ": " + ",".join(p.name for p in v)\
+			for k,v in self.aggregated_grouped_posts.items()))
+
+	@property
+	def source(self):
+		if self._source is not None:
+			return self._source
+		elif self._source_path:
+			with open(self._source_path, "r") as f:
+				return f.read()
+		return None
+
+
 class AggregatedPage(ProceduralPage):
 	def __init__(self, name, aggregated_posts, source_path=None, source=None,
 			user_data={}):
@@ -455,16 +471,13 @@ class PaginatedAggregatedPage(AggregatedPage):
 
 	@property
 	def path(self):
-		parent_to_take_path_from = self.parent
-		if self.parent and self.parent.ignore_in_hrefs:
-			parent_to_take_path_from = self.parent.parent
 		if self.pagination.first_page.is_index_page():
-			return parent_to_take_path_from.path /\
+			return self.parent.path /\
 				("page%i" % self.pagination.page_number)
 		elif self.pagination.max_page_number == 1:
-			return parent_to_take_path_from.path / self.name
+			return self.parent.path / self.name
 		else:
-			return parent_to_take_path_from.path / self.name /\
+			return self.parent.path / self.name /\
 				("page%i" % self.pagination.page_number)
 
 

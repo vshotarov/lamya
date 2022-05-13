@@ -1,12 +1,14 @@
-{% macro post_metadata(post, indent_level=0) -%}
+{% macro post_metadata(post, indent_level=0, categories=True) -%}
 {% filter indent(indent_level*4) %}
 <section aria-label="post metadata">
 	<span aria-label="publish date">{{ post.publish_date.strftime(site_info.display_date_format) }}</span>
 	{% if post.front_matter.get("category") %}
+	{% if categories %}
 	{% if site_info.category_nav %}
-	<a aria-label="link to category" href="{{ site_info.category_nav[post.front_matter["category"]] }}">{{ post.front_matter["category"] }}</a>
+	<a aria-label="link to category" href="{{ site_info.category_nav['categories'][post.front_matter["category"]] }}">{{ post.front_matter["category"] }}</a>
 	{% else %}
 	<span aria-label="category">{{ post.front_matter["category"] }}</span>
+	{% endif %}
 	{% endif %}
 	{% endif %}
 </section>
@@ -29,6 +31,24 @@
 					<p>{{ post.excerpt | indent(4) }}</p>
 				</div>
 			</article></li>
+		{% endfor %}
+		</ol>
+	{% elif page.aggregated_grouped_posts %}
+		{# archive and categories template #}
+		<ol class="grouped-posts-list">
+		{% for category, posts in page.aggregated_grouped_posts.items() %}
+			<li><h2>{{ category }}</h2>
+				<ol>
+				{% for post in posts %}
+					<li><article>
+						<header>
+							<h3><a href="{{ post.href }}">{{ post.title }}</a></h3>
+							{{ post_metadata(post, 7, False) }}
+						</header>
+					</article></li>
+				{% endfor %}
+				</ol>
+			</li>
 		{% endfor %}
 		</ol>
 	{% else %}
