@@ -477,10 +477,10 @@ main > ol > li > article > header > h2 a:link,
 main > ol > li > article > header > h2 a:visited,
 main > ol > li > article > header > h2 a:active,
 main > ol > li > article > header > h2 a,
-.grouped-posts-list article > header > h3 a:link,
-.grouped-posts-list article > header > h3 a:visited,
-.grouped-posts-list article > header > h3 a:active,
-.grouped-posts-list article > header > h3 a {
+main article > header > h3 a:link,
+main article > header > h3 a:visited,
+main article > header > h3 a:active,
+main article > header > h3 a {
 	color: blue;
 	text-decoration: none;
 }

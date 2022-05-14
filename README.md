@@ -3,7 +3,6 @@
 
 # Todos
 - make sure all hrefs are stored as str objects
-- on list pages make article titles `h3` as we now have a `h2` title
 - sort out a nice monochromatic palette for the default theme
 - add nested hierarchies to the nav
 - look into making the generated site truly static, i.e. not requiring a server

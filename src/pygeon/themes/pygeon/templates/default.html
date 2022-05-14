@@ -25,7 +25,11 @@
 		{% for post in page.aggregated_posts %}
 			<li><article>
 				<header>
+					{% if ((page.pagination["root"] if page.pagination else page.href) | safe) != "/" %}
+					<h3><a href="{{ post.href }}">{{ post.title }}</a></h3>
+					{% else %}
 					<h2><a href="{{ post.href }}">{{ post.title }}</a></h2>
+					{% endif %}
 					{{ post_metadata(post, 4) }}
 				</header>
 				<div class="article-excerpt">
