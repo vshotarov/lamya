@@ -3,17 +3,14 @@
 
 # Todos
 - sort out a nice monochromatic palette for the default theme
-- add nested hierarchies to the nav
 - look into making the generated site truly static, i.e. not requiring a server
 - document the required/supported front matter info for the default theme
-- the `build_navigation` currently has a hardcoded bit that creates navigation for everything which needs to be removed when im done
 - minify css and js?
 - add all the necessary header meta tags to the theme - _the most important are done, it's now a question whether i want to add the specific fb and twitter ones_
-- consider rendering the first page of a paginated page to both `{page}/` and `{page}/page{pageNum}`. I know it can be done with a redirect, but I'd rather not require that
 - make sure we take care of urlencoding in URLs. tbh, i'd rather just strip/convert all unsupported characters, so URIs are very clear
 - add breadcrumbs
+- add rss
 - properly structure the `__init__.py`
-- because im using relative urls, make sure to define a canonical one
 - at the moment rebuliding the website deletes the whole `build` folder and recreates it from scratch, which can become quite slow on huge websites, so i need some sort of a smart rebuild.
 
 # Acknowledgements
