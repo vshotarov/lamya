@@ -466,6 +466,13 @@ main > ol {
 	margin-top: 0;
 }
 
+main > h2 {
+	font-weight: 400;
+	margin-top: 0;
+	border-bottom: 1px solid #dedede;
+	padding-bottom: .2em;
+}
+
 main > ol > li > article > header > h2 a:link,
 main > ol > li > article > header > h2 a:visited,
 main > ol > li > article > header > h2 a:active,
@@ -476,6 +483,16 @@ main > ol > li > article > header > h2 a,
 .grouped-posts-list article > header > h3 a {
 	color: blue;
 	text-decoration: none;
+}
+
+.grouped-posts-list h2 {
+	font-weight: 400;
+	padding-bottom: .2em;
+	border-bottom: 1px solid #dedede;
+}
+
+.grouped-posts-list > li:first-child h2 {
+	margin-top: 0;
 }
 
 main > ol > li:first-of-type > article > header > h2 {
@@ -495,3 +512,35 @@ pre {
 	overflow-x: auto;
 }
 /* end 5. */
+
+/* 6. Pagination */
+nav.pagination {
+	width: 100%;
+}
+
+nav.pagination ul {
+	list-style: none;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+}
+
+nav.pagination ul li a[aria-current="true"] {
+	background: #dfdfdf;
+}
+
+nav.pagination ul li a:hover {
+	background: #efefef;
+}
+
+nav.pagination ul li a {
+	padding: 5px 10px;
+	text-decoration: none;
+	color: black;
+	border: 1px solid #dfdfdf;
+	border-right: none;
+}
+nav.pagination ul li:last-child a {
+	border-right: 1px solid #dfdfdf;
+}
+/* end 6. */

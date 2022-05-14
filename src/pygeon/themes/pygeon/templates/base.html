@@ -13,7 +13,7 @@
 	{% if author_link %}
 	<link rel="author" href="{{ author_link }}"/>
 	{% endif %}
-	<link rel="canonical" href="{{ site_info.url + page.href }}"/>
+	<link rel="canonical" href="{{ site_info.url + page.canonical_href }}"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	<title>{{ page.title }} | {{ site_info.name }}</title>
 	<link rel="stylesheet" href="/css/normalize.css">

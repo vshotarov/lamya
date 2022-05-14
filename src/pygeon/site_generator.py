@@ -61,11 +61,14 @@ class RenderablePage:
 			else {k: [RenderablePage(x) for x in v]\
 				  for k,v in pageOrPost.aggregated_grouped_posts.items()}
 		self.pagination = pageOrPost.pagination.as_navigation_dict()\
-			if hasattr(pageOrPost, "pagination") else {}
+			if hasattr(pageOrPost, "pagination")\
+				and pageOrPost.pagination.max_page_number > 1 else {}
 		self.publish_date = pageOrPost.site_generator_data.get("publish_date")
 		self.user_data = pageOrPost.user_data
 		self.front_matter = pageOrPost.front_matter
 		self.is_post = pageOrPost.site_generator_data.get("is_post",False)
+		self.canonical_href = str(
+			pageOrPost.site_generator_data.get("canonical_href", self.href))
 
 
 class SiteInfo:
@@ -220,7 +223,8 @@ class SiteGenerator:
 
 		## Aggregate all posts to optionally be used on the home page
 		to_globally_aggregate = list(filter(
-			lambda x: not self.is_page_func(x),
+			lambda x: not self.is_page_func(x) and\
+					  not isinstance(x, contentTree.PaginatedAggregatedPage),
 			self.contentTree.leaves(include_index_pages=False)))
 
 		if self.globally_aggregate_blacklist:
@@ -296,7 +300,7 @@ class SiteGenerator:
 				parent.add_child(category_list_page)
 
 		self.categories = Categories(grouped, category_pages,
-			category_list_page, categories_folder)
+			category_list_page, categories_folder, uncategorized_name)
 
 	def build_archive(self, by_month_format="%B, %Y", by_year_format="%Y"):
 		by_month, by_year = {}, {}
@@ -378,13 +382,13 @@ class SiteGenerator:
 			contentTree.warning("Navigation already exists, overwriting..")
 
 		extra_filter_func = extra_filter_func or (lambda _: True)
-		filter_func = lambda _: True
+		#filter_func = lambda _: True
 		# NOTE: Temporarily add everything to the navigation to test nesting
-		#filter_func = filter_func or (lambda x:\
-		#	(self.is_page_func(x) or x.parent == self.contentTree) and\
-		#	(True if not hasattr(x, "is_index_page") else not x.is_index_page()) and\
-		#	(True if not isinstance(x, contentTree.PaginatedAggregatedPage) else\
-		#	 x.pagination.page_number == 1))
+		filter_func = filter_func or (lambda x:\
+			(self.is_page_func(x) or x.parent == self.contentTree) and\
+			(True if not hasattr(x, "is_index_page") else not x.is_index_page()) and\
+			(True if not isinstance(x, contentTree.PaginatedAggregatedPage) else\
+			 x.pagination.page_number == 1))
 		category_filter = (lambda _: True) if not exclude_categories else\
 			(lambda x: x.path not in [p.path for p in list(self.categories.all_pages)+\
 				([self.categories.list_page] if self.categories.list_page else [])+\
@@ -433,15 +437,32 @@ class SiteGenerator:
 			leaf.parse_front_matter_and_content()
 			leaf.process_content(markup_processor_func)
 
-			path = leaf.render_path(self.build_directory)
+			# We may need to write the same page to multiple paths, because
+			# of pagination, so we store the path in a list
+			paths = [leaf.render_path(self.build_directory)]
 
-			if not path.parent.exists():
-				os.makedirs(path.parent)
+			# Let's write the first page of each pagination both to the
+			# respective '/' and '/page1' URLs, as it's a bit awkward otherwise.
+			if isinstance(leaf, contentTree.PaginatedAggregatedPage)\
+					and leaf.pagination.page_number == 1\
+					and leaf.pagination.max_page_number != 1:
+				# If it's already the index page, let's also write it to /page1
+				if leaf == getattr(leaf.parent, "index_page", None):
+					paths.append(paths[0].parent / "page1" / "index.html")
+				else:
+					# Otherwise, we need to write to the index page
+					paths.append(paths[0].parent.parent / "index.html")
+					# Make sure we consistently use '/' as the canonical URL
+					leaf.site_generator_data["canonical_href"] = leaf.parent.href / leaf.name
 
-			with open(path, "w") as f:
-				f.write(self.renderer.render("default.html",
-					page=to_renderable_page(leaf),
-					site_info=to_site_info(self), **kwargs))
+			for path in paths:
+				if not path.parent.exists():
+					os.makedirs(path.parent)
+
+				with open(path, "w") as f:
+					f.write(self.renderer.render("default.html",
+						page=to_renderable_page(leaf),
+						site_info=to_site_info(self), **kwargs))
 
 
 class Jinja2Renderer:
@@ -457,11 +478,13 @@ class Jinja2Renderer:
 
 
 class Categories:
-	def __init__(self, posts_by_category, pages_by_category, list_page, folder):
+	def __init__(self, posts_by_category, pages_by_category, list_page, folder,
+			uncategorized_name):
 		self.posts_by_category = posts_by_category
 		self.pages_by_category = pages_by_category
 		self.list_page = list_page
 		self.folder = folder
+		self.uncategorized_name = uncategorized_name
 
 	@property
 	def all_pages(self):
@@ -470,7 +493,8 @@ class Categories:
 	def as_navigation_dict(self):
 		return {
 			"self": getattr(self.list_page, "href", None),
-			"categories": {k: v.href for k,v in self.pages_by_category.items()}}
+			"categories": {k: v.href for k,v in self.pages_by_category.items()},
+			"uncategorized_name": self.uncategorized_name }
 
 
 class Archive:

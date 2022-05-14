@@ -2,6 +2,10 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- make sure all hrefs are stored as str objects
+- on list pages make article titles `h3` as we now have a `h2` title
+- sort out a nice monochromatic palette for the default theme
+- add nested hierarchies to the nav
 - look into making the generated site truly static, i.e. not requiring a server
 - document the required/supported front matter info for the default theme
 - the `build_navigation` currently has a hardcoded bit that creates navigation for everything which needs to be removed when im done
