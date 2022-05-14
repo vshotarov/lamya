@@ -492,13 +492,14 @@ class Pagination:
 		self.next_page = next_page
 
 	def as_navigation_dict(self):
+		root = str(self.last_page.href).replace(
+			"page%i" % self.max_page_number, "").rstrip("/")
 		return {
 			"page_number" : self.page_number,
 			"max_page_number" : self.max_page_number,
-			"first_page_href" : self.first_page.href,
-			"last_page_href" : self.last_page.href,
-			"prev_page_href" : self.prev_page.href if self.prev_page else None,
-			"next_page_href" : self.next_page.href if self.next_page else None,
-			"root": Path(str(self.last_page.href).replace(
-				"page%i" % self.max_page_number, ""))
+			"first_page_href" : str(self.first_page.href),
+			"last_page_href" : str(self.last_page.href),
+			"prev_page_href" : str(self.prev_page.href) if self.prev_page else None,
+			"next_page_href" : str(self.next_page.href) if self.next_page else None,
+			"root": root if root else "/"
 		}

@@ -18,14 +18,14 @@
 {% block content %}
 	{% if page.aggregated_posts %}
 		{# list template #}
-		{% if ((page.pagination["root"] if page.pagination else page.href) | safe) != "/" %}
+		{% if (page.pagination["root"] if page.pagination else page.href) != "/" %}
 		<h2>{{ page.title }}</h2>
 		{% endif %}
 		<ol>
 		{% for post in page.aggregated_posts %}
 			<li><article>
 				<header>
-					{% if ((page.pagination["root"] if page.pagination else page.href) | safe) != "/" %}
+					{% if (page.pagination["root"] if page.pagination else page.href) != "/" %}
 					<h3><a href="{{ post.href }}">{{ post.title }}</a></h3>
 					{% else %}
 					<h2><a href="{{ post.href }}">{{ post.title }}</a></h2>
@@ -77,7 +77,9 @@
 		{# single page/post template #}
 		<article>
 			<header>
+				{% if page.href != "/" %}
 				<h1>{{ page.title }}</h1>
+				{% endif %}
 				{% if page.is_post %}
 				{{ post_metadata(page, 3) }}
 				{% endif %}

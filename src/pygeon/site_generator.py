@@ -401,8 +401,8 @@ class SiteGenerator:
 			lambda x: filter_func(x) and extra_filter_func(x)\
 					  and category_filter(x) and archive_filter(x), True)
 		self.navigation = navigatable_tree.as_dict(
-			lambda x: x.href,
-			lambda x: x.href if x.index_page else None)
+			lambda x: str(x.href),
+			lambda x: str(x.href) if x.index_page else None)
 
 	def render(self, to_renderable_page=RenderablePage, to_site_info=SiteInfo,
 			markup_processor_func=markdown.markdown if markdown else None,
@@ -493,7 +493,7 @@ class Categories:
 	def as_navigation_dict(self):
 		return {
 			"self": getattr(self.list_page, "href", None),
-			"categories": {k: v.href for k,v in self.pages_by_category.items()},
+			"categories": {k: str(v.href) for k,v in self.pages_by_category.items()},
 			"uncategorized_name": self.uncategorized_name }
 
 
@@ -506,8 +506,8 @@ class Archive:
 
 	def as_navigation_dict(self):
 		return {
-			"by_month": [(p.name, p.href) for p in self.pages_by_month\
+			"by_month": [(p.name, str(p.href)) for p in self.pages_by_month\
 				if not hasattr(p, "pagination") or p.pagination.page_number == 1],
-			"by_year": [(p.name, p.href) for p in self.pages_by_year\
+			"by_year": [(p.name, str(p.href)) for p in self.pages_by_year\
 				if not hasattr(p, "pagination") or p.pagination.page_number == 1]
 			}

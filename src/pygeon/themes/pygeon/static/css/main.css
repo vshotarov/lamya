@@ -511,6 +511,17 @@ pre {
 	white-space: nowrap;
 	overflow-x: auto;
 }
+
+.article-content > p:first-child,
+.article-content > h1:first-child,
+.article-content > h2:first-child,
+.article-content > h3:first-child,
+.article-content > h4:first-child,
+.article-content > h5:first-child,
+.article-content > h6:first-child {
+	margin-top: 0;
+	padding-top: 0;
+}
 /* end 5. */
 
 /* 6. Pagination */
