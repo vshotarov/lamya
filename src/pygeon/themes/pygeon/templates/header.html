@@ -9,7 +9,7 @@
 	{% if href_or_submenu is mapping %}
 	<li class="has-submenu">
 		{% if href_or_submenu['self'] %}
-		<a href="{{ href_or_submenu['self'] }}" aria-haspopup="true">{{ name }}</a>
+		<a href="{{ href_or_submenu['self'] | urlencode }}" aria-haspopup="true">{{ name }}</a>
 		{% else %}
 		<span>{{ name }}</span>
 		{% endif %}
@@ -18,7 +18,7 @@
 		{{ nested_navigation(href_or_submenu["children"], indent_level=2, name=name) }}
 	{% else %}
 	<li>
-		<a href="{{ href_or_submenu }}">{{ name }}</a>
+		<a href="{{ href_or_submenu | urlencode }}">{{ name }}</a>
 	{% endif %}
 	</li>
 	{% endfor %}

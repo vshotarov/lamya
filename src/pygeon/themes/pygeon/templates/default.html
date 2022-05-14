@@ -4,7 +4,7 @@
 	<span aria-label="publish date">{{ post.publish_date.strftime(site_info.display_date_format) }}</span>
 	{% if categories %}
 	{% if site_info.category_nav %}
-	<a aria-label="link to category" href="{{ site_info.category_nav['categories'][post.front_matter.get('category', site_info.category_nav['uncategorized_name'])] }}">{{ post.front_matter.get("category", site_info.category_nav["uncategorized_name"]) }}</a>
+	<a aria-label="link to category" href="{{ site_info.category_nav['categories'][post.front_matter.get('category', site_info.category_nav['uncategorized_name'])] | urlencode }}">{{ post.front_matter.get("category", site_info.category_nav["uncategorized_name"]) }}</a>
 	{% elif post.front_matter.get("category") %}
 	<span aria-label="category">{{ post.front_matter.get("category") }}</span>
 	{% endif %}
@@ -26,9 +26,9 @@
 			<li><article>
 				<header>
 					{% if (page.pagination["root"] if page.pagination else page.href) != "/" %}
-					<h3><a href="{{ post.href }}">{{ post.title }}</a></h3>
+					<h3><a href="{{ post.href | urlencode }}">{{ post.title }}</a></h3>
 					{% else %}
-					<h2><a href="{{ post.href }}">{{ post.title }}</a></h2>
+					<h2><a href="{{ post.href | urlencode }}">{{ post.title }}</a></h2>
 					{% endif %}
 					{{ post_metadata(post, 4) }}
 				</header>
@@ -43,15 +43,15 @@
 			{% set min_page = [1, page.pagination.page_number - 3] | max | int %}
 			{% set max_page = [page.pagination.max_page_number, page.pagination.page_number + 3] | min | int %}
 			{% if min_page != 1 %}
-			<li><a aria-label="go to page 1" aria-current="{{ 'true' if page.pagination.page_number == 1 else 'false' }}" href="{{ page.pagination.first_page_href }}">1</a></li>
+			<li><a aria-label="go to page 1" aria-current="{{ 'true' if page.pagination.page_number == 1 else 'false' }}" href="{{ page.pagination.first_page_href | urlencode }}">1</a></li>
 			{% endif %}
 			{% for i in range(min_page, max_page + 1) %}
 			{% set root_href = page.pagination['root'].__str__() %}
 			{% set root_href = root_href if root_href != "/" else "" %}
-			<li><a aria-label="go to page {{ i }}" aria-current="{{ 'true' if page.pagination.page_number == i else 'false' }}" href="{% if i != 1 %}{{ root_href + ('/page%i' % i) }}{% else %}{{ page.pagination.first_page_href }}{% endif %}">{{ i }}</a></li>
+			<li><a aria-label="go to page {{ i }}" aria-current="{{ 'true' if page.pagination.page_number == i else 'false' }}" href="{% if i != 1 %}{{ root_href + ('/page%i' % i) | urlencode }}{% else %}{{ page.pagination.first_page_href | urlencode }}{% endif %}">{{ i }}</a></li>
 			{% endfor %}
 			{% if max_page != page.pagination.max_page_number %}
-			<li><a aria-label="go to page {{ page.pagination.max_page_number }}" aria-current="{{ 'true' if page.pagination.page_number == page.pagination.max_page_number else 'false' }}" href="{{ page.pagination.last_page_href }}">{{ page.pagination.max_page_number }}</a></li>
+			<li><a aria-label="go to page {{ page.pagination.max_page_number }}" aria-current="{{ 'true' if page.pagination.page_number == page.pagination.max_page_number else 'false' }}" href="{{ page.pagination.last_page_href | urlencode }}">{{ page.pagination.max_page_number }}</a></li>
 			{% endif %}
 		</ul></nav>
 		{% endif %}
@@ -64,7 +64,7 @@
 				{% for post in posts %}
 					<li><article>
 						<header>
-							<h3><a href="{{ post.href }}">{{ post.title }}</a></h3>
+							<h3><a href="{{ post.href | urlencode }}">{{ post.title }}</a></h3>
 							{{ post_metadata(post, 7) }}
 						</header>
 					</article></li>
