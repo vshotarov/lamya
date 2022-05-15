@@ -389,27 +389,22 @@ class SiteGenerator:
 			contentTree.warning("Navigation already exists, overwriting..")
 
 		extra_filter_func = extra_filter_func or (lambda _: True)
-
-		category_filter = (lambda _: True) if not exclude_categories else\
-			(lambda x: x.path not in [p.path for p in list(self.categories.all_pages)+\
-				([self.categories.list_page] if self.categories.list_page else [])+\
-				([self.categories.folder] if self.categories.folder else [])])
-		archive_filter = (lambda _: True) if not exclude_archive else\
-			(lambda x: True if not self.archive else (x.path not in \
-				[p.path for p in (self.archive.pages_by_month + self.archive.pages_by_year)+\
-					([self.archive.list_page.parent] if self.archive.list_page else [])]))
+		is_category_page_func = lambda x: False if not hasattr(self, "categories")\
+			else x.path in [p.path for p in list(self.categories.all_pages) +\
+				([self.categories.list_page] if self.categories.list_page else [])]
+		is_archive_page_func = lambda x: False if not hasattr(self, "archive")\
+			else x.path in [p.path for p in self.archive.all_pages +\
+				([self.archive.list_page] if self.archive.list_page else [])]
 
 		filter_func = filter_func or (lambda x:\
-			(category_filter(x) or archive_filter(x)) and\
-			(self.is_page_func(x) or x.parent == self.contentTree\
-				or isinstance(x, contentTree.Folder)\
-				or isinstance(x, contentTree.AggregatedPage)) and\
-			(True if not isinstance(x, contentTree.PaginatedAggregatedPage) else\
-			 x.pagination.page_number == 1))
+			   (self.is_page_func(x)\
+			    or (not exclude_categories and is_category_page_func(x))\
+				or (not exclude_archive and is_archive_page_func(x)))\
+			and x != self.contentTree.index_page and\
+			(x.pagination.page_number == 1 if hasattr(x, "pagination") else True))
 
 		navigatable_tree = self.contentTree.filter(
-			lambda x: filter_func(x) and extra_filter_func(x)\
-					  and category_filter(x) and archive_filter(x), True)
+			lambda x: filter_func(x) and extra_filter_func(x), True)
 		self.navigation = navigatable_tree.as_dict(
 			lambda x: str(x.href),
 			lambda x: str(x.href) if x.index_page else None)
@@ -514,6 +509,10 @@ class Archive:
 		self.pages_by_month = []
 		self.pages_by_year = []
 		self.list_page = None
+
+	@property
+	def all_pages(self):
+		return self.pages_by_month + self.pages_by_year
 
 	def as_navigation_dict(self):
 		return {
