@@ -5,7 +5,6 @@
 - sort out a nice monochromatic palette for the default theme
 - look into making the generated site truly static, i.e. not requiring a server
 - document the required/supported front matter info for the default theme
-- add all the necessary header meta tags to the theme - _the most important are done, it's now a question whether i want to add the specific fb and twitter ones_
 - add breadcrumbs
 - add rss
 - properly structure the `__init__.py`

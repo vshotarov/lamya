@@ -9,6 +9,9 @@
 	{% if page.front_matter.get("meta_keywords") %}
 	<meta name="keywords" content="{{ page.front_matter['meta_keywords'] }}">
 	{% endif %}
+	{% for meta in page.front_matter.get("extra_meta_tags",[]) %}
+	<meta{% for k,v in meta.items() %} {{ k }}="{{ v }}"{% endfor %}>
+	{% endfor %}
 	{% set author_link = page.front_matter.get("author_link", site_info.author_link) %}
 	{% if author_link %}
 	<link rel="author" href="{{ author_link }}"/>
@@ -18,7 +21,7 @@
 	<title>{{ page.title }} | {{ site_info.name }}</title>
 	<link rel="stylesheet" href="/css/normalize.css">
 	<link rel="stylesheet" href="/css/main.css">
-	{% for css_file in site_info.theme_options.get("extra_css",[]) %}
+	{% for css_file in site_info.theme_options.get("extra_css",[]) + page.front_matter.get("extra_css_files",[]) %}
 	<link rel="stylesheet" href="{{ css_file }}">
 	{% endfor %}
 </head>
@@ -45,7 +48,7 @@
 	{% endblock %}
 
 	<script src="/js/nav_aria.js"></script>
-	{% for js_file in site_info.theme_options.get("extra_js",[]) %}
+	{% for js_file in site_info.theme_options.get("extra_js",[]) + page.front_matter.get("extra_js", []) %}
 	<script src="{{ js_file }}"></script>
 	{% endfor %}
 </body>
