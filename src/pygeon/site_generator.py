@@ -407,6 +407,7 @@ class SiteGenerator:
 
 		filter_func = filter_func or (lambda x:\
 			   (self.is_page_func(x) or isinstance(x, contentTree.Folder)\
+			    or x.is_index_page()\
 			    or (not exclude_categories and is_category_page_func(x))\
 				or (not exclude_archive and is_archive_page_func(x)))\
 			and x != self.contentTree.index_page and\

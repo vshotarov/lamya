@@ -2,10 +2,10 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- make sure non aggregated folders have a 404 index page, so we don't ever list the directory
 - document `pyg_urlencode` for theme developers
 - content styling should be tested more thoroughly, as i hadnt noticed how big margins headlines have
 - sort out a nice monochromatic palette for the default theme
-- look into making the generated site truly static, i.e. not requiring a server
 - document the required/supported front matter info for the default theme
 - add rss
 - properly structure the `__init__.py`
