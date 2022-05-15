@@ -2,7 +2,7 @@
 <aside aria-label="sidebar" class="with_breadcrumbs">
 	{% if site_info.theme_options.get("sidebar_image") and (not site_info.theme_options.get("sidebar_image_in_home_only") or page.href == "/") %}
 	<section aria-label="sidebar image">
-		<img alt="{{ site_info.theme_options.get('sidebar_image_alt','') }}" src="{{ site_info.theme_options.get('sidebar_image','') | urlencode }}">
+		<img alt="{{ site_info.theme_options.get('sidebar_image_alt','') }}" src="{{ site_info.theme_options.get('sidebar_image','') }}">
 	</section>
 	{% endif %}
 
@@ -12,9 +12,9 @@
 		{% for link in site_info.theme_options.get("social_links") %}
 			<li>
 			{% if (link | length) == 3 %}
-				<a aria-label="{{ link[0] }} link" href="{{ link[1] | urlencode }}"><img alt="" src="{{ link[2] }}"></a>
+				<a aria-label="{{ link[0] }} link" href="{{ link[1] }}"><img alt="" src="{{ link[2] }}"></a>
 			{% else %}
-				<a href="{{ link[1] | urlencode }}">{{ link[0] }}</a>
+				<a href="{{ link[1] }}">{{ link[0] }}</a>
 			{% endif %}
 			</li>
 		{% endfor %}
@@ -34,9 +34,9 @@
 		{% for link in site_info.theme_options.get("links") %}
 			<dt>{{ link[0] }}</dt>
 			{% if (link | length) == 3 %}
-			<dd><a href="{{ link[1] | urlencode }}">{{ link[2] }}</a></dd>
+			<dd><a href="{{ link[1] }}">{{ link[2] }}</a></dd>
 			{% else %}
-			<dd><a aria-label="{{ link[0] }} link" href="{{ link[1] | urlencode }}">link</a></dd>
+			<dd><a aria-label="{{ link[0] }} link" href="{{ link[1] }}">link</a></dd>
 			{% endif %}
 		{% endfor %}
 		</dl>
@@ -49,7 +49,7 @@
 		<nav aria-labelledby="archive-nav-title">
 			<ul>
 			{% for name, href in (site_info.archive_nav["by_month"] if site_info.theme_options.get("display_archive_by_month_in_sidebar",True) else []) + (site_info.archive_nav["by_year"] if site_info.theme_options.get("display_archive_by_year_in_sidebar",False) else [])%}
-				<li><a href="{{ href | urlencode }}">{{ name}} </a>
+				<li><a href="{{ href | pyg_urlencode }}">{{ name}} </a>
 			{% endfor %}
 			</ul>
 		</nav>

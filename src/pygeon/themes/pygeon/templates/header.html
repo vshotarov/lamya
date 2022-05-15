@@ -9,16 +9,16 @@
 	{% if href_or_submenu is mapping %}
 	<li class="has-submenu">
 		{% if href_or_submenu['self'] %}
-		<a href="{{ href_or_submenu['self'] | urlencode }}" aria-haspopup="true">{{ name }}</a>
+		<a href="{{ href_or_submenu['self'] | pyg_urlencode }}" aria-haspopup="true">{{ name }}</a>
 		{% else %}
 		<span>{{ name }}</span>
 		{% endif %}
-		<img alt="" aria-hidden="true" src="/img/caret-down.svg">
+		<img alt="" aria-hidden="true" src="{{ '/img/caret-down.svg' | pyg_urlencode }}">
 		<button class="visually-hidden">Toggle submenu for "{{name}}"</button>
 		{{ nested_navigation(href_or_submenu["children"], indent_level=2, name=name) }}
 	{% else %}
 	<li>
-		<a href="{{ href_or_submenu | urlencode }}">{{ name }}</a>
+		<a href="{{ href_or_submenu | pyg_urlencode }}">{{ name }}</a>
 	{% endif %}
 	</li>
 	{% endfor %}
@@ -29,12 +29,12 @@
 {% block header %}
 <header>
 	<section aria-label="site name, description and mobile menu toggle button">
-		<a href="/" aria-label="go to homepage">{{ site_info.name }}</a>
+		<a href="{{ '/' | pyg_urlencode }}" aria-label="go to homepage">{{ site_info.name }}</a>
 		{% if site_info.subtitle %}
 			<p>{{ site_info.subtitle }}</p>
 		{% endif %}
 	</section>
-	<button id="menu-toggle" aria-label="mobile menu toggle"><img alt="" src="/img/menu-2.svg"></button>
+	<button id="menu-toggle" aria-label="mobile menu toggle"><img alt="" src="{{ '/img/menu-2.svg' | pyg_urlencode }}"></button>
 	<nav aria-label="main">
 		{{ nested_navigation(site_info.navigation, 2) }}
 	</nav>

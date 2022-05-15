@@ -44,7 +44,8 @@ class Callbacks:
 		# im still not sure is a good/bad idea
 		entity.site_generator_data = {
 			"is_post": isinstance(entity, contentTree.PageOrPost) and\
-					not siteGenerator.is_page_func(entity)}
+					not siteGenerator.is_page_func(entity),
+			"site_url": siteGenerator.url}
 
 
 class RenderablePage:
@@ -54,6 +55,7 @@ class RenderablePage:
 		self.content = pageOrPost.content
 		self.excerpt = contentProcessing.get_excerpt(self.content)
 		self.href = str(pageOrPost.href)
+		self.site_url = pageOrPost.site_generator_data["site_url"]
 		self.aggregated_posts = [] if not isinstance(pageOrPost, contentTree.AggregatedPage)\
 			else [RenderablePage(x) for x in pageOrPost.aggregated_posts]
 		self.aggregated_grouped_posts = [] if not isinstance(
@@ -67,7 +69,7 @@ class RenderablePage:
 		self.user_data = pageOrPost.user_data
 		self.front_matter = pageOrPost.front_matter
 		self.is_post = pageOrPost.site_generator_data.get("is_post",False)
-		self.canonical_href = str(
+		self.absolute_canonical_href = self.site_url + str(
 			pageOrPost.site_generator_data.get("canonical_href", self.href))
 		self.breadcrumbs = [("home","/")] + [
 			(p.name,str(p.href))\
@@ -103,7 +105,8 @@ class SiteGenerator:
 			num_posts_per_page=1, is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
 			front_matter_delimiter="+", callbacks=Callbacks(), lang="en",
 			front_matter_publish_date_key="publish_date", read_date_format="%d-%m-%Y %H:%M",
-			display_date_format="%B %-d, %Y", author_link="", theme_options={}):
+			display_date_format="%B %-d, %Y", author_link="", theme_options={},
+			use_absolute_urls=False):
 		self.name = name
 		self.url = url
 		self.subtitle = subtitle
@@ -127,6 +130,7 @@ class SiteGenerator:
 		self.display_date_format = display_date_format
 		self.author_link = author_link
 		self.theme_options = theme_options
+		self.use_absolute_urls = use_absolute_urls
 
 		if locally_aggregate_whitelist and locally_aggregate_blacklist:
 			raise AggregateError("Both 'locally_aggregate_whitelist' and"
@@ -154,6 +158,11 @@ class SiteGenerator:
 
 		self.renderer = Jinja2Renderer([
 			self.templates_directory, self.theme_directory / "templates"])
+		self.renderer.environment.filters["pyg_urlencode"] = lambda x:\
+			("" if (x.startswith(self.url) or not self.use_absolute_urls) else self.url) +\
+				self.renderer.environment.filters["urlencode"](
+					x if (not self.url.startswith("file://") or "." in x.split("/")[-1])\
+						else (x + "/index.html"))
 
 	def initialize_markup_processor(self):
 		if markdown is None:

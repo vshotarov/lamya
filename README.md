@@ -2,6 +2,7 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- document `pyg_urlencode` for theme developers
 - content styling should be tested more thoroughly, as i hadnt noticed how big margins headlines have
 - sort out a nice monochromatic palette for the default theme
 - look into making the generated site truly static, i.e. not requiring a server

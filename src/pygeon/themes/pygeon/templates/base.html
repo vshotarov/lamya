@@ -16,13 +16,13 @@
 	{% if author_link %}
 	<link rel="author" href="{{ author_link }}"/>
 	{% endif %}
-	<link rel="canonical" href="{{ site_info.url + page.canonical_href }}"/>
+	<link rel="canonical" href="{{ page.absolute_canonical_href }}"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	<title>{{ page.title }} | {{ site_info.name }}</title>
-	<link rel="stylesheet" href="/css/normalize.css">
-	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="{{ '/css/normalize.css' | pyg_urlencode }}">
+	<link rel="stylesheet" href="{{ '/css/main.css' | pyg_urlencode }}">
 	{% for css_file in site_info.theme_options.get("extra_css",[]) + page.front_matter.get("extra_css_files",[]) %}
-	<link rel="stylesheet" href="{{ css_file }}">
+	<link rel="stylesheet" href="{{ css_file | pyg_urlencode }}">
 	{% endfor %}
 </head>
 <body>
@@ -33,7 +33,7 @@
 	{% if site_info.theme_options.get("breadcrumbs",False) and page.breadcrumbs | length > 1 %}
 	<nav aria-label="breadcrumb" class="breadcrumbs"><ol>
 	{% for crumb in page.breadcrumbs %}
-	<li><a aria-current="{% if crumb[1] == page.href or (page.pagination and crumb[1] == page.pagination['root']) %}page{% else %}false{% endif %}" href="{{ crumb[1] | urlencode }}">{{ crumb[0] }}</a></li>
+	<li><a aria-current="{% if crumb[1] == page.href or (page.pagination and crumb[1] == page.pagination['root']) %}page{% else %}false{% endif %}" href="{{ crumb[1] | pyg_urlencode }}">{{ crumb[0] }}</a></li>
 	{% endfor %}
 	</ol></nav>
 	{%- endif -%}
@@ -54,9 +54,9 @@
 	</footer>
 	{% endblock %}
 
-	<script src="/js/nav_aria.js"></script>
+	<script src="{{ '/js/nav_aria.js' | pyg_urlencode }}"></script>
 	{% for js_file in site_info.theme_options.get("extra_js",[]) + page.front_matter.get("extra_js", []) %}
-	<script src="{{ js_file }}"></script>
+	<script src="{{ js_file | pyg_urlencode }}"></script>
 	{% endfor %}
 </body>
 </html>

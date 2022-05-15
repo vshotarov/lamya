@@ -38,6 +38,11 @@ def parse_args():
 	parser.add_argument("-l","--language", default="en",
 		help="the language of the website as required by the HTML `lang` attribute. "
 		"Default is 'en'.")
+	parser.add_argument("-uau","--use_absolute_urls",
+		action="store_const", const=True, default=False,
+		help="whether or not to use absolute URLs. It is only recommended to use"
+			" this flag if you'd like to access the website directly from the"
+			" filesystem using the 'file://' scheme, rather than serving it.")
 	parser.add_argument("-pp","--posts_per_page", default=-1, type=int,
 		help="number of posts on per page (pagination). "
 			"If set to -1 no pagination will be applied.")
