@@ -72,7 +72,7 @@ class RenderablePage:
 		self.absolute_canonical_href = self.site_url + str(
 			pageOrPost.site_generator_data.get("canonical_href", self.href))
 		self.breadcrumbs = [("home","/")] + [
-			(p.name,str(p.href))\
+			(p.name,str(p.href) if p.index_page else None)\
 				for p in reversed(pageOrPost.ancestors[:-1])] +\
 			([(self.title if self.is_post else self.name,self.href)]\
 				if (self.href != "/" and not pageOrPost.is_index_page()\
@@ -478,6 +478,18 @@ class SiteGenerator:
 					f.write(self.renderer.render("default.html",
 						page=to_renderable_page(leaf),
 						site_info=to_site_info(self), **kwargs))
+
+		# Make sure we don't have folders with no index files in them, which
+		# would show a file browser in the web browser
+		class _404Page:
+			front_matter = {}
+		for folder in filter(lambda x: isinstance(x, contentTree.Folder),
+				self.contentTree.flat(False)):
+			if not folder.index_page:
+				with open(folder.render_path(self.build_directory), "w") as f:
+					f.write(self.renderer.render("404.html",
+						page=_404Page(),
+						site_info=to_site_info(self)))
 
 
 class Jinja2Renderer:

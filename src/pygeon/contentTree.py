@@ -55,7 +55,7 @@ class ContentTree:
 			self._parent.children.remove(self)
 		new_parent.children.append(self)
 		self._parent = new_parent
-	
+
 	@property
 	def ancestors(self):
 		_ancestors = []
@@ -76,8 +76,8 @@ class ContentTree:
 
 	def render_path(self, build_path):
 		return Path(build_path) / (self.parent.path.relative_to("/")\
-				if self.is_index_page() else self.path.relative_to("/"))\
-				/ "index.html"
+				if hasattr(self, "is_index_page") and self.is_index_page()\
+					else self.path.relative_to("/")) / "index.html"
 
 	@property
 	def href(self):

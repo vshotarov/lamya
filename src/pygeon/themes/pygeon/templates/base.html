@@ -33,7 +33,13 @@
 	{% if site_info.theme_options.get("breadcrumbs",False) and page.breadcrumbs | length > 1 %}
 	<nav aria-label="breadcrumb" class="breadcrumbs"><ol>
 	{% for crumb in page.breadcrumbs %}
-	<li><a aria-current="{% if crumb[1] == page.href or (page.pagination and crumb[1] == page.pagination['root']) %}page{% else %}false{% endif %}" href="{{ crumb[1] | pyg_urlencode }}">{{ crumb[0] }}</a></li>
+	<li>
+		{% if crumb[1] %}
+		<a class="existing_breadcrumb" aria-current="{% if crumb[1] == page.href or (page.pagination and crumb[1] == page.pagination['root']) %}page{% else %}false{% endif %}" href="{{ crumb[1] | pyg_urlencode }}">{{ crumb[0] }}</a>
+		{% else %}
+		<a aria-current="{% if crumb[1] == page.href or (page.pagination and crumb[1] == page.pagination['root']) %}page{% else %}false{% endif %}">{{ crumb[0] }}</a>
+		{% endif %}
+	</li>
 	{% endfor %}
 	</ol></nav>
 	{%- endif -%}
