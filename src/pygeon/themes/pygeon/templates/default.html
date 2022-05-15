@@ -16,7 +16,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-	{% if page.aggregated_posts %}
+		{% if page.aggregated_posts %}
 		{# list template #}
 		{% if (page.pagination["root"] if page.pagination else page.href) != "/" %}
 		<h2>{{ page.title }}</h2>

@@ -1,5 +1,5 @@
 {% block sidebar %}
-<aside aria-label="sidebar">
+<aside aria-label="sidebar" class="with_breadcrumbs">
 	{% if site_info.theme_options.get("sidebar_image") and (not site_info.theme_options.get("sidebar_image_in_home_only") or page.href == "/") %}
 	<section aria-label="sidebar image">
 		<img alt="{{ site_info.theme_options.get('sidebar_image_alt','') }}" src="{{ site_info.theme_options.get('sidebar_image','') | urlencode }}">

@@ -69,6 +69,12 @@ class RenderablePage:
 		self.is_post = pageOrPost.site_generator_data.get("is_post",False)
 		self.canonical_href = str(
 			pageOrPost.site_generator_data.get("canonical_href", self.href))
+		self.breadcrumbs = [("home","/")] + [
+			(getattr(p,"title", p.name),str(p.href))\
+				for p in reversed(pageOrPost.ancestors[:-1])] +\
+			([(self.title,self.href)]\
+				if (self.href != "/" and not pageOrPost.is_index_page()\
+					and self.pagination.get("page_number",1) == 1) else [])
 
 
 class SiteInfo:

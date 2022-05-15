@@ -55,6 +55,15 @@ class ContentTree:
 			self._parent.children.remove(self)
 		new_parent.children.append(self)
 		self._parent = new_parent
+	
+	@property
+	def ancestors(self):
+		_ancestors = []
+		p = self
+		while p.parent:
+			_ancestors.append(p.parent)
+			p = p.parent
+		return _ancestors
 
 	@property
 	def path(self):

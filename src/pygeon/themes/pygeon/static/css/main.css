@@ -95,6 +95,11 @@ body > footer {
 	min-height: 80px;
 }
 
+.main-and-sidebar-wrapper > nav.breadcrumbs {
+	flex: 1 100%;
+	padding-bottom: 0;
+}
+
 .main-and-sidebar-wrapper > main {
 	margin-top: 1em;
 	flex: 2 0 0;
@@ -121,6 +126,11 @@ body > footer {
 	margin-top: 1em;
 	flex: 1 0 0;
 	overflow: hidden;
+}
+
+.main-and-sidebar-wrapper > main.with_breadcrumbs,
+.main-and-sidebar-wrapper > aside.with_breadcrumbs {
+	margin-top: 0;
 }
 
 body > footer {
@@ -165,7 +175,9 @@ body > footer {
 
 @media screen and (max-width: 767px) {
 	.main-and-sidebar-wrapper > header {
-		flex-direction: column;
+		padding: 0;
+		flex-wrap: wrap;
+		justify-content: flex-start;
 		align-items: flex-start;
 	}
 }
@@ -182,8 +194,10 @@ body > footer {
 	color: #6a6a6a;
 }
 
-.main-and-sidebar-wrapper > header > section > button {
+.main-and-sidebar-wrapper > header > button {
 	display: none;
+	min-width: 60px;
+	min-height: 60px;
 }
 
 @media screen and (max-width: 767px) {
@@ -192,29 +206,7 @@ body > footer {
 		position: relative;
 		width: 100%;
 		box-sizing: border-box;
-		min-height: 80px;
-	}
-
-	.main-and-sidebar-wrapper > header > section > button {
-		display: block;
-		position: absolute;
-		right: 0;
-		top: 0;
-		height: 100%;
-		min-width: 80px;
-		padding: 20px;
-		border: none;
-		cursor: pointer;
-		background: none;
-	}
-
-	.main-and-sidebar-wrapper > header > section > button:hover {
-		background: #eee;
-	}
-
-	.main-and-sidebar-wrapper > header > section > button > img {
-		width: 100%;
-		height: auto;
+		flex: 1 0 0;
 	}
 }
 
@@ -269,6 +261,31 @@ header nav li ul ul {
 }
 
 @media screen and (max-width: 767px) {
+	.main-and-sidebar-wrapper > header > button {
+		display: block;
+		border: none;
+		cursor: pointer;
+		background: none;
+		flex: 0 auto;
+		align-self: center;
+		width: 80px;
+		height: 80px;
+	}
+
+	.main-and-sidebar-wrapper > header > button:hover {
+		background: #eee;
+	}
+
+	.main-and-sidebar-wrapper > header > button > img {
+		width: 100%;
+		height: auto;
+		max-width: 50px;
+	}
+
+	.main-and-sidebar-wrapper header nav {
+		flex: 1 100%;
+	}
+
 	.main-and-sidebar-wrapper header nav > ul > li > a:hover {
 		text-decoration: none;
 		color: inherit;
@@ -304,10 +321,6 @@ header nav > ul > li > img {
 }
 
 @media screen and (max-width: 767px) {
-	.main-and-sidebar-wrapper > header {
-		padding: 0;
-	}
-
 	.main-and-sidebar-wrapper > header > nav {
 		width: 100%;
 	}
@@ -555,3 +568,44 @@ nav.pagination ul li:last-child a {
 	border-right: 1px solid #dfdfdf;
 }
 /* end 6. */
+
+/* 7. Breadcrumbs */
+.breadcrumbs ol {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	width: 100%;
+}
+
+.breadcrumbs ol li a:visited,
+.breadcrumbs ol li a:active,
+.breadcrumbs ol li a:focus,
+.breadcrumbs ol li a {
+	text-decoration: none;
+	color: #6a6a6a;
+	font-size: .9em;
+}
+
+.breadcrumbs ol li a:hover {
+	border-bottom: 1px solid black;
+	color: black;
+}
+
+.breadcrumbs ol li {
+	margin-left: .2em;
+}
+
+.breadcrumbs ol li:first-child {
+	margin-left: 0;
+}
+
+.breadcrumbs ol li:after {
+	content: " \00BB ";
+	color: #6a6a6a;
+}
+
+.breadcrumbs ol li:last-child:after {
+	content: "\00a0";
+}
+/* end 7. */

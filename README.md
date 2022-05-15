@@ -2,10 +2,10 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- content styling should be tested more thoroughly, as i hadnt noticed how big margins headlines have
 - sort out a nice monochromatic palette for the default theme
 - look into making the generated site truly static, i.e. not requiring a server
 - document the required/supported front matter info for the default theme
-- add breadcrumbs
 - add rss
 - properly structure the `__init__.py`
 - at the moment rebuliding the website deletes the whole `build` folder and recreates it from scratch, which can become quite slow on huge websites, so i need some sort of a smart rebuild.

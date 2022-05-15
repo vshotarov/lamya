@@ -41,13 +41,14 @@ Array.prototype.forEach.call(menuItems, function(el, i){
 // https://stackoverflow.com/questions/1248081/how-to-get-the-browser-viewport-dimensions
 var menu = document.getElementById("menu"); 
 var menu_toggle = document.getElementById("menu-toggle"); 
-if (document.documentElement.clientWidth <= 768) {
+if (window.innerWidth <= 767) {
 	menu.setAttribute("aria-expanded", "false");
 	menu.parentNode.style.display = "none"; 
 }
 
 window.addEventListener("resize", function(event) {
-	if (document.documentElement.clientWidth <= 768) {
+	console.log(screen.width);
+	if (window.innerWidth <= 767) {
 		menu.setAttribute("aria-expanded", "false");
 		menu.parentNode.style.display = "none"; 
 	} else {
