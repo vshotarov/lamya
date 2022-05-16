@@ -128,11 +128,6 @@ body > footer {
 	overflow: hidden;
 }
 
-.main-and-sidebar-wrapper > main.with_breadcrumbs,
-.main-and-sidebar-wrapper > aside.with_breadcrumbs {
-	margin-top: 0;
-}
-
 body > footer {
 	width: 100%;
 	max-width: 1200px;
