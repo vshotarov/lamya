@@ -8,6 +8,10 @@ from collections import OrderedDict
 
 try:
 	import markdown
+	try:
+		import markdown_strikethrough
+	except ImportError:
+		markdown_strikethrough = None
 except ImportError:
 	markdown = None
 try:
@@ -171,7 +175,9 @@ class SiteGenerator:
 				" markdown by default, but markdown is not included in the"
 				" requirements list, so you need to install it separately.")
 
-		self.markup_processor_func = markdown.markdown
+		self.markup_processor_func = lambda x:\
+			markdown.markdown(x, extensions=["footnotes","tables","fenced_code","toc"] +\
+				[markdown_strikethrough.StrikethroughExtension()] if markdown_strikethrough else [])
 
 	def process_contentTree(self):
 		## At this point we have the main hierarchy. Let's now read the source, so
@@ -420,8 +426,11 @@ class SiteGenerator:
 			lambda x: str(x.href) if x.index_page else None)
 
 	def render(self, to_renderable_page=RenderablePage, to_site_info=SiteInfo,
-			markup_processor_func=markdown.markdown if markdown else None,
+			markup_processor_func=None,
 			**kwargs):
+		if markup_processor_func is None:
+			markup_processor_func = self.markup_processor_func
+
 		if self.build_directory.exists():
 			shutil.rmtree(self.build_directory)
 

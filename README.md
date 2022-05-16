@@ -2,9 +2,8 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- add code highlighting
 - document `pyg_urlencode` for theme developers
-- content styling should be tested more thoroughly, as i hadnt noticed how big margins headlines have
-- sort out a nice monochromatic palette for the default theme
 - document the required/supported front matter info for the default theme
 - add rss
 - properly structure the `__init__.py`
