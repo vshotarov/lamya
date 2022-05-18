@@ -5,7 +5,8 @@ a static site generator, but users are encouraged to write their own
 build scripts directly using the `pygeon.contentTree` module.
 """
 from __future__ import annotations
-from collections.abc import Iterable, Callable, Mapping
+from typing import TypeVar, Any, Tuple
+from collections.abc import Iterable, Callable, Mapping, Sequence, MutableSequence, MutableMapping
 from pathlib import Path
 import os
 from datetime import datetime
@@ -20,6 +21,8 @@ except ImportError:
 	markdown = None
 
 from pygeon.contentProcessing import split_front_matter
+
+T = TypeVar("T")
 
 
 class LeafChildError(Exception):
@@ -72,11 +75,11 @@ class ContentTree:
 		"""
 		super(ContentTree, self).__init__()
 		self.name = name
-		self._parent = None
+		self._parent: Folder | None = None
 		self.user_data = dict(user_data)
 
 	@property
-	def parent(self) -> ContentTree:
+	def parent(self) -> Folder | None:
 		"""Get the parent of the node."""
 		return self._parent
 
@@ -117,17 +120,6 @@ class ContentTree:
 	def path(self, _) -> None:
 		raise AttributeError("'path' can't be set directly. It is managed internally.")
 
-	def render_path(self, build_path: Path):
-		"""Get the path of this node relative to the root and append it to the
-		`build_path` argument and adding `index.html` at the end.
-
-		:param build_path: a `pathlib.Path` object specifying the path to append
-			the current path of the node to
-		"""
-		return Path(build_path) / (self.parent.path.relative_to("/")\
-				if hasattr(self, "is_index_page") and self.is_index_page()\
-					else self.path.relative_to("/")) / "index.html"
-
 	@property
 	def href(self):
 		"""Returns the path of this node relative to the root, but only if this
@@ -146,7 +138,7 @@ class ContentTree:
 
 		:param level: the indentation level, so we support nesting"""
 		return "{indent1}{type}({name})".format(indent1=" "*2*level,
-				indent2=" "*2*(level+1), type=self.__class__.__name__, name=self.name)
+				type=self.__class__.__name__, name=self.name)
 
 	def __str__(self): return self.pprint()
 	def __repr__(self): return self.pprint()
@@ -211,11 +203,11 @@ class Folder(ContentTree):
 		:param user_data: a convenience object for storing custom user data
 		"""
 		super(Folder, self).__init__(name, user_data)
-		self._children = []
-		self._index_page = None
+		self._children: MutableSequence[ContentTree] = []
+		self._index_page: ContentTree | None = None
 
 	@property
-	def children(self) -> Sequence[ContentTree]:
+	def children(self) -> MutableSequence[ContentTree]:
 		"""Returns a list of all the direct children of this node."""
 		return self._children
 
@@ -236,17 +228,18 @@ class Folder(ContentTree):
 		return self._index_page
 
 	@index_page.setter
-	def index_page(self, new_index_page: ContentTree) -> None:
+	def index_page(self, new_index_page: AbstractPageOrPost | None) -> None:
 		"""Sets the index page of the this folder.
 
 		:param new_index_page: the new index page to set
 		"""
-		self._index_page = new_index_page
-		if new_index_page:
+		if new_index_page.parent:
 			if new_index_page.is_index_page():
-				# Clear the index_page of it's old parent, if this was the index page
-				new_index_page._parent.index_page = None
-			new_index_page._parent = self
+				new_index_page.parent.index_page = None
+			else:
+				new_index_page.parent.children.remove(new_index_page)
+		self._index_page = new_index_page
+		new_index_page._parent = self
 
 	@property
 	def path(self) -> Path:
@@ -264,7 +257,7 @@ class Folder(ContentTree):
 					if self.index_page else []) +\
 				 [x.pprint(level+1) for x in self.children]))
 
-	def get(self, path: Path) -> ContentTree:
+	def get(self, path: Path | str) -> ContentTree:
 		"""Gets a descendant of this node by a path.
 
 		:param path: a path, relative to this node, to the desired descendant
@@ -311,7 +304,7 @@ class Folder(ContentTree):
 		:param recursive: whether to apply the function to all descendants or
 			just the direct children. Default is True (all descendants)
 		"""
-		for child in self.children + ([self.index_page] if\
+		for child in list(self.children) + ([self.index_page] if\
 				self.index_page and include_index_pages else []):
 			func(child)
 
@@ -333,8 +326,8 @@ class Folder(ContentTree):
 			just the direct children. Default is True (all descendants)
 		:param filter_func: optional function to use as a filter
 		"""
-		grouped = {}
-		for child in self.children + ([self.index_page] if\
+		grouped: MutableMapping[str, MutableSequence[ContentTree]] = {}
+		for child in list(self.children) + ([self.index_page] if\
 				self.index_page and include_index_pages else []):
 			if filter_func(child):
 				grouped.setdefault(grouping_func(child), []).append(child)
@@ -399,7 +392,7 @@ class Folder(ContentTree):
 		:param recursive: whether to apply the function to all descendants or
 			just the direct children. Default is True (all descendants)
 		"""
-		to_remove = []
+		to_remove: MutableSequence[ContentTree] = []
 
 		for child in self.children:
 			if isinstance(child, Folder):
@@ -440,8 +433,10 @@ class Folder(ContentTree):
 
 		return group
 
-	def as_dict(self, map_leaf: Callable[AbstractPageOrPost]=lambda x: x,
-			map_folder: Callable[Folder]=lambda x: x) -> Mapping:
+	def as_dict(self,
+			map_leaf: Callable[[ContentTree], T | ContentTree]=lambda x: x,
+			map_folder: Callable[[ContentTree], T | ContentTree]=lambda x: x)\
+			-> Mapping[str, Any]:
 		"""Returns a `dict` representing this subtree, with leaves and folders
 		optionally remapped by mapping functions.
 
@@ -495,12 +490,12 @@ class AbstractPageOrPost(ContentTree):
 		self._source_path = source_path
 		self._source = source
 
-		self._front_matter = None
-		self._raw_content = None
-		self._content = None
+		self._front_matter: Mapping[str, Any] | None = None
+		self._raw_content: str | None = None
+		self._content : str | None= None
 
 	@property
-	def source_path(self) -> Path:
+	def source_path(self) -> Path | None:
 		"""Returns the path to the source of this node"""
 		return self._source_path
 
@@ -542,6 +537,17 @@ class AbstractPageOrPost(ContentTree):
 				" 'source_path' has already been set, so the newly set 'source'"
 				" will override that" % self.name)
 
+	def render_path(self, build_path: Path):
+		"""Get the path of this node relative to the root and append it to the
+		`build_path` argument and adding `index.html` at the end.
+
+		:param build_path: a `pathlib.Path` object specifying the path to append
+			the current path of the node to
+		"""
+		return Path(build_path) / (self.parent.path.relative_to("/")\
+				if self.parent and hasattr(self, "is_index_page") and self.is_index_page()\
+					else self.path.relative_to("/")) / "index.html"
+
 	def is_index_page(self) -> bool:
 		"""Returns whether or not this page or post is the index page of its parent"""
 		return False if not self.parent else self.parent.index_page == self
@@ -578,7 +584,7 @@ class AbstractPageOrPost(ContentTree):
 
 	def parse_front_matter_and_content(self,
 			front_matter_and_content_split_func:\
-				Callable[[str], (str,str)]=split_front_matter) -> None:
+				Callable[[str], Tuple[Mapping[str, T],str]] = split_front_matter) -> None:
 		"""Takes the source and splits its front matter from its content, storing
 		them in `self._front_matter` and `self._raw_content` respectively.
 
@@ -597,7 +603,7 @@ class AbstractPageOrPost(ContentTree):
 			with in order to produce the final content. By default it attempts
 			to use the `markdown.markdown` function if `markdown` is available.
 		"""
-		self._content = markup_processor_func(self._raw_content)
+		self._content = markup_processor_func(self._raw_content or "")
 
 
 class PageOrPost(AbstractPageOrPost):
@@ -642,7 +648,7 @@ class AggregatedGroupsPage(ProceduralPage):
 	of which is categories and archives.
 	"""
 	def __init__(self, name: str, aggregated_grouped_posts: Mapping[str, Sequence[PageOrPost]],
-			source_path: Path | None=None, source: Path | None=None, user_data={}):
+			source_path: Path | None=None, source: str | None=None, user_data={}):
 		"""Constructor
 
 		:param name: name of this node
@@ -668,7 +674,7 @@ class AggregatedGroupsPage(ProceduralPage):
 class AggregatedPage(ProceduralPage):
 	"""A procedurally generated page containing a list of posts."""
 	def __init__(self, name: str, aggregated_posts: Sequence[PageOrPost],
-			source_path: Path | None=None, source: Path | None=None, user_data={}):
+			source_path: Path | None=None, source: str | None=None, user_data={}):
 		"""Constructor
 
 		:param name: name of this node
@@ -688,7 +694,7 @@ class AggregatedPage(ProceduralPage):
 			",".join(p.name for p in self.aggregated_posts))
 
 	def paginate(self, num_posts_per_page: int,
-			post_create_callback: Callable[PaginatedAggregatedPage]=lambda _: None):
+			post_create_callback: Callable[[PaginatedAggregatedPage], None]=lambda _: None):
 		"""Splits this page into multiple pages.
 
 		:param num_posts_per_page: number of posts per page
@@ -698,7 +704,7 @@ class AggregatedPage(ProceduralPage):
 		if num_posts_per_page <= 0:
 			raise PaginationError("Can't paginate with less than 1 posts per page")
 
-		pages = []
+		pages: MutableSequence[PaginatedAggregatedPage] = []
 		for i in range(0, len(self.aggregated_posts), num_posts_per_page):
 			pages.append(PaginatedAggregatedPage(
 				self.name,self.aggregated_posts[i:i+num_posts_per_page],
@@ -707,7 +713,6 @@ class AggregatedPage(ProceduralPage):
 					None, None, prev_page=None if i == 0 else pages[-1]),
 				source_path=self.source_path, source=self._source))
 			post_create_callback(pages[-1])
-			pages[-1]._parent = self.parent
 			pages[-1]._front_matter = self._front_matter
 			pages[-1]._raw_content = self._raw_content
 			pages[-1]._content = self._content
@@ -716,16 +721,18 @@ class AggregatedPage(ProceduralPage):
 			if len(pages) > 1:
 				pages[-2].pagination.next_page = pages[-1]
 
+				if self.parent:
+					pages[-1].parent_to(self.parent)
+
 		for p in pages:
 			p.pagination.first_page = pages[0]
 			p.pagination.last_page = pages[-1]
 
-		if self.is_index_page():
-			self.parent.index_page = pages[0]
-			self.parent._children = pages[1:] + self.parent.children
-		else:
-			self.parent.children.remove(self)
-			self.parent._children += pages
+		if self.parent:
+			if self.is_index_page():
+				self.parent.index_page = pages[0]
+			else:
+				self.parent.children.remove(self)
 
 		return pages
 

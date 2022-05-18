@@ -1,10 +1,14 @@
 "This module provides a few utility functions for processing content and front matter."
 from __future__ import annotations
-from collections.abc import Mapping
+from typing import Tuple, TypeVar
+from collections.abc import Mapping, Sequence
 import re
 
+T = TypeVar("T")
 
-def split_front_matter(source: str, front_matter_delimiter: str="+") -> (Mapping, str):
+
+def split_front_matter(source: str, front_matter_delimiter: str="+")\
+		-> Tuple[Mapping[str, T], str]:
 	"""Splits and evaluates the front matter from the content's source.
 
 	This function assumes the front matter is actual python code, which gets
@@ -32,7 +36,7 @@ def split_front_matter(source: str, front_matter_delimiter: str="+") -> (Mapping
 			break
 		front_matter += line + "\n"
 
-	evaluated_front_matter = {}
+	evaluated_front_matter: Mapping[str, T] = {}
 	exec(front_matter, {}, evaluated_front_matter)
 
 	return evaluated_front_matter, content
