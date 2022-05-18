@@ -2,6 +2,7 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- order posts by publish date in the category folders
 - add code highlighting
 - document `pyg_urlencode` for theme developers
 - document the required/supported front matter info for the default theme

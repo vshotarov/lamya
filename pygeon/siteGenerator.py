@@ -1,3 +1,13 @@
+"""The `pygeon.siteGenerator` module provides a static site generator, that can
+be ran either from the CLI by running `pygeon` as a module or by importing
+the `pygeon.siteGenerator.SiteGenerator` class and using it in your own scripts.
+
+The static site generator utilises the `pygeon.contentTree` tree implementation
+to parse existing content and render it using a template engine (Jinja2 by default),
+while optionally aggregating content into list pages, categories and an archive.
+"""
+from __future__ import annotations
+from collections.abc import Iterable, Callable, Mapping
 from pathlib import Path
 import glob
 from datetime import datetime
@@ -24,24 +34,37 @@ from pygeon import contentProcessing
 
 
 class AggregateError(Exception):
+	"""Raised when attempting to use both a whitelist and a blacklist for
+	specifying content to be aggregated."""
 	pass
 
 class UncategorizedNotAllowedError(Exception):
-	pass
-
-class MarkupProcessorError(Exception):
+	"""Raised when a category is required, but none has been specified."""
 	pass
 
 class ArchivePagesError(Exception):
-	pass
-
-class NavigationError(Exception):
+	"""Raised when an attempt is made to create the archive pages, before the
+	content has been created or when there's nothing to archive."""
 	pass
 
 
 class Callbacks:
+	"""A struct for specifying callbacks to be run at potential various stages
+	of the static site generation process.
+
+	NOTE: At the moment it only contains a callback for immediately after
+	`pygeon.contentTree.ContentTree` node being created, but I'd like to have
+	an easy way of adding more callbacks in the future.
+	"""
 	@staticmethod
-	def post_contentTree_entity_create(siteGenerator, entity):
+	def post_contentTree_entity_create(siteGenerator: SiteGenerator,
+			entity: contentTree.ContentTree) -> None:
+		"""Ran on every single `pygeon.contentTree.ContentTree` instance created
+		in the context of the site generator.
+
+		:param siteGenerator: the site generator object
+		:param entity: the `pygeon.contentTree.ContentTree` instance
+		"""
 		# NOTE: I can use these callbacks to make sure all data that I would
 		# like to exist on the contentTree entities actually does, rather
 		# than defining everything on the contentTree definitions, which
@@ -53,7 +76,35 @@ class Callbacks:
 
 
 class RenderablePage:
-	def __init__(self, pageOrPost):
+	"""This struct is what will be passed to the template engine, so all the
+	properties are seralized into directly usable information.
+
+	:param name: the name of the page or post, as taken directly from the name
+		of the file it corresponds to if it hasn't been overwritten
+	:param title: the name with underscores replaced with spaces and capital
+		letters at the beginning of the words
+	:param content: the processed markup ready for rendering
+	:param href: the relative URL of this page or post
+	:param site_url: the URL of the website
+	:param aggregated_posts: the list of posts if this is an aggregated page
+	:param aggregated_grouped_posts: the `dict` of groups and posts if this
+		is an aggregated_grouped_post
+	:param pagination: the pagination `dict if this is a paginated page
+	:param publish_date: the publish date as read from the front matter or
+		if one wasn't supplied, the last modified time of the source file
+	:param user_data: any custom user data that has been supplied
+	:param front_matter: the evaluated front matter
+	:param is_post: whether ot not this page represents a post or a page
+		NOTE: the heuristic for defining this is really naive by default, but the
+		`is_page_func` function can be specified on the `SiteGenerator` class
+	:param absolute_canonical_href: the canonical url for this page or post
+	:param breadcrumbs: the breadcrumbs navigation dict
+	"""
+	def __init__(self, pageOrPost: contentTree.AbstractPageOrPost) -> None:
+		"""Constructor
+
+		:param pageOrPost: the page or post to create a render struct for
+		"""
 		self.name = pageOrPost.name
 		self.title = self.name.replace("_"," ").title()
 		self.content = pageOrPost.content
@@ -84,7 +135,32 @@ class RenderablePage:
 
 
 class SiteInfo:
-	def __init__(self, site_generator):
+	"""This struct represents all the site information to be passed to the
+	template engine.
+
+	:param name: the name of the site
+	:param url: the url of the site
+	:param subtitle: the subtitle of the site, generally used as a short
+		description or motto
+	:param navigation: the navigation `dict`
+	:param lang: the language to specify in the html `lang` property
+	:param theme_options: a `dict` with the specified theme options
+	:param internal_data: similar to the user data of pages, but specified
+		by the site generator
+	:param archive_nav: if an archive has been generated, this will be a
+		navigation `dict` to all of the archive pages
+	:param category_nav: if categories have been generated, this will be a
+		navigation `dict` to all of the category pages
+	:param display_date_format: the python `datetime` format to display
+		the publish dates in
+	:param author_link: a link to an author page, to be used in the `meta`
+		author tag
+	"""
+	def __init__(self, site_generator: SiteGenerator) -> None:
+		"""Constructor
+
+		:param site_generator: the `SiteGenerator` object
+		"""
 		self.name = site_generator.name
 		self.url = site_generator.url
 		self.subtitle = site_generator.subtitle
@@ -101,16 +177,124 @@ class SiteInfo:
 
 
 class SiteGenerator:
-	def __init__(self, name, url, subtitle="", content_directory="content",
-			theme_directory="theme", static_directory="static",
-			templates_directory="templates", build_directory="build",
-			locally_aggregate_whitelist=[], locally_aggregate_blacklist=[],
-			globally_aggregate_whitelist=[], globally_aggregate_blacklist=[],
-			num_posts_per_page=1, is_page_func=lambda x: isinstance(x.parent, contentTree.Root),
-			front_matter_delimiter="+", callbacks=Callbacks(), lang="en",
-			front_matter_publish_date_key="publish_date", read_date_format="%d-%m-%Y %H:%M",
-			display_date_format="%B %-d, %Y", author_link="", theme_options={},
-			use_absolute_urls=False):
+	"""This class is responsible for generating a static website by aggregating,
+	grouping and rendering existing content.
+
+	:param name: name of the site
+	:param url: url of the site
+	:param subtitle: the subtitle of the site, generally used as a short
+		description or motto
+	:param content_directory: the path to the top folder containing the site content
+	:param theme_directory: the path to the theme folder
+	:param static_directory: the path to a folder containing static files to be
+		directly copied over into the built website
+	:param templates_directory: the path to a folder with templates that will
+		overwrite the theme's ones
+	:param build_directory: the path to a folder where to generate the website
+	:param locally_aggregate_whitelist: a list of folders that should have
+		their content aggregated into an index page
+	:param locally_aggregate_blacklist: a list of folders that should NOT have
+		their content aggregated into an index page
+	:param globally_aggregate_whitelist: a list of pages or posts to aggregate
+		into the home page
+	:param globally_aggregate_blacklist: a list of pages or posts to NOT aggregate
+		into the home page
+	:param num_posts_per_page: how many posts to have per page
+	:param is_page_func: a function that returns True if a piece of content is
+		meant to be treated as a static page rather than as a post
+	:param front_matter_delimiter: we expect the front matter in the raw content
+		of each page/post to be surrounded by lines containing only this character
+	:param callbacks: a `Callbacks` struct for running functions at specific times.
+		NOTE: at the moment we only run after generating any `contentTree` node
+	:param lang: the language to put in the `html lang` property
+	:param front_matter_publish_date_key: the name of the publish date key
+		in the front matter
+	:param read_date_format: the `datetime` format to expect the publish date
+		in the front matter to be in
+	:param display_date_format: the `datetime` format to display the publish date in
+	:param author_link: a URL to be placed in the `link rel=author` html tag
+	:param theme_options: a `dict` of theme options
+	:param use_absolute_urls: whether or not to use full absolute URLs instead
+		of the default relative ones
+	:param contentTree: the `pygeon.contentTree.Root` node that contains the
+		content of the static site
+	:param internal_data: a `dict` containing extra information about the site
+		generation process
+	"""
+	def __init__(self, name: str, url: str, subtitle: str="",
+			content_directory: str="content", theme_directory: str="theme",
+			static_directory: str="static", templates_directory: str="templates",
+			build_directory: str="build",
+			locally_aggregate_whitelist: Sequence[str]=[],
+			locally_aggregate_blacklist: Sequence[str]=[],
+			globally_aggregate_whitelist: Sequence[str]=[],
+			globally_aggregate_blacklist: Sequence[str]=[],
+			num_posts_per_page: int=-1,
+			is_page_func: Callable[contentTree.AbstractPageOrPost]=\
+					lambda x: isinstance(x.parent, contentTree.Root),
+			front_matter_delimiter: str="+", callbacks: Callbacks=Callbacks(),
+			lang: str="en", front_matter_publish_date_key: str="publish_date",
+			read_date_format: str="%d-%m-%Y %H:%M",
+			display_date_format: str="%B %-d, %Y", author_link: str="",
+			theme_options: Mapping={}, use_absolute_urls: bool=False) -> None:
+		"""Constructor
+
+		:param name: name of the site
+		:param url: url of the site
+		:param subtitle: optional subtitle of the site, generally used as a short
+			description or motto
+		:param content_directory: the path to the top folder containing the site content.
+			Defaults to a folder called `content` in the current directory. This
+			folder is required to exist.
+		:param theme_directory: the path to the theme folder. Defaults to
+			a folder called `theme` in the current directory. This folder is
+			required to exist. If `None` is specified, then the default theme
+			will be used.
+		:param static_directory: the path to a folder containing static files to be
+			directly copied over into the built website. Defaults to a folder
+			called `static` in the current directory. This folder is not
+			required to exist.
+		:param templates_directory: the path to a folder with templates that will
+			overwrite the theme's ones. Defaults to a folder called `templates`
+			in the current directory. This folder is not required to exist.
+		:param build_directory: the path to a folder where to generate the website.
+			Defaults to a folder called `build` in the current directory. The
+			parent of this folder is required to exist.
+		:param locally_aggregate_whitelist: a list of folders that should have
+			their content aggregated into an index page. Defaults to []. Either
+			the whitelist or the blacklist can be specified, but not both.
+		:param locally_aggregate_blacklist: a list of folders that should NOT have
+			their content aggregated into an index page. Defaults to []. Either
+			the whitelist or the blacklist can be specified, but not both.
+		:param globally_aggregate_whitelist: a list of pages or posts to aggregate
+			into the home page. Defaults to []. Either the whitelist or the
+			blacklist can be specified, but not both.
+		:param globally_aggregate_blacklist: a list of pages or posts to NOT aggregate
+			into the home page. Defaults to []. Either the whitelist or the
+			blacklist can be specified, but not both.
+		:param num_posts_per_page: how many posts to have per page. Defaults to
+			-1, which means infinitely many posts, i.e. no pagination.
+		:param is_page_func: a function that returns True if a piece of content is
+			meant to be treated as a static page rather than as a post. Defaults
+			to a function checking if the content's parent is the root.
+		:param front_matter_delimiter: we expect the front matter in the raw content
+			of each page/post to be surrounded by lines containing only this character.
+			Defaults to '+'.
+		:param callbacks: a `Callbacks` struct for running functions at specific times.
+			Defaults to the `Callbacks` struct defined in this module.
+		:param lang: the language to put in the `html lang` property. Defaults to 'en'.
+		:param front_matter_publish_date_key: the name of the publish date key
+			in the front matter. Defaults to `publish_date`.
+		:param read_date_format: the `datetime` format to expect the publish date
+			in the front matter to be in. Defaults to `%d-%m-%Y %H:%M`.
+		:param display_date_format: the `datetime` format to display the publish date in.
+			Defaults to `%B %-d, %Y`.
+		:param author_link: a URL to be placed in the `link rel=author` html tag.
+			Defaults to "".
+		:param theme_options: a `dict` of theme options. Defaults to `{}`.
+		:param use_absolute_urls: whether or not to use full absolute URLs instead
+			of the default relative ones.
+		"""
 		self.name = name
 		self.url = url
 		self.subtitle = subtitle
@@ -143,7 +327,6 @@ class SiteGenerator:
 				" on which one is specified, and if neither is, aggregation is"
 				" enabled on everything by default.")
 
-		self.title_formatting = self.name + " | {page.title}"
 		self.contentTree  = contentTree.ContentTree.from_directory(content_directory,
 			post_create_callback=partial(callbacks.post_contentTree_entity_create, self))
 		self.initialize_renderer()
@@ -153,7 +336,11 @@ class SiteGenerator:
 			"build_date": datetime.now()
 		}
 
-	def initialize_renderer(self):
+	def initialize_renderer(self) -> None:
+		"""This method initializes the template engine which will render the site.
+
+		By default we use `jinja2`, but overwriting this function and the render
+		fundtion, should allow other template engines to be used."""
 		if jinja2 is None:
 			raise NotImplementedError("jinja2 was not found, so it either"
 				" needs to be installed or you need to overwrite the"
@@ -168,7 +355,13 @@ class SiteGenerator:
 					x if (not self.url.startswith("file://") or "." in x.split("/")[-1])\
 						else (x + "/index.html"))
 
-	def initialize_markup_processor(self):
+	def initialize_markup_processor(self) -> None:
+		"""This method initializes the function which we will use to process
+		the markup into `html`.
+
+		By default we use `markdown`, but overwriting this, should allow other
+		markup processors to be used.
+		"""
 		if markdown is None:
 			raise NotImplementedError("SiteGenerator requires a"
 				" 'markup_processor_func' to be initialized , which is set to"
@@ -179,7 +372,12 @@ class SiteGenerator:
 			markdown.markdown(x, extensions=["footnotes","tables","fenced_code","toc"] +\
 				[markdown_strikethrough.StrikethroughExtension()] if markdown_strikethrough else [])
 
-	def process_contentTree(self):
+	def process_contentTree(self) -> None:
+		"""This method goes through all of the content, read from the `content`
+		directory and ensures we have all the data we require for them.
+
+		At the moment it only tries to read a `publish_date` for each page.
+		"""
 		## At this point we have the main hierarchy. Let's now read the source, so
 		# we can start optionally grouping the content using different heuristics
 		for page in self.contentTree.leaves():
@@ -209,7 +407,10 @@ class SiteGenerator:
 						" the last modified time from, so the date is going to be 0"
 						% (self.front_matter_publish_date_key, page.path))
 
-	def aggregate_posts(self):
+	def aggregate_posts(self) -> None:
+		"""This method uses the aggregation arguments passed to the constructor
+		to aggregate posts into index pages.
+		"""
 		## Aggregate folders with no index pages
 		# Check if any folder is missing an index page, which would mean
 		# we need to create one. NOTE: most of the time I would imagine this
@@ -271,11 +472,32 @@ class SiteGenerator:
 				self.contentTree.index_page.paginate(self.num_posts_per_page,
 					partial(self.callbacks.post_contentTree_entity_create, self))
 
-	def build_category_pages(self, parent=None,
-			category_accessor=lambda x: x.front_matter.get("category"),
-			allow_uncategorized=True, uncategorized_name="Uncategorized",
-			leaves_filter=lambda x: True, category_list_page_name="categories",
-			group=True):
+	def build_category_pages(self, parent: contentTree.Folder=None,
+			category_accessor: Callable[contentTree.AbstractPageOrPost]=\
+				lambda x: x.front_matter.get("category"),
+			allow_uncategorized: bool=True, uncategorized_name: str="Uncategorized",
+			leaves_filter: Callable[contentTree.AbstractPageOrPost]= lambda x: True,
+			category_list_page_name: str="categories", group: bool=True) -> None:
+		"""This method reads categories from the content's front matter and
+		groups them into category pages.
+
+		:param parent: the `contentTree` parent to put the category pages in.
+			If `None` the root will be used.
+		:param category_accessor: a function defining how to query the category
+			for each page or post node. By default it attempts to read it from
+			the `category` key in the front matter.
+		:param allow_uncategorized: whether or not to allow some pages or posts
+			to be uncategorized or to error out if such pages or posts are found
+		:param uncategorized_name: the name of the category to use for posts
+			that do not have a category
+		:param leaves_filter: an optional function to be used for filtering
+			the leaves that should be processed
+		:param category_list_page_name: the name to give to the page, containing
+			all categories and their posts. If it is falsy, no such page will
+			be generated.
+		:param group: whether or not to group all category pages under a
+			`categories` folder
+		"""
 		grouped = {}
 		for p in filter(lambda x: leaves_filter(x)\
 							  and isinstance(x, contentTree.PageOrPost)\
@@ -323,7 +545,18 @@ class SiteGenerator:
 		self.categories = Categories(grouped, category_pages,
 			category_list_page, categories_folder, uncategorized_name)
 
-	def build_archive(self, by_month_format="%B, %Y", by_year_format="%Y"):
+	def build_archive(self, by_month_format: str="%B, %Y",
+			by_year_format: str="%Y") -> Archive:
+		"""This method builds the `archive` struct, with all the posts in
+		their correct groups.
+
+		:param by_month_format: the `datetime` format to use for grouping and
+			sorting posts by month
+		:param by_year_format: the `datetime` format to use for grouping and
+			sorting posts by year
+
+		:returns: the built `Archive` struct
+		"""
 		by_month, by_year = {}, {}
 		for post in self.posts():
 			by_month.setdefault(post.site_generator_data["publish_date"]\
@@ -339,9 +572,26 @@ class SiteGenerator:
 
 		return self.archive
 
-	def build_archive_pages(self, parent=None, by_month=True, by_year=False,
-			archive_list_page_name="archive", group=True,
-			display_by_month_in_list_page=True, display_by_year_in_list_page=True):
+	def build_archive_pages(self, parent: contentTree.Folder=None,
+			by_month: bool=True, by_year: bool=False,
+			archive_list_page_name: str="archive", group: bool=True,
+			display_by_month_in_list_page: bool=True,
+			display_by_year_in_list_page: bool=True) -> None:
+		"""This method takes the previously built `Archive` struct and generates
+		the archive pages.
+
+		:param parent: the `contentTree` parent to put the archive pages in
+		:param by_month: whether or not to write pages for the monthly archive
+		:param by_year: whether or not to write pages for the yearly archive
+		:param archive_list_page_name: the name to give to the page, containing
+			all archive groups and their posts. If false, no such page will be generated.
+		:param group: whether or not to group all archive pages under an
+			`archives` folder
+		:param display_by_month_in_list_page: whether to include the monthly
+			archive in the list page
+		:param display_by_year_in_list_page: whether to include the yearly archive
+			in the list page
+		"""
 		if not hasattr(self, "archive"):
 			raise ArchivePagesError(
 				"The archive must first be initialized using 'build_archive'"
@@ -394,12 +644,38 @@ class SiteGenerator:
 		self.archive.pages_by_year = archive_pages[1]
 		self.archive.list_page = archive_list_page
 
-	def posts(self):
+	def posts(self) -> Sequence[contentTree.PageOrPost]:
+		"""Returns all leaves that DO NOT pass the `is_page_func` test."""
 		return [x for x in self.contentTree.leaves() if\
 				isinstance(x, contentTree.PageOrPost) and not self.is_page_func(x)]
 
-	def build_navigation(self, filter_func=None, extra_filter_func=None,
-			exclude_categories=False, exclude_archive=False):
+	def build_navigation(self, filter_func: Callable[contentTree.Content]=None,
+			extra_filter_func: Callable[contentTree.Content]=None,
+			exclude_categories: bool=False, exclude_archive: bool=False) -> None:
+		"""Builds a navigation structure.
+
+		:param filter_func: a function to filter out pages from the navigation.
+			If `None` a default function will be used, which boils down to adding
+			pages to the navigation if any of the following are true:
+
+			- the node passes the `is_page_func` or it is a `contentTree.Folder`
+			- the node is an `index_page`
+			- the node is a `category` page and categories are not excluded
+			- the node is an `archive` page and the archive is not excluded
+
+			AND BOTH of the following are true:
+
+			- this node is not the home page
+			- if this node is part of a pagination, it is the first page, otherwise
+				assume `True`
+		:param extra_filter_func: a second filtering function, so if a bit of
+			extra filtering is required on top of the default function it can
+			easily be provided
+		:param exclude_categories: whether or not to exclude any category pages
+			from the navigation
+		:param exclude_archive: whether or not to exclude any archive pages
+			from the navigation
+		"""
 		if hasattr(self, "navigation"):
 			contentTree.warning("Navigation already exists, overwriting..")
 
@@ -425,9 +701,24 @@ class SiteGenerator:
 			lambda x: str(x.href),
 			lambda x: str(x.href) if x.index_page else None)
 
-	def render(self, to_renderable_page=RenderablePage, to_site_info=SiteInfo,
-			markup_processor_func=None,
-			**kwargs):
+	def render(self,
+			to_renderable_page: Callable[contentTree.AbstractPageOrPost]=RenderablePage,
+			to_site_info: Callable[SiteGenerator]=SiteInfo,
+			markup_processor_func: Callable[str]=None, **kwargs) -> None:
+		"""This method renders the site into the build folder.
+
+		:param to_renderable_page: a function that converts an `AbstractPageOrPost`
+			into a struct containing the information necessary for rendering that
+			page or post. That struct is then passed to the template engine.
+			Default is `RenderablePage`.
+		:param to_site_info: a function that converts the `SiteGenerator`
+			into a struct containing the information necessary for the template.
+			Default is `SiteInfo`.
+		:param markup_processor_func: an optional markup processing function.
+			If `None` the `markup_processor_func` property of the class will
+			be used. Default is `None`.
+		:param **kwargs: any other optional information to pass to the template engine
+		"""
 		if markup_processor_func is None:
 			markup_processor_func = self.markup_processor_func
 
@@ -502,20 +793,54 @@ class SiteGenerator:
 
 
 class Jinja2Renderer:
-	def __init__(self, template_directories):
+	"""A thin wrapper around the jinja2 environment to provide a framework
+	for using different renderers.
+
+	:param environment: the `jinja2` environment
+	"""
+	def __init__(self, template_directories: Sequence[str]) -> None:
+		"""Constructor
+
+		:param template_directories: a number of paths to look for templates in
+		"""
 		self.environment = jinja2.Environment(
 			loader=jinja2.ChoiceLoader(
 				[jinja2.FileSystemLoader(x) for x in template_directories]),
 			autoescape=jinja2.select_autoescape(),
 			trim_blocks=True, lstrip_blocks=True)
 
-	def render(self, template, **render_data):
+	def render(self, template, **render_data) -> str:
+		"""Renders the given template, with the passed in render date.
+
+		:param template: the `template` to use for rendering
+		:param **render_data: any data to be passed to the template engine
+		"""
 		return self.environment.get_template(template).render(**render_data)
 
 
 class Categories:
+	"""A struct grouping all the relevant categories information.
+
+	:param posts_by_category: a `dict` containing all the posts belonging
+		to specific categories
+	:param pages_by_category: a `dict` mapping a category name to the category page
+	:param list_page: the optional page containing all categories and their posts
+		that may have been built
+	:param folder: an optional folder if the categories have been grouped
+	:param uncategorized_name: the name of the uncategorized category
+	"""
 	def __init__(self, posts_by_category, pages_by_category, list_page, folder,
-			uncategorized_name):
+			uncategorized_name) -> None:
+		"""Constructor
+
+		:param posts_by_category: a `dict` containing all the posts belonging
+			to specific categories
+		:param pages_by_category: a `dict` mapping a category name to the category page
+		:param list_page: the optional page containing all categories and their posts
+			that may have been built
+		:param folder: an optional folder if the categories have been grouped
+		:param uncategorized_name: the name of the uncategorized category
+		"""
 		self.posts_by_category = posts_by_category
 		self.pages_by_category = pages_by_category
 		self.list_page = list_page
@@ -523,10 +848,14 @@ class Categories:
 		self.uncategorized_name = uncategorized_name
 
 	@property
-	def all_pages(self):
+	def all_pages(self) -> Sequence[contentTree.PageOrPost]:
+		"""This method returns all category pages, except for the list page."""
 		return self.pages_by_category.values()
 
-	def as_navigation_dict(self):
+	def as_navigation_dict(self) -> Mapping:
+		"""This method maps the categories structure into a simple `dict`,
+		so it can be accessed in the template engine.
+		"""
 		return {
 			"self": getattr(self.list_page, "href", None),
 			"categories": {k: str(v.href) for k,v in self.pages_by_category.items()},
@@ -534,7 +863,23 @@ class Categories:
 
 
 class Archive:
-	def __init__(self, posts_by_month, posts_by_year):
+	"""A struct grouping all of the relevant archives information.
+
+	:param posts_by_month: the posts grouped into a mapping by month
+	:param posts_by_year: the posts grouped into a mapping by year
+	:param pages_by_month: the pages grouped into a mapping by month
+	:param pages_by_year: the pages grouped into a mapping by year
+	:param list_page: the optional page containing all archives and their posts
+	"""
+	def __init__(self, posts_by_month, posts_by_year) -> None:
+		"""Constructor
+
+		:param posts_by_month: the posts grouped into a mapping by month
+		:param posts_by_year: the posts grouped into a mapping by year
+		:param pages_by_month: the pages grouped into a mapping by month
+		:param pages_by_year: the pages grouped into a mapping by year
+		:param list_page: the optional page containing all archives and their posts
+		"""
 		self.posts_by_month = posts_by_month
 		self.posts_by_year = posts_by_year
 		self.pages_by_month = []
@@ -542,10 +887,14 @@ class Archive:
 		self.list_page = None
 
 	@property
-	def all_pages(self):
+	def all_pages(self) -> Sequence[contentTree.PageOrPost]:
+		"""This property returns all pages by month and year."""
 		return self.pages_by_month + self.pages_by_year
 
-	def as_navigation_dict(self):
+	def as_navigation_dict(self) -> Mapping[str, Sequence[(str, str)]]:
+		"""This method returns a simple `dict` containing all the archive posts
+		and pages information, so it can be easily accessed in the template engine.
+		"""
 		return {
 			"by_month": [(p.name, str(p.href)) for p in self.pages_by_month\
 				if not hasattr(p, "pagination") or p.pagination.page_number == 1],
