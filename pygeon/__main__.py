@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 import json
 
-from pygeon import siteGenerator
+from pygeon import site_generator
 
 
 class UnrecognizedPygeonArgumentError(Exception):
@@ -294,7 +294,7 @@ def process_args(parsed_args, unknown_args):
 
 
 def main(args):
-	site_gen = siteGenerator.SiteGenerator(
+	site_gen = site_generator.SiteGenerator(
 		name=args.name, url=args.url, subtitle=args.subtitle,
 		content_directory=args.content_directory,
 		theme_directory=args.theme_directory,
@@ -309,7 +309,7 @@ def main(args):
 		read_date_format=args.read_date_format,
 		display_date_format=args.display_date_format, author_link=args.author_link,
 		theme_options=args.theme_options)
-	site_gen.process_contentTree()
+	site_gen.process_content_tree()
 	site_gen.aggregate_posts()
 
 	if args.build_categories:

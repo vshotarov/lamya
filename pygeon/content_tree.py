@@ -1,8 +1,8 @@
-"""The `pygeon.contentTree` module provides a naive tree data structure
+"""The `pygeon.content_tree` module provides a naive tree data structure
 implementation, specifically designed to serve as a base for generating
 static sites. The `pygeon.siteGenerator` module utilises this to provide
 a static site generator, but users are encouraged to write their own
-build scripts directly using the `pygeon.contentTree` module.
+build scripts directly using the `pygeon.content_tree` module.
 """
 from __future__ import annotations
 from typing import TypeVar, Any, Tuple
@@ -20,7 +20,7 @@ try:
 except ImportError:
 	markdown = None
 
-from pygeon.contentProcessing import split_front_matter
+from pygeon.content_processing import split_front_matter
 
 T = TypeVar("T")
 
@@ -590,7 +590,7 @@ class AbstractPageOrPost(ContentTree):
 
 		:param front_matter_and_content_split_func: the function to use for
 			splitting the front matter from the content. By default uses the
-			`pygeon.contentProcessing.split_front_matter` function.
+			`pygeon.content_processing.split_front_matter` function.
 		"""
 		self._front_matter, self._raw_content = split_front_matter(self.source)
 
