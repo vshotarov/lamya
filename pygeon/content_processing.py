@@ -30,13 +30,13 @@ def split_front_matter(source, front_matter_delimiter="+"):
             break
         front_matter += line + "\n"
 
-	evaluated_front_matter = {}
-	exec(front_matter, {}, evaluated_front_matter)
+    evaluated_front_matter = {}
+    exec(front_matter, {}, evaluated_front_matter) # pylint: disable=exec-used
 
     return evaluated_front_matter, content
 
 
-def get_excerpt(content, remove_html_tags=True,
+def get_excerpt(content, remove_html_tags=True, # pylint: disable=too-many-arguments
         excerpt_start_tag="<!--excerpt-start-->",
         excerpt_end_tag="<!--excerpt-end-->",
         fallback_num_characters=250, suffix=""):
@@ -83,5 +83,5 @@ def remove_html(x):
     :param x: the string to try to rid of html
     """
     # https://stackoverflow.com/questions/9662346/python-code-to-remove-html-tags-from-a-string
-    CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
-    return re.sub(CLEANR, "", x).replace("\n"," ")
+    clean_re = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+    return re.sub(clean_re, "", x).replace("\n"," ")

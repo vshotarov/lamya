@@ -34,19 +34,16 @@ from pygeon import content_processing
 class AggregateError(Exception):
     """Raised when attempting to use both a whitelist and a blacklist for
     specifying content to be aggregated."""
-    pass
 
 class UncategorizedNotAllowedError(Exception):
     """Raised when a category is required, but none has been specified."""
-    pass
 
 class ArchivePagesError(Exception):
     """Raised when an attempt is made to create the archive pages, before the
     content has been created or when there's nothing to archive."""
-    pass
 
 
-class Callbacks:
+class Callbacks: # pylint: disable=too-few-public-methods
     """A struct for specifying callbacks to be run at potential various stages
     of the static site generation process.
 
@@ -72,7 +69,7 @@ class Callbacks:
             "site_url": site_generator.url}
 
 
-class RenderablePage:
+class RenderablePage: # pylint: disable=too-many-instance-attributes,too-few-public-methods
     """This struct is what will be passed to the template engine, so all the
     properties are seralized into directly usable information.
 
@@ -97,41 +94,41 @@ class RenderablePage:
     :param absolute_canonical_href: the canonical url for this page or post
     :param breadcrumbs: the breadcrumbs navigation dict
     """
-    def __init__(self, pageOrPost):
+    def __init__(self, page_or_post):
         """Constructor
 
-        :param pageOrPost: the page or post to create a render struct for
+        :param page_or_post: the page or post to create a render struct for
         """
-        self.name = pageOrPost.name
+        self.name = page_or_post.name
         self.title = self.name.replace("_"," ").title()
-        self.content = pageOrPost.content
+        self.content = page_or_post.content
         self.excerpt = content_processing.get_excerpt(self.content) if self.content else ""
-        self.href = str(pageOrPost.href)
-        self.site_url = pageOrPost.site_generator_data["site_url"]
-        self.aggregated_posts = [] if not isinstance(pageOrPost, content_tree.AggregatedPage)\
-            else [RenderablePage(x) for x in pageOrPost.aggregated_posts]
+        self.href = str(page_or_post.href)
+        self.site_url = page_or_post.site_generator_data["site_url"]
+        self.aggregated_posts = [] if not isinstance(page_or_post, content_tree.AggregatedPage)\
+            else [RenderablePage(x) for x in page_or_post.aggregated_posts]
         self.aggregated_grouped_posts = [] if not isinstance(
-                pageOrPost, content_tree.AggregatedGroupsPage)\
+                page_or_post, content_tree.AggregatedGroupsPage)\
             else {k: [RenderablePage(x) for x in v]\
-                  for k,v in pageOrPost.aggregated_grouped_posts.items()}
-        self.pagination = pageOrPost.pagination.as_navigation_dict()\
-            if hasattr(pageOrPost, "pagination")\
-                and pageOrPost.pagination.max_page_number > 1 else {}
-        self.publish_date = pageOrPost.site_generator_data.get("publish_date")
-        self.user_data = pageOrPost.user_data
-        self.front_matter = pageOrPost.front_matter
-        self.is_post = pageOrPost.site_generator_data.get("is_post",False)
+                  for k,v in page_or_post.aggregated_grouped_posts.items()}
+        self.pagination = page_or_post.pagination.as_navigation_dict()\
+            if hasattr(page_or_post, "pagination")\
+                and page_or_post.pagination.max_page_number > 1 else {}
+        self.publish_date = page_or_post.site_generator_data.get("publish_date")
+        self.user_data = page_or_post.user_data
+        self.front_matter = page_or_post.front_matter
+        self.is_post = page_or_post.site_generator_data.get("is_post",False)
         self.absolute_canonical_href = self.site_url + str(
-            pageOrPost.site_generator_data.get("canonical_href", self.href))
+            page_or_post.site_generator_data.get("canonical_href", self.href))
         self.breadcrumbs = [("home","/")] + [
             (p.name,str(p.href) if isinstance(p, content_tree.Folder) and p.index_page else "")\
-                for p in reversed(pageOrPost.ancestors[:-1])] +\
+                for p in reversed(page_or_post.ancestors[:-1])] +\
             ([(self.title if self.is_post else self.name,self.href)]\
-                if (self.href != "/" and not pageOrPost.is_index_page()\
+                if (self.href != "/" and not page_or_post.is_index_page()\
                     and self.pagination.get("page_number",1) == 1) else [])
 
 
-class SiteInfo:
+class SiteInfo: # pylint: disable=too-many-instance-attributes,too-few-public-methods
     """This struct represents all the site information to be passed to the
     template engine.
 
@@ -166,14 +163,14 @@ class SiteInfo:
         self.theme_options = site_generator.theme_options
         self.internal_data = site_generator.internal_data
         self.archive_nav = site_generator.archive.as_navigation_dict() if\
-            hasattr(site_generator,"archive") else {}
+            site_generator.archive else {}
         self.category_nav = site_generator.categories.as_navigation_dict() if\
-            hasattr(site_generator,"categories") else {}
+            site_generator.categories else {}
         self.display_date_format = site_generator.display_date_format
         self.author_link = site_generator.author_link
 
 
-class SiteGenerator:
+class SiteGenerator: # pylint: disable=too-many-instance-attributes
     """This class is responsible for generating a static website by aggregating,
     grouping and rendering existing content.
 
@@ -218,23 +215,17 @@ class SiteGenerator:
     :param internal_data: a `dict` containing extra information about the site
         generation process
     """
-    def __init__(self, name, url, subtitle="",
-            content_directory=Path("content"),
-            theme_directory=Path("theme"),
-            static_directory=Path("static"),
-            templates_directory=Path("templates"),
-            build_directory=Path("build"),
-            locally_aggregate_whitelist=[],
-            locally_aggregate_blacklist=[],
-            globally_aggregate_whitelist=[],
-            globally_aggregate_blacklist=[],
+    def __init__(self, name, url, subtitle="", content_directory=Path("content"), # pylint: disable=too-many-arguments,too-many-locals
+            theme_directory=Path("theme"), static_directory=Path("static"),
+            templates_directory=Path("templates"), build_directory=Path("build"),
+            locally_aggregate_whitelist=None, locally_aggregate_blacklist=None,
+            globally_aggregate_whitelist=None, globally_aggregate_blacklist=None,
             num_posts_per_page=-1,
             is_page_func=lambda x: isinstance(x.parent, content_tree.Root),
             front_matter_delimiter="+", callbacks=Callbacks(),
             lang="en", front_matter_publish_date_key="publish_date",
-            read_date_format="%d-%m-%Y %H:%M",
-            display_date_format="%B %-d, %Y", author_link="",
-            theme_options={}, use_absolute_urls=False):
+            read_date_format="%d-%m-%Y %H:%M", display_date_format="%B %-d, %Y",
+            author_link="", theme_options=None, use_absolute_urls=False):
         """Constructor
 
         :param name: name of the site
@@ -302,10 +293,10 @@ class SiteGenerator:
         self.static_directory = Path(static_directory)
         self.templates_directory = Path(templates_directory)
         self.build_directory = Path(build_directory)
-        self.locally_aggregate_whitelist = locally_aggregate_whitelist
-        self.locally_aggregate_blacklist = locally_aggregate_blacklist
-        self.globally_aggregate_whitelist = globally_aggregate_whitelist
-        self.globally_aggregate_blacklist = globally_aggregate_blacklist
+        self.locally_aggregate_whitelist = locally_aggregate_whitelist or []
+        self.locally_aggregate_blacklist = locally_aggregate_blacklist or []
+        self.globally_aggregate_whitelist = globally_aggregate_whitelist or []
+        self.globally_aggregate_blacklist = globally_aggregate_blacklist or []
         self.num_posts_per_page = num_posts_per_page
         self.is_page_func = is_page_func
         self.front_matter_delimiter = front_matter_delimiter
@@ -315,7 +306,7 @@ class SiteGenerator:
         self.read_date_format = read_date_format
         self.display_date_format = display_date_format
         self.author_link = author_link
-        self.theme_options = theme_options
+        self.theme_options = theme_options or {}
         self.use_absolute_urls = use_absolute_urls
 
         if locally_aggregate_whitelist and locally_aggregate_blacklist:
@@ -324,6 +315,11 @@ class SiteGenerator:
                 " not supported, as the aggregation strategies is chosen depending"
                 " on which one is specified, and if neither is, aggregation is"
                 " enabled on everything by default.")
+
+        self.globally_aggregated_posts = None
+        self.categories = None
+        self.archive = None
+        self.navigation = None
 
         self.content_tree  = content_tree.ContentTree.from_directory(content_directory,
             post_create_callback=partial(callbacks.post_content_tree_entity_create, self))
@@ -401,10 +397,10 @@ class SiteGenerator:
                     front_matter_publish_date or last_modified_time
 
                 if not page.site_generator_data["publish_date"]:
-                    content_tree.warning("There's no '%s' key in the front matter for"
-                        " '%s' and neither is there a 'source_path' that we can read"
-                        " the last modified time from, so the date is going to be 0"
-                        % (self.front_matter_publish_date_key, page.path))
+                    content_tree.warning(f"There's no '{self.front_matter_publish_date_key}'"
+                        " key in the front matter for '{page.path}' and neither"
+                        " is there a 'source_path' that we can read the last "
+                        " modified time from, so the date is going to be 0")
 
     def aggregate_posts(self):
         """This method uses the aggregation arguments passed to the constructor
@@ -471,7 +467,7 @@ class SiteGenerator:
                 self.content_tree.index_page.paginate(self.num_posts_per_page,
                     partial(self.callbacks.post_content_tree_entity_create, self))
 
-    def build_category_pages(self, parent=None,
+    def build_category_pages(self, parent=None, # pylint: disable=too-many-arguments,too-many-locals
             category_accessor= lambda x: getattr(x,"front_matter",{}).get("category",""),
             allow_uncategorized=True, uncategorized_name="Uncategorized",
             leaves_filter= lambda x: True,
@@ -507,25 +503,24 @@ class SiteGenerator:
             if not allow_uncategorized:
                 raise UncategorizedNotAllowedError("The following pages don't have"
                     " categories, but 'allow_uncategorized' is False " + str(grouped[""]))
-            else:
-                grouped[uncategorized_name] = grouped.pop("")
+            grouped[uncategorized_name] = grouped.pop("")
 
         parent = parent or self.content_tree
         category_pages = {}
         all_category_pages = []
         for category, pages in grouped.items():
-            aggregatedPage = content_tree.AggregatedPage(category or uncategorized_name, pages)
-            self.callbacks.post_content_tree_entity_create(self, aggregatedPage)
-            parent.add_child(aggregatedPage)
+            aggregated_page = content_tree.AggregatedPage(category or uncategorized_name, pages)
+            self.callbacks.post_content_tree_entity_create(self, aggregated_page)
+            parent.add_child(aggregated_page)
 
             if self.num_posts_per_page > 0:
-                paginated_pages = aggregatedPage.paginate(self.num_posts_per_page,
+                paginated_pages = aggregated_page.paginate(self.num_posts_per_page,
                     partial(self.callbacks.post_content_tree_entity_create, self))
                 category_pages[category] = paginated_pages[0]
                 all_category_pages += paginated_pages
             else:
-                all_category_pages.append(aggregatedPage)
-                category_pages[category] = aggregatedPage
+                all_category_pages.append(aggregated_page)
+                category_pages[category] = aggregated_page
 
         categories_folder = None if not group else\
             parent.group((category_list_page_name or "categories"), all_category_pages)
@@ -569,7 +564,7 @@ class SiteGenerator:
 
         return self.archive
 
-    def build_archive_pages(self, parent=None,
+    def build_archive_pages(self, parent=None, # pylint: disable=too-many-arguments,too-many-locals
             by_month=True, by_year=False,
             archive_list_page_name="archive", group=True,
             display_by_month_in_list_page=True,
@@ -606,16 +601,16 @@ class SiteGenerator:
         for archive in archives:
             archive_pages.append([])
             for archive_key, posts in archive:
-                aggregatedPage = content_tree.AggregatedPage(archive_key, posts)
-                self.callbacks.post_content_tree_entity_create(self, aggregatedPage)
-                parent.add_child(aggregatedPage)
+                aggregated_page = content_tree.AggregatedPage(archive_key, posts)
+                self.callbacks.post_content_tree_entity_create(self, aggregated_page)
+                parent.add_child(aggregated_page)
 
                 if self.num_posts_per_page > 0:
                     archive_pages[-1] +=\
-                        aggregatedPage.paginate(self.num_posts_per_page,
+                        aggregated_page.paginate(self.num_posts_per_page,
                             partial(self.callbacks.post_content_tree_entity_create, self))
                 else:
-                    archive_pages[-1].append(aggregatedPage)
+                    archive_pages[-1].append(aggregated_page)
 
         archive_folder = None if not group else\
             parent.group(archive_list_page_name or "archive",
@@ -672,14 +667,14 @@ class SiteGenerator:
         :param exclude_archive: whether or not to exclude any archive pages
             from the navigation
         """
-        if hasattr(self, "navigation"):
+        if self.navigation:
             content_tree.warning("Navigation already exists, overwriting..")
 
         extra_filter_func = extra_filter_func or (lambda _: True)
-        is_category_page_func = lambda x: False if not hasattr(self, "categories")\
+        is_category_page_func = lambda x: False if not self.categories\
             else x.path in [p.path for p in list(self.categories.all_pages) +\
                 ([self.categories.list_page] if self.categories.list_page else [])]
-        is_archive_page_func = lambda x: False if not hasattr(self, "archive")\
+        is_archive_page_func = lambda x: False if not self.archive\
             else x.path in [p.path for p in self.archive.all_pages +\
                 ([self.archive.list_page] if self.archive.list_page else [])]
 
@@ -773,26 +768,27 @@ class SiteGenerator:
                 if not path.parent.exists():
                     os.makedirs(path.parent)
 
-                with open(path, "w") as f:
+                with open(path, "w", encoding="utf-8") as f:
                     f.write(self.renderer.render("default.html",
                         page=to_renderable_page(leaf),
                         site_info=to_site_info(self), **kwargs))
 
         # Make sure we don't have folders with no index files in them, which
         # would show a file browser in the web browser
-        class _404Page:
+        class _404Page: # pylint: disable=too-few-public-methods
             front_matter = {}
         for folder in filter(lambda x: isinstance(x, content_tree.Folder),
                 self.content_tree.flat(False)):
             if not folder.index_page:
                 with open(self.build_directory /\
-                        folder.path.relative_to("/") / "index.html", "w") as f:
+                        folder.path.relative_to("/") / "index.html", "w",
+                        encoding="utf-8") as f:
                     f.write(self.renderer.render("404.html",
                         page=_404Page(),
                         site_info=to_site_info(self)))
 
 
-class Jinja2Renderer:
+class Jinja2Renderer: # pylint: disable=too-few-public-methods
     """A thin wrapper around the jinja2 environment to provide a framework
     for using different renderers.
 
@@ -818,7 +814,7 @@ class Jinja2Renderer:
         return self.environment.get_template(template).render(**render_data)
 
 
-class Categories:
+class Categories: # pylint: disable=too-many-arguments
     """A struct grouping all the relevant categories information.
 
     :param posts_by_category: a `dict` containing all the posts belonging

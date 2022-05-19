@@ -5,13 +5,10 @@ a static site generator, but users are encouraged to write their own
 build scripts directly using the `pygeon.content_tree` module.
 """
 from pathlib import Path
-import os
-from datetime import datetime
 from copy import deepcopy
 from collections import OrderedDict
 from math import ceil
 
-import markdown
 try:
     import markdown
 except ImportError:
@@ -22,22 +19,18 @@ from pygeon.content_processing import split_front_matter
 
 class LeafChildError(Exception):
     """An error specifiyng attempted access to the child/subtree of a leaf node"""
-    pass
 
 class PageOrPostWithoutSourceError(Exception):
     """An error specifiyng attempted access to the source code of a node which
     has none specified neither with a `source_path` nor directly set."""
-    pass
 
 class PaginationError(Exception):
     """An error when attempting to paginate an `AggregatedPage`, which can be
     triggered due to either not having any posts to paginate OR attempting to
     paginate an already paginated page."""
-    pass
 
 class GroupError(Exception):
     """An error raised when attempting to group an empty list of items into a subtree."""
-    pass
 
 def warning(*args):
     """A utility function for displaying warnings.
@@ -62,16 +55,16 @@ class ContentTree:
     :param href: a `pathlib.Path` object containing the path to this node,
         corresponding to what's deemed the correct way referencing the path as a URL
     """
-    def __init__(self, name, user_data={}):
+    def __init__(self, name, user_data=None):
         """Constructor
 
         :param name: the name of the node
         :param user_data: a convenience object for storing custom user data
         """
-        super(ContentTree, self).__init__()
+        super().__init__()
         self.name = name
         self._parent = None
-        self.user_data = dict(user_data)
+        self.user_data = user_data if not user_data is None else {}
 
     @property
     def parent(self):
@@ -79,7 +72,7 @@ class ContentTree:
         return self._parent
 
     @parent.setter
-    def parent(self, _):
+    def parent(self, _): # pylint: disable=no-self-use
         raise AttributeError("'parent' can't be set directly. Use the "
             "'ContentTree.parent_to()' function.")
 
@@ -112,7 +105,7 @@ class ContentTree:
             if self.parent else Path("/")
 
     @path.setter
-    def path(self, _):
+    def path(self, _): # pylint: disable=no-self-use
         raise AttributeError("'path' can't be set directly. It is managed internally.")
 
     @property
@@ -132,14 +125,16 @@ class ContentTree:
         """Returns a pretty string displaying information about this node.
 
         :param level: the indentation level, so we support nesting"""
-        return "{indent1}{type}({name})".format(indent1=" "*2*level,
-                type=self.__class__.__name__, name=self.name)
+        return "{indent1}{type}({name})".format( # pylint: disable=consider-using-f-string
+            indent1=" "*2*level, type=self.__class__.__name__, name=self.name)
 
-    def __str__(self): return self.pprint()
-    def __repr__(self): return self.pprint()
+    def __str__(self):
+        return self.pprint()
+    def __repr__(self):
+        return self.pprint()
 
     @staticmethod
-    def from_directory(directory, accepted_file_types=[".md"], post_create_callback=None):
+    def from_directory(directory, accepted_file_types=None, post_create_callback=None):
         """Builds a `ContentTree` structure by walking a directory.
 
         :param directory: the directory to walk, which would usually be the
@@ -158,7 +153,8 @@ class ContentTree:
                     child = recursive_builder(Folder(child_path.name), child_path)
                     parent.add_child(child)
 
-                elif child_path.suffix not in accepted_file_types:
+                elif child_path.suffix not in (accepted_file_types\
+                        if accepted_file_types is not None else [".md"]):
                     continue
 
                 elif child_path.stem == "index":
@@ -190,13 +186,13 @@ class Folder(ContentTree):
         example of a `blog` folder, the index page is most likely a list of
         all the blog posts
     """
-    def __init__(self, name, user_data={}):
+    def __init__(self, name, user_data=None):
         """Constructor
 
         :param name: the name of the node
         :param user_data: a convenience object for storing custom user data
         """
-        super(Folder, self).__init__(name, user_data)
+        super().__init__(name, user_data)
         self._children = []
         self._index_page = None
 
@@ -206,7 +202,7 @@ class Folder(ContentTree):
         return self._children
 
     @children.setter
-    def children(self, _):
+    def children(self, _): # pylint: disable=no-self-use
         raise AttributeError("'children' can't be set directly. Use the "
             "'ContentTree.parent_to()' function.")
 
@@ -233,21 +229,21 @@ class Folder(ContentTree):
             else:
                 new_index_page.parent.children.remove(new_index_page)
         self._index_page = new_index_page
-        new_index_page._parent = self
+        new_index_page._parent = self # pylint: disable=protected-access
 
     @property
     def path(self):
         """Get the path of this node relative to the root."""
-        return super(Folder, self).path
+        return super().path
 
     def pprint(self, level=0):
         """Returns a pretty string displaying information about this node.
 
         :param level: the indentation level, so we support nesting"""
-        return "{indent1}{type}({name}) {{\n{indent2}{children}\n{indent2}}}".format(
+        return "{indent1}{type}({name}) {{\n{indent2}{children}\n{indent2}}}".format( # pylint: disable=consider-using-f-string
             indent1=" "*2*level, indent2=" "*2*(level+1), type=self.__class__.__name__,
             name=self.name, children=("\n" + " "*2*(level+1)).join(
-                (["%si %s" % (" "*2*level, self.index_page.pprint(0))]\
+                (["%si %s" % (" "*2*level, self.index_page.pprint(0))] # pylint: disable=consider-using-f-string
                     if self.index_page else []) +\
                  [x.pprint(level+1) for x in self.children]))
 
@@ -268,14 +264,13 @@ class Folder(ContentTree):
         if first_part == "/":
             if len(path_parts) == 1:
                 return self
-            else:
-                first_part = path_parts[1]
-                path_parts = path_parts[1:]
+            first_part = path_parts[1]
+            path_parts = path_parts[1:]
 
         next_step = None
         for i,child in enumerate(self._children):
-            if first_part in ["{%i}" % i, child.name] + (
-                    ["page%i" % child.pagination.page_number]\
+            if first_part in [f"{{{i}}}", child.name] + (
+                    [f"page{int(child.pagination.page_number)}"]\
                     if isinstance(child, PaginatedAggregatedPage) else []):
                 next_step = child
                 break
@@ -283,10 +278,8 @@ class Folder(ContentTree):
         if next_step:
             if isinstance(next_step, Folder):
                 return next_step.get("/".join(path_parts[1:]))
-            else:
-                return next_step
-        else:
-            raise LookupError("The path '%s' does not exist under %s" % (path, self))
+            return next_step
+        raise LookupError(f"The path '{path}' does not exist under {self}")
 
     def apply_func(self, func, include_index_pages=True, recursive=True):
         """Applies a function to all nodes in this subtree.
@@ -441,12 +434,12 @@ class Root(Folder):
     """The root of a content tree structure. The only difference with a regular
     folder is that the name is hardcoded to "/".
     """
-    def __init__(self, user_data={}):
+    def __init__(self, user_data=None):
         """Constructor
 
         :param user_data: a convenience object for storing custom user data
         """
-        super(Root, self).__init__("/", user_data)
+        super().__init__("/", user_data)
 
 
 class AbstractPageOrPost(ContentTree):
@@ -463,7 +456,7 @@ class AbstractPageOrPost(ContentTree):
         processed by any markup processor
     :param content: this is the markup processed content
     """
-    def __init__(self, name, source_path=None, source=None, user_data={}):
+    def __init__(self, name, source_path=None, source=None, user_data=None):
         """Constructor
 
         :param name: name of this node
@@ -471,7 +464,7 @@ class AbstractPageOrPost(ContentTree):
         :param source: optional source of this node
         :param user_data: a convenience object for storing custom user data
         """
-        super(AbstractPageOrPost, self).__init__(name, user_data)
+        super().__init__(name, user_data)
         self._source_path = source_path
         self._source = source
 
@@ -489,9 +482,9 @@ class AbstractPageOrPost(ContentTree):
         """Sets the path to the source of this node."""
         self._source_path = new_source_path
         if self._source:
-            warning("The 'source_path' has been updated on %s, but"
+            warning(f"The 'source_path' has been updated on {self.name}, but"
                 " the source has already been set, so the new 'source_path'"
-                " will have no effect." % self.name)
+                " will have no effect.")
 
     @property
     def source(self):
@@ -503,12 +496,11 @@ class AbstractPageOrPost(ContentTree):
         :raises PageOrPostWithoutSourceError: if no source can be identified"""
         if self._source is not None:
             return self._source
-        elif self._source_path:
-            with open(self._source_path, "r") as f:
+        if self._source_path:
+            with open(self._source_path, "r", encoding="utf-8") as f:
                 return f.read()
-        else:
-            raise PageOrPostWithoutSourceError("'%s' has neither 'source' nor"
-                " 'source_path' defined." % self.name)
+        raise PageOrPostWithoutSourceError(
+            f"'{self.name}' has neither 'source' nor 'source_path' defined.")
 
     @source.setter
     def source(self, new_source):
@@ -518,9 +510,10 @@ class AbstractPageOrPost(ContentTree):
         :param new_source: the new source to set
         """
         self._source = new_source
-        if self._source_path: warning("The 'source' has been updated on %s, but the"
+        if self._source_path:
+            warning(f"The 'source' has been updated on {self.name}, but the"
                 " 'source_path' has already been set, so the newly set 'source'"
-                " will override that" % self.name)
+                " will override that")
 
     def render_path(self, build_path):
         """Get the path of this node relative to the root and append it to the
@@ -542,9 +535,8 @@ class AbstractPageOrPost(ContentTree):
         """If the front matter has already been parsed, returns a `dict` containing
         it, otherwise returns None and prints a warning."""
         if self._front_matter is None:
-            warning("'front_matter' was requested on %s, but it's not been "
-                "read and parsed yet. Use 'parse_front_matter_and_content()' first"
-                % self.name)
+            warning(f"'front_matter' was requested on {self.name}, but it's not been "
+                "read and parsed yet. Use 'parse_front_matter_and_content()' first")
         return self._front_matter
 
     @property
@@ -552,9 +544,8 @@ class AbstractPageOrPost(ContentTree):
         """If the content has been parsed, returns it raw as taken from the source,
         otherwise returns None and prints a warning"""
         if self._raw_content is None:
-            warning("'raw_content' was requested on %s, but it's not been "
-                "read and parsed yet. Use 'parse_front_matter_and_content()' first"
-                % self.name)
+            warning(f"'raw_content' was requested on {self.name}, but it's not been "
+                "read and parsed yet. Use 'parse_front_matter_and_content()' first")
         return self._raw_content
 
     @property
@@ -562,9 +553,8 @@ class AbstractPageOrPost(ContentTree):
         """If the content has been parsed, returns it processed by the markup
         processor, otherwise returns None and prints a warning."""
         if self._content is None:
-            warning("'content' was requested on %s, but it's not been "
-                "generated yet. Use 'process_content()' first"
-                % self.name)
+            warning(f"'content' was requested on {self.name}, but it's not been "
+                "generated yet. Use 'process_content()' first")
         return self._content
 
     def parse_front_matter_and_content(self,
@@ -576,7 +566,8 @@ class AbstractPageOrPost(ContentTree):
             splitting the front matter from the content. By default uses the
             `pygeon.content_processing.split_front_matter` function.
         """
-        self._front_matter, self._raw_content = split_front_matter(self.source)
+        self._front_matter, self._raw_content =\
+            front_matter_and_content_split_func(self.source)
 
     def process_content(self,
             markup_processor_func=markdown.markdown if markdown else None):
@@ -591,13 +582,12 @@ class AbstractPageOrPost(ContentTree):
 
 class PageOrPost(AbstractPageOrPost):
     """Giving a more explicit name to the class used for specific pages and posts."""
-    pass
 
 
 class CustomIndexPage(PageOrPost):
     """The class used for index pages that have been read from an index file,
     rather than procedurally generated."""
-    def __init__(self, parent, source_path=None, source=None, user_data={}):
+    def __init__(self, parent, source_path=None, source=None, user_data=None):
         """Constructor
 
         :param parent: the parent this page is the index of
@@ -605,7 +595,7 @@ class CustomIndexPage(PageOrPost):
         :param source: optional source of this node
         :param user_data: a convenience object for storing custom user data
         """
-        super(CustomIndexPage, self).__init__(
+        super().__init__(
             parent.name, source_path, source, user_data)
         self._parent = parent
 
@@ -620,8 +610,8 @@ class ProceduralPage(AbstractPageOrPost):
     def source(self):
         if self._source is not None:
             return self._source
-        elif self._source_path:
-            with open(self._source_path, "r") as f:
+        if self._source_path:
+            with open(self._source_path, "r", encoding="utf-8") as f:
                 return f.read()
         return None
 
@@ -630,8 +620,8 @@ class AggregatedGroupsPage(ProceduralPage):
     """A procedurally generated page containing groups of posts, a great example
     of which is categories and archives.
     """
-    def __init__(self, name, aggregated_grouped_posts, source_path=None,
-            source=None, user_data={}):
+    def __init__(self, name, aggregated_grouped_posts, source_path=None, # pylint: disable=too-many-arguments
+            source=None, user_data=None):
         """Constructor
 
         :param name: name of this node
@@ -641,7 +631,7 @@ class AggregatedGroupsPage(ProceduralPage):
         :param source: optional source of this node
         :param user_data: a convenience object for storing custom user data
         """
-        super(AggregatedGroupsPage, self).__init__(
+        super().__init__(
             name, source_path, source, user_data)
         self.aggregated_grouped_posts = aggregated_grouped_posts
 
@@ -649,15 +639,16 @@ class AggregatedGroupsPage(ProceduralPage):
         """Returns a pretty string displaying information about this node.
 
         :param level: the indentation level, so we support nesting"""
-        return "%sAggregatedGroupsPage(%s) {%s}" % (" "*2*level, self.name,
+        return "%sAggregatedGroupsPage(%s) {%s}" % ( # pylint: disable=consider-using-f-string
+            " "*2*level, self.name,
             ", ".join(k + ": " + ",".join(p.name for p in v)\
             for k,v in self.aggregated_grouped_posts.items()))
 
 
 class AggregatedPage(ProceduralPage):
     """A procedurally generated page containing a list of posts."""
-    def __init__(self, name, aggregated_posts, source_path=None,
-            source=None, user_data={}):
+    def __init__(self, name, aggregated_posts, source_path=None, # pylint: disable=too-many-arguments
+            source=None, user_data=None):
         """Constructor
 
         :param name: name of this node
@@ -666,14 +657,15 @@ class AggregatedPage(ProceduralPage):
         :param source: optional source of this node
         :param user_data: a convenience object for storing custom user data
         """
-        super(AggregatedPage, self).__init__(name, source_path, source, user_data)
+        super().__init__(name, source_path, source, user_data)
         self.aggregated_posts = aggregated_posts
 
     def pprint(self, level=0):
         """Returns a pretty string displaying information about this node.
 
         :param level: the indentation level, so we support nesting"""
-        return "%sAggregatedPage(%s) [%s]" % (" "*2*level, self.name,
+        return "%sAggregatedPage(%s) [%s]" % ( # pylint: disable=consider-using-f-string
+            " "*2*level, self.name,
             ",".join(p.name for p in self.aggregated_posts))
 
     def paginate(self, num_posts_per_page, post_create_callback=lambda _: None):
@@ -695,9 +687,9 @@ class AggregatedPage(ProceduralPage):
                     None, None, prev_page=None if i == 0 else pages[-1]),
                 source_path=self.source_path, source=self._source))
             post_create_callback(pages[-1])
-            pages[-1]._front_matter = self._front_matter
-            pages[-1]._raw_content = self._raw_content
-            pages[-1]._content = self._content
+            pages[-1]._front_matter = self._front_matter # pylint: disable=protected-access
+            pages[-1]._raw_content = self._raw_content # pylint: disable=protected-access
+            pages[-1]._content = self._content # pylint: disable=protected-access
             pages[-1].user_data = dict(self.user_data)
 
             if len(pages) > 1:
@@ -722,8 +714,8 @@ class AggregatedPage(ProceduralPage):
 class PaginatedAggregatedPage(AggregatedPage):
     """A paginated version of the `AggregatedPage` containing only a subset of
     all the posts belonging to the `AggregatedPage` this page was derived from."""
-    def __init__(self, name, aggregated_posts, pagination,
-            source_path=None, source=None, user_data={}):
+    def __init__(self, name, aggregated_posts, pagination, # pylint: disable=too-many-arguments
+            source_path=None, source=None, user_data=None):
         """Constructor
 
         :param name: name of this node
@@ -732,24 +724,24 @@ class PaginatedAggregatedPage(AggregatedPage):
         :param source_path: an optional path to a source file
         :param source: optional source of this node
         """
-        super(PaginatedAggregatedPage, self).__init__(
-            name, aggregated_posts, source_path, source, user_data={})
+        super().__init__(
+            name, aggregated_posts, source_path, source, user_data=None)
         self.pagination = pagination
 
     def pprint(self, level=0):
         """Returns a pretty string displaying information about this node.
 
         :param level: the indentation level, so we support nesting"""
-        return "%sPaginatedAggregatedPage(%s, %i) [%s]" % (
+        return "%sPaginatedAggregatedPage(%s, %i) [%s]" % ( # pylint: disable=consider-using-f-string\
             " "*2*level, self.name, self.pagination.page_number,
             ",".join(p.name for p in self.aggregated_posts))
 
-    def paginate(self, _):
+    def paginate(self, *args):
         """Attempting to paginated a `PaginatedPage` will raise a `PaginationError`
 
         :raises PaginationError:
         """
-        raise PaginationError("The page '%s' is already paginated." % self.name)
+        raise PaginationError(f"The page '{self.name}' is already paginated.")
 
     @property
     def path(self):
@@ -762,15 +754,14 @@ class PaginatedAggregatedPage(AggregatedPage):
         """
         if self.pagination.first_page.is_index_page():
             return self.parent.path /\
-                ("page%i" % self.pagination.page_number)
-        elif self.pagination.max_page_number == 1:
+                (f"page{int(self.pagination.page_number)}")
+        if self.pagination.max_page_number == 1:
             return self.parent.path / self.name
-        else:
-            return self.parent.path / self.name /\
-                ("page%i" % self.pagination.page_number)
+        return self.parent.path / self.name /\
+            (f"page{int(self.pagination.page_number)}")
 
 
-class Pagination:
+class Pagination: # pylint: disable=too-few-public-methods
     """A data struct containing all the information for a paginated aggregated
     page.
 
@@ -785,7 +776,7 @@ class Pagination:
     :param prev_page: a reference to the prev page in the pagination
     :param next_page: a reference to the next page in the pagination
     """
-    def __init__(self, page_number, max_page_number, first_page, last_page,
+    def __init__(self, page_number, max_page_number, first_page, last_page, # pylint: disable=too-many-arguments
             prev_page=None, next_page=None):
         self.page_number = page_number
         self.max_page_number = max_page_number
@@ -800,7 +791,7 @@ class Pagination:
         structure inside an html template.
         """
         root = str(self.last_page.href).replace(
-            "page%i" % self.max_page_number, "").rstrip("/")
+            f"page{(self.max_page_number)}", "").rstrip("/")
         return {
             "page_number" : self.page_number,
             "max_page_number" : self.max_page_number,
