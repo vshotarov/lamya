@@ -721,18 +721,18 @@ class AggregatedPage(ProceduralPage):
 			if len(pages) > 1:
 				pages[-2].pagination.next_page = pages[-1]
 
-				if self.parent:
-					pages[-1].parent_to(self.parent)
-
 		for p in pages:
 			p.pagination.first_page = pages[0]
 			p.pagination.last_page = pages[-1]
 
-		if self.parent:
-			if self.is_index_page():
-				self.parent.index_page = pages[0]
-			else:
-				self.parent.children.remove(self)
+		if self.is_index_page():
+			self.parent.index_page = pages[0]
+			for p in pages[1:]:
+				p.parent_to(self.parent)
+		else:
+			for p in pages:
+				p.parent_to(self.parent)
+			self.parent.children.remove(self)
 
 		return pages
 
