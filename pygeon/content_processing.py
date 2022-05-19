@@ -1,14 +1,8 @@
 "This module provides a few utility functions for processing content and front matter."
-from __future__ import annotations
-from typing import Tuple, TypeVar
-from collections.abc import Mapping, Sequence
 import re
 
-T = TypeVar("T")
 
-
-def split_front_matter(source: str, front_matter_delimiter: str="+")\
-		-> Tuple[Mapping[str, T], str]:
+def split_front_matter(source, front_matter_delimiter="+"):
 	"""Splits and evaluates the front matter from the content's source.
 
 	This function assumes the front matter is actual python code, which gets
@@ -36,16 +30,16 @@ def split_front_matter(source: str, front_matter_delimiter: str="+")\
 			break
 		front_matter += line + "\n"
 
-	evaluated_front_matter: Mapping[str, T] = {}
+	evaluated_front_matter = {}
 	exec(front_matter, {}, evaluated_front_matter)
 
 	return evaluated_front_matter, content
 
 
-def get_excerpt(content: str, remove_html_tags: bool=True,
-		excerpt_start_tag: str="<!--excerpt-start-->",
-		excerpt_end_tag: str="<!--excerpt-end-->",
-		fallback_num_characters: int=250, suffix: str=""):
+def get_excerpt(content, remove_html_tags=True,
+		excerpt_start_tag="<!--excerpt-start-->",
+		excerpt_end_tag="<!--excerpt-end-->",
+		fallback_num_characters=250, suffix=""):
 	"""Extracts an excerpt from the provided content.
 
 	The excerpt can be extracted either from excerpt tags if they exist in

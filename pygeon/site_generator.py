@@ -6,9 +6,6 @@ The static site generator utilises the `pygeon.content_tree` tree implementation
 to parse existing content and render it using a template engine (Jinja2 by default),
 while optionally aggregating content into list pages, categories and an archive.
 """
-from __future__ import annotations
-from typing import TypeVar, Any, Tuple
-from collections.abc import Iterable, Callable, Mapping, Sequence, MutableSequence, MutableMapping
 from pathlib import Path
 import glob
 from datetime import datetime
@@ -32,8 +29,6 @@ except ImportError:
 
 from pygeon import content_tree
 from pygeon import content_processing
-
-T = TypeVar("T")
 
 
 class AggregateError(Exception):
@@ -60,8 +55,7 @@ class Callbacks:
 	an easy way of adding more callbacks in the future.
 	"""
 	@staticmethod
-	def post_content_tree_entity_create(site_generator: SiteGenerator,
-			entity: content_tree.ContentTree) -> None:
+	def post_content_tree_entity_create(site_generator, entity):
 		"""Ran on every single `pygeon.content_tree.ContentTree` instance created
 		in the context of the site generator.
 
@@ -103,7 +97,7 @@ class RenderablePage:
 	:param absolute_canonical_href: the canonical url for this page or post
 	:param breadcrumbs: the breadcrumbs navigation dict
 	"""
-	def __init__(self, pageOrPost: content_tree.AbstractPageOrPost) -> None:
+	def __init__(self, pageOrPost):
 		"""Constructor
 
 		:param pageOrPost: the page or post to create a render struct for
@@ -159,7 +153,7 @@ class SiteInfo:
 	:param author_link: a link to an author page, to be used in the `meta`
 		author tag
 	"""
-	def __init__(self, site_generator: SiteGenerator) -> None:
+	def __init__(self, site_generator):
 		"""Constructor
 
 		:param site_generator: the `SiteGenerator` object
@@ -224,24 +218,23 @@ class SiteGenerator:
 	:param internal_data: a `dict` containing extra information about the site
 		generation process
 	"""
-	def __init__(self, name: str, url: str, subtitle: str="",
-			content_directory: Path = Path("content"),
-			theme_directory: Path = Path("theme"),
-			static_directory: Path = Path("static"),
-			templates_directory: Path = Path("templates"),
-			build_directory: Path = Path("build"),
-			locally_aggregate_whitelist: Sequence[str]=[],
-			locally_aggregate_blacklist: Sequence[str]=[],
-			globally_aggregate_whitelist: Sequence[str]=[],
-			globally_aggregate_blacklist: Sequence[str]=[],
-			num_posts_per_page: int=-1,
-			is_page_func: Callable[[content_tree.AbstractPageOrPost], bool]=\
-					lambda x: isinstance(x.parent, content_tree.Root),
-			front_matter_delimiter: str="+", callbacks: Callbacks=Callbacks(),
-			lang: str="en", front_matter_publish_date_key: str="publish_date",
-			read_date_format: str="%d-%m-%Y %H:%M",
-			display_date_format: str="%B %-d, %Y", author_link: str="",
-			theme_options: Mapping={}, use_absolute_urls: bool=False) -> None:
+	def __init__(self, name, url, subtitle="",
+			content_directory=Path("content"),
+			theme_directory=Path("theme"),
+			static_directory=Path("static"),
+			templates_directory=Path("templates"),
+			build_directory=Path("build"),
+			locally_aggregate_whitelist=[],
+			locally_aggregate_blacklist=[],
+			globally_aggregate_whitelist=[],
+			globally_aggregate_blacklist=[],
+			num_posts_per_page=-1,
+			is_page_func=lambda x: isinstance(x.parent, content_tree.Root),
+			front_matter_delimiter="+", callbacks=Callbacks(),
+			lang="en", front_matter_publish_date_key="publish_date",
+			read_date_format="%d-%m-%Y %H:%M",
+			display_date_format="%B %-d, %Y", author_link="",
+			theme_options={}, use_absolute_urls=False):
 		"""Constructor
 
 		:param name: name of the site
@@ -341,7 +334,7 @@ class SiteGenerator:
 			"build_date": datetime.now()
 		}
 
-	def initialize_renderer(self) -> None:
+	def initialize_renderer(self):
 		"""This method initializes the template engine which will render the site.
 
 		By default we use `jinja2`, but overwriting this function and the render
@@ -361,7 +354,7 @@ class SiteGenerator:
 					x if (not self.url.startswith("file://") or "." in x.split("/")[-1])\
 						else (x + "/index.html"))
 
-	def initialize_markup_processor(self) -> None:
+	def initialize_markup_processor(self):
 		"""This method initializes the function which we will use to process
 		the markup into `html`.
 
@@ -378,7 +371,7 @@ class SiteGenerator:
 			markdown.markdown(x, extensions=["footnotes","tables","fenced_code","toc"] +\
 				[markdown_strikethrough.StrikethroughExtension()] if markdown_strikethrough else [])
 
-	def process_content_tree(self) -> None:
+	def process_content_tree(self):
 		"""This method goes through all of the content, read from the `content`
 		directory and ensures we have all the data we require for them.
 
@@ -413,7 +406,7 @@ class SiteGenerator:
 						" the last modified time from, so the date is going to be 0"
 						% (self.front_matter_publish_date_key, page.path))
 
-	def aggregate_posts(self) -> None:
+	def aggregate_posts(self):
 		"""This method uses the aggregation arguments passed to the constructor
 		to aggregate posts into index pages.
 		"""
@@ -422,7 +415,7 @@ class SiteGenerator:
 		# we need to create one. NOTE: most of the time I would imagine this
 		# would be the case, as the way I understand using folders is to
 		# separate different types of content - blog, archive, portfolio, etc.
-		folders_with_no_index: MutableSequence[content_tree.Folder] = list(filter(
+		folders_with_no_index = list(filter(
 			lambda x: isinstance(x, content_tree.Folder) and x.index_page is None,
 			self.content_tree.flat(include_index_pages=False)))
 
@@ -450,7 +443,7 @@ class SiteGenerator:
 					partial(self.callbacks.post_content_tree_entity_create, self))
 
 		## Aggregate all posts to optionally be used on the home page
-		to_globally_aggregate: Iterable[content_tree.PageOrPost] = list(filter(
+		to_globally_aggregate = list(filter(
 			lambda x: not self.is_page_func(x) and\
 					  not isinstance(x, content_tree.PaginatedAggregatedPage),
 			self.content_tree.leaves(include_index_pages=False)))
@@ -478,12 +471,11 @@ class SiteGenerator:
 				self.content_tree.index_page.paginate(self.num_posts_per_page,
 					partial(self.callbacks.post_content_tree_entity_create, self))
 
-	def build_category_pages(self, parent: content_tree.Folder=None,
-			category_accessor: Callable[[content_tree.PageOrPost], str | ""]=\
-				lambda x: getattr(x,"front_matter",{}).get("category",""),
-			allow_uncategorized: bool=True, uncategorized_name: str="Uncategorized",
-			leaves_filter: Callable[[content_tree.PageOrPost], bool]= lambda x: True,
-			category_list_page_name: str="categories", group: bool=True) -> None:
+	def build_category_pages(self, parent=None,
+			category_accessor= lambda x: getattr(x,"front_matter",{}).get("category",""),
+			allow_uncategorized=True, uncategorized_name="Uncategorized",
+			leaves_filter= lambda x: True,
+			category_list_page_name="categories", group=True):
 		"""This method reads categories from the content's front matter and
 		groups them into category pages.
 
@@ -504,7 +496,7 @@ class SiteGenerator:
 		:param group: whether or not to group all category pages under a
 			`categories` folder
 		"""
-		grouped: MutableMapping[str, MutableSequence[content_tree.PageOrPost]] = {}
+		grouped = {}
 		for p in filter(lambda x: isinstance(x, content_tree.PageOrPost)\
 							  and leaves_filter(x)\
 							  and not self.is_page_func(x),
@@ -551,8 +543,7 @@ class SiteGenerator:
 		self.categories = Categories(grouped, category_pages,
 			category_list_page, categories_folder, uncategorized_name)
 
-	def build_archive(self, by_month_format: str="%B, %Y",
-			by_year_format: str="%Y") -> Archive:
+	def build_archive(self, by_month_format="%B, %Y", by_year_format="%Y"):
 		"""This method builds the `archive` struct, with all the posts in
 		their correct groups.
 
@@ -563,8 +554,7 @@ class SiteGenerator:
 
 		:returns: the built `Archive` struct
 		"""
-		by_month: MutableMapping[str, MutableSequence[content_tree.PageOrPost]] = {}
-		by_year: MutableMapping[str, MutableSequence[content_tree.PageOrPost]] = {}
+		by_month, by_year = {}, {}
 		for post in self.posts():
 			by_month.setdefault(post.site_generator_data["publish_date"]\
 				.strftime(by_month_format),[]).append(post)
@@ -579,11 +569,11 @@ class SiteGenerator:
 
 		return self.archive
 
-	def build_archive_pages(self, parent: content_tree.Folder=None,
-			by_month: bool=True, by_year: bool=False,
-			archive_list_page_name: str="archive", group: bool=True,
-			display_by_month_in_list_page: bool=True,
-			display_by_year_in_list_page: bool=True) -> None:
+	def build_archive_pages(self, parent=None,
+			by_month=True, by_year=False,
+			archive_list_page_name="archive", group=True,
+			display_by_month_in_list_page=True,
+			display_by_year_in_list_page=True):
 		"""This method takes the previously built `Archive` struct and generates
 		the archive pages.
 
@@ -612,7 +602,7 @@ class SiteGenerator:
 		if not (archives[0] or archives[1]):
 			raise ArchivePagesError("No posts to put in archive")
 
-		archive_pages: MutableSequence[MutableSequence[content_tree.AggregatedPage]] = []
+		archive_pages = []
 		for archive in archives:
 			archive_pages.append([])
 			for archive_key, posts in archive:
@@ -651,15 +641,13 @@ class SiteGenerator:
 		self.archive.pages_by_year = archive_pages[1]
 		self.archive.list_page = archive_list_page
 
-	def posts(self) -> Sequence[content_tree.PageOrPost]:
+	def posts(self):
 		"""Returns all leaves that DO NOT pass the `is_page_func` test."""
 		return [x for x in self.content_tree.leaves() if\
 				isinstance(x, content_tree.PageOrPost) and not self.is_page_func(x)]
 
-	def build_navigation(self,
-			filter_func: Callable[[content_tree.ContentTree], bool]=None,
-			extra_filter_func: Callable[[content_tree.ContentTree], bool]=None,
-			exclude_categories: bool=False, exclude_archive: bool=False) -> None:
+	def build_navigation(self, filter_func=None, extra_filter_func=None,
+			exclude_categories=False, exclude_archive=False):
 		"""Builds a navigation structure.
 
 		:param filter_func: a function to filter out pages from the navigation.
@@ -713,10 +701,8 @@ class SiteGenerator:
 				if isinstance(x, content_tree.Folder) and x.index_page else None)
 
 	def render(self,
-			to_renderable_page: Callable[[content_tree.AbstractPageOrPost], Any]=\
-				lambda x: RenderablePage(x),
-			to_site_info: Callable[[SiteGenerator], Any]=lambda x: SiteInfo(x),
-			markup_processor_func: Callable[[str],str]=None, **kwargs) -> None:
+			to_renderable_page=RenderablePage, to_site_info=SiteInfo,
+			markup_processor_func=None, **kwargs):
 		"""This method renders the site into the build folder.
 
 		:param to_renderable_page: a function that converts an `AbstractPageOrPost`
@@ -795,7 +781,7 @@ class SiteGenerator:
 		# Make sure we don't have folders with no index files in them, which
 		# would show a file browser in the web browser
 		class _404Page:
-			front_matter: MutableMapping[str, Any] = {}
+			front_matter = {}
 		for folder in filter(lambda x: isinstance(x, content_tree.Folder),
 				self.content_tree.flat(False)):
 			if not folder.index_page:
@@ -812,7 +798,7 @@ class Jinja2Renderer:
 
 	:param environment: the `jinja2` environment
 	"""
-	def __init__(self, template_directories: Sequence[str]) -> None:
+	def __init__(self, template_directories):
 		"""Constructor
 
 		:param template_directories: a number of paths to look for templates in
@@ -823,7 +809,7 @@ class Jinja2Renderer:
 			autoescape=jinja2.select_autoescape(),
 			trim_blocks=True, lstrip_blocks=True)
 
-	def render(self, template, **render_data) -> str:
+	def render(self, template, **render_data):
 		"""Renders the given template, with the passed in render date.
 
 		:param template: the `template` to use for rendering
@@ -844,7 +830,7 @@ class Categories:
 	:param uncategorized_name: the name of the uncategorized category
 	"""
 	def __init__(self, posts_by_category, pages_by_category, list_page, folder,
-			uncategorized_name) -> None:
+			uncategorized_name):
 		"""Constructor
 
 		:param posts_by_category: a `dict` containing all the posts belonging
@@ -862,11 +848,11 @@ class Categories:
 		self.uncategorized_name = uncategorized_name
 
 	@property
-	def all_pages(self) -> Sequence[content_tree.PageOrPost]:
+	def all_pages(self):
 		"""This method returns all category pages, except for the list page."""
 		return self.pages_by_category.values()
 
-	def as_navigation_dict(self) -> Mapping:
+	def as_navigation_dict(self):
 		"""This method maps the categories structure into a simple `dict`,
 		so it can be accessed in the template engine.
 		"""
@@ -885,7 +871,7 @@ class Archive:
 	:param pages_by_year: the pages grouped into a mapping by year
 	:param list_page: the optional page containing all archives and their posts
 	"""
-	def __init__(self, posts_by_month, posts_by_year) -> None:
+	def __init__(self, posts_by_month, posts_by_year):
 		"""Constructor
 
 		:param posts_by_month: the posts grouped into a mapping by month
@@ -896,16 +882,16 @@ class Archive:
 		"""
 		self.posts_by_month = posts_by_month
 		self.posts_by_year = posts_by_year
-		self.pages_by_month: Sequence[content_tree.AggregatedPage] = []
-		self.pages_by_year: Sequence[content_tree.AggregatedPage] = []
-		self.list_page: content_tree.AggregatedGroupsPage | None = None
+		self.pages_by_month = []
+		self.pages_by_year = []
+		self.list_page = None
 
 	@property
-	def all_pages(self) -> Sequence[content_tree.PageOrPost]:
+	def all_pages(self):
 		"""This property returns all pages by month and year."""
 		return self.pages_by_month + self.pages_by_year
 
-	def as_navigation_dict(self) -> Mapping[str, Sequence[Tuple[str, str]]]:
+	def as_navigation_dict(self):
 		"""This method returns a simple `dict` containing all the archive posts
 		and pages information, so it can be easily accessed in the template engine.
 		"""
