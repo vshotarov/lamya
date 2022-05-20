@@ -505,6 +505,10 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
                     " categories, but 'allow_uncategorized' is False " + str(grouped[""]))
             grouped[uncategorized_name] = grouped.pop("")
 
+        for category in grouped:
+            grouped[category] = sorted(grouped[category],
+                key=lambda x: x.site_generator_data["publish_date"], reverse=True)
+
         parent = parent or self.content_tree
         category_pages = {}
         all_category_pages = []
