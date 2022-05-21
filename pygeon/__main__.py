@@ -17,7 +17,7 @@ class MissingRequiredPygeonArgumentError(Exception):
     pass
 
 
-def parse_args():
+def build_parser():
     parser = argparse.ArgumentParser(
         prog="python -m pygeon",
         description="An opinionated static site generator using the `pygeon` library",
@@ -225,6 +225,11 @@ def parse_args():
         "\n\n    thl1_extra_js - a number of javascript files to load after"
         " the theme's ones"
         )
+
+    return parser
+
+def parse_args():
+    parser = build_parser()
 
     parsed_args, unknown_args = parser.parse_known_args()
 

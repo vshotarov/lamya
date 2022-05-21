@@ -89,7 +89,8 @@ Documentation
 - :doc:`Get started <get-started>` - install pygeon and learn the basics to hit
   the ground running
 - :doc:`How-to <how-to>` - guides covering common use cases
-- :doc:`API Reference <reference>` - complete pygeon API reference
+- :doc:`CLI Reference <cli-reference>` - command line interface reference
+- :doc:`API Reference <api-reference>` - complete pygeon API reference
 
 Bugs/Requests
 -------------
@@ -105,4 +106,5 @@ License
    get-started
    how-to
    themes
-   reference
+   cli-reference
+   api-reference
