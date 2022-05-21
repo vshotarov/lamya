@@ -4,3 +4,4 @@
 venv
 tests/*/**/build
 *.sh
+docs/build
