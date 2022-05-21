@@ -1,8 +1,8 @@
-"""The `pygeon.site_generator` module provides a static site generator, that can
+"""The :mod:`pygeon.site_generator` module provides a static site generator, that can
 be ran either from the CLI by running `pygeon` as a module or by importing
-the `pygeon.site_generator.SiteGenerator` class and using it in your own scripts.
+the :class:`pygeon.site_generator.SiteGenerator` class and using it in your own scripts.
 
-The static site generator utilises the `pygeon.content_tree` tree implementation
+The static site generator utilises the :mod:`pygeon.content_tree` tree implementation
 to parse existing content and render it using a template engine (Jinja2 by default),
 while optionally aggregating content into list pages, categories and an archive.
 """
@@ -31,33 +31,21 @@ from pygeon import content_tree
 from pygeon import content_processing
 
 
-class AggregateError(Exception):
-    """Raised when attempting to use both a whitelist and a blacklist for
-    specifying content to be aggregated."""
-
-class UncategorizedNotAllowedError(Exception):
-    """Raised when a category is required, but none has been specified."""
-
-class ArchivePagesError(Exception):
-    """Raised when an attempt is made to create the archive pages, before the
-    content has been created or when there's nothing to archive."""
-
-
 class Callbacks: # pylint: disable=too-few-public-methods
     """A struct for specifying callbacks to be run at potential various stages
     of the static site generation process.
 
     NOTE: At the moment it only contains a callback for immediately after
-    `pygeon.content_tree.ContentTree` node being created, but I'd like to have
+    :class:`pygeon.content_tree.ContentTree` node being created, but I'd like to have
     an easy way of adding more callbacks in the future.
     """
     @staticmethod
     def post_content_tree_entity_create(site_generator, entity):
-        """Ran on every single `pygeon.content_tree.ContentTree` instance created
+        """Ran on every single :class:`pygeon.content_tree.ContentTree` instance created
         in the context of the site generator.
 
         :param site_generator: the site generator object
-        :param entity: the `pygeon.content_tree.ContentTree` instance
+        :param entity: the :class:`pygeon.content_tree.ContentTree` instance
         """
         # NOTE: I can use these callbacks to make sure all data that I would
         # like to exist on the content_tree entities actually does, rather
@@ -83,7 +71,7 @@ class RenderablePage: # pylint: disable=too-many-instance-attributes,too-few-pub
     :param aggregated_posts: the list of posts if this is an aggregated page
     :param aggregated_grouped_posts: the `dict` of groups and posts if this
         is an aggregated_grouped_post
-    :param pagination: the pagination `dict if this is a paginated page
+    :param pagination: the pagination `dict` if this is a paginated page
     :param publish_date: the publish date as read from the front matter or
         if one wasn't supplied, the last modified time of the source file
     :param user_data: any custom user data that has been supplied
@@ -199,7 +187,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
     :param front_matter_delimiter: we expect the front matter in the raw content
         of each page/post to be surrounded by lines containing only this character
     :param callbacks: a `Callbacks` struct for running functions at specific times.
-        NOTE: at the moment we only run after generating any `content_tree` node
+        NOTE: at the moment we only run after generating any :mod:`pygeon.content_tree` node
     :param lang: the language to put in the `html lang` property
     :param front_matter_publish_date_key: the name of the publish date key
         in the front matter
@@ -210,7 +198,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
     :param theme_options: a `dict` of theme options
     :param use_absolute_urls: whether or not to use full absolute URLs instead
         of the default relative ones
-    :param content_tree: the `pygeon.content_tree.Root` node that contains the
+    :param content_tree: the :class:`pygeon.content_tree.Root` node that contains the
         content of the static site
     :param internal_data: a `dict` containing extra information about the site
         generation process
@@ -475,8 +463,8 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         """This method reads categories from the content's front matter and
         groups them into category pages.
 
-        :param parent: the `content_tree` parent to put the category pages in.
-            If `None` the root will be used.
+        :param parent: the :mod:`pygeon.content_tree` parent node to put the
+            category pages in. If `None` the root will be used.
         :param category_accessor: a function defining how to query the category
             for each page or post node. By default it attempts to read it from
             the `category` key in the front matter.
@@ -576,7 +564,8 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         """This method takes the previously built `Archive` struct and generates
         the archive pages.
 
-        :param parent: the `content_tree` parent to put the archive pages in
+        :param parent: the :mod:`pygeon.content_tree` parent node to put the
+            archive pages in
         :param by_month: whether or not to write pages for the monthly archive
         :param by_year: whether or not to write pages for the yearly archive
         :param archive_list_page_name: the name to give to the page, containing
@@ -653,7 +642,8 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
             If `None` a default function will be used, which boils down to adding
             pages to the navigation if any of the following are true:
 
-            - the node passes the `is_page_func` or it is a `content_tree.Folder`
+            - the node passes the `is_page_func` or it is a
+                :class:`pygeon.content_tree.Folder`
             - the node is an `index_page`
             - the node is a `category` page and categories are not excluded
             - the node is an `archive` page and the archive is not excluded
@@ -714,7 +704,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         :param markup_processor_func: an optional markup processing function.
             If `None` the `markup_processor_func` property of the class will
             be used. Default is `None`.
-        :param **kwargs: any other optional information to pass to the template engine
+        :param kwargs: any other optional information to pass to the template engine
         """
         if markup_processor_func is None:
             markup_processor_func = self.markup_processor_func
@@ -813,7 +803,7 @@ class Jinja2Renderer: # pylint: disable=too-few-public-methods
         """Renders the given template, with the passed in render date.
 
         :param template: the `template` to use for rendering
-        :param **render_data: any data to be passed to the template engine
+        :param render_data: any data to be passed to the template engine
         """
         return self.environment.get_template(template).render(**render_data)
 
@@ -901,3 +891,15 @@ class Archive:
             "by_year": [(p.name, str(p.href)) for p in self.pages_by_year\
                 if not hasattr(p, "pagination") or p.pagination.page_number == 1]
             }
+
+
+class AggregateError(Exception):
+    """Raised when attempting to use both a whitelist and a blacklist for
+    specifying content to be aggregated."""
+
+class UncategorizedNotAllowedError(Exception):
+    """Raised when a category is required, but none has been specified."""
+
+class ArchivePagesError(Exception):
+    """Raised when an attempt is made to create the archive pages, before the
+    content has been created or when there's nothing to archive."""

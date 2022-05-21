@@ -6,7 +6,7 @@ def split_front_matter(source, front_matter_delimiter="+"):
     """Splits and evaluates the front matter from the content's source.
 
     This function assumes the front matter is actual python code, which gets
-    `exec`d to give us a dictionary of values.
+    `exec`-ed to give us a dictionary of values.
 
     :param source: the input raw source
     :param front_matter_delimiter: the delimiting character used for separating

@@ -1,8 +1,8 @@
-"""The `pygeon.content_tree` module provides a naive tree data structure
+"""The :mod:`pygeon.content_tree` module provides a naive tree data structure
 implementation, specifically designed to serve as a base for generating
-static sites. The `pygeon.siteGenerator` module utilises this to provide
-a static site generator, but users are encouraged to write their own
-build scripts directly using the `pygeon.content_tree` module.
+static sites. The :mod:`pygeon.site_generator` module utilises this to provide
+a static site generator, but users are also encouraged to write their own
+build scripts directly using the :mod:`pygeon.content_tree` module.
 """
 from pathlib import Path
 from copy import deepcopy
@@ -15,29 +15,6 @@ except ImportError:
     markdown = None
 
 from pygeon.content_processing import split_front_matter
-
-
-class LeafChildError(Exception):
-    """An error specifiyng attempted access to the child/subtree of a leaf node"""
-
-class PageOrPostWithoutSourceError(Exception):
-    """An error specifiyng attempted access to the source code of a node which
-    has none specified neither with a `source_path` nor directly set."""
-
-class PaginationError(Exception):
-    """An error when attempting to paginate an `AggregatedPage`, which can be
-    triggered due to either not having any posts to paginate OR attempting to
-    paginate an already paginated page."""
-
-class GroupError(Exception):
-    """An error raised when attempting to group an empty list of items into a subtree."""
-
-def warning(*args):
-    """A utility function for displaying warnings.
-
-    The `*args` are directly passed into a print statement.
-    """
-    print("PygeonWarning:", *args)
 
 
 class ContentTree:
@@ -77,7 +54,7 @@ class ContentTree:
             "'ContentTree.parent_to()' function.")
 
     def parent_to(self, new_parent):
-        """Parent this node to the `new_parent.
+        """Parent this node to the `new_parent`.
 
         :param new_parent: the new parent to parent this node to"""
         if not hasattr(new_parent, "children"):
@@ -135,7 +112,7 @@ class ContentTree:
 
     @staticmethod
     def from_directory(directory, accepted_file_types=None, post_create_callback=None):
-        """Builds a `ContentTree` structure by walking a directory.
+        """Builds a :class:`ContentTree` structure by walking a directory.
 
         :param directory: the directory to walk, which would usually be the
             content folder of a static website
@@ -448,7 +425,7 @@ class AbstractPageOrPost(ContentTree):
 
     :param source_path: path to an optional corresponding source path
     :param source: the source for this page or post. Either the source or
-        the source_path need to be set on anything except for `Aggregated[Groups]Page`s,
+        the source_path need to be set on anything except for `Aggregated[Groups]Pages`,
         if the source is ever going to be requested, otherwise an error will be raised.
     :param front_matter: if the front matter has been parsed this is a `dict`
         containing the front matter evaluated from the source
@@ -491,7 +468,7 @@ class AbstractPageOrPost(ContentTree):
         """Gets the source of this node. If the `source` has been directly set
         or read from the `source_path` then that's returned. Otherwise, an
         attempt is made to read the source from the `source_path` and if that
-        fails a `PageOrPostWithoutSourceError` is raised.
+        fails a :exc:`PageOrPostWithoutSourceError` is raised.
 
         :raises PageOrPostWithoutSourceError: if no source can be identified"""
         if self._source is not None:
@@ -564,7 +541,7 @@ class AbstractPageOrPost(ContentTree):
 
         :param front_matter_and_content_split_func: the function to use for
             splitting the front matter from the content. By default uses the
-            `pygeon.content_processing.split_front_matter` function.
+            :func:`pygeon.content_processing.split_front_matter` function.
         """
         self._front_matter, self._raw_content =\
             front_matter_and_content_split_func(self.source)
@@ -603,9 +580,10 @@ class CustomIndexPage(PageOrPost):
 class ProceduralPage(AbstractPageOrPost):
     """The base class for procedurally generated content tree pages.
 
-    :param source: the difference with the `AbstractPageOrPost.source` property
-        is that on `ProceduralPage`s it is not required to have a `source`
-        or `source_path` defined, while one of them is required for an `AbstractPageOrPost`."""
+    :param source: the difference with the :attr:`AbstractPageOrPost.source` property
+        is that on :class:`ProceduralPage`s it is not required to have a `source`
+        or `source_path` defined, while one of them is required for an
+        :class:`AbstractPageOrPost`."""
     @property
     def source(self):
         if self._source is not None:
@@ -720,7 +698,7 @@ class PaginatedAggregatedPage(AggregatedPage):
 
         :param name: name of this node
         :param aggregated_posts: a list of posts
-        :param pagination: the `Pagination` object managing this page
+        :param pagination: the :class:`Pagination` object managing this page
         :param source_path: an optional path to a source file
         :param source: optional source of this node
         """
@@ -737,7 +715,7 @@ class PaginatedAggregatedPage(AggregatedPage):
             ",".join(p.name for p in self.aggregated_posts))
 
     def paginate(self, *args):
-        """Attempting to paginated a `PaginatedPage` will raise a `PaginationError`
+        """Attempting to paginated a :class:`PaginatedPage` will raise a :exc:`PaginationError`
 
         :raises PaginationError:
         """
@@ -749,7 +727,7 @@ class PaginatedAggregatedPage(AggregatedPage):
 
         This is slightly different since we have 2 extra rules:
         - if the index page of the parent is one of the pages belonging to the
-            same pagination object this page does, then we return `{parent_path}/page%%i`"
+        same pagination object this page does, then we return `{parent_path}/page%%i` "
         - if there's only one page we return an unpaginated path
         """
         if self.pagination.first_page.is_index_page():
@@ -801,3 +779,26 @@ class Pagination: # pylint: disable=too-few-public-methods
             "next_page_href" : str(self.next_page.href) if self.next_page else None,
             "root": root if root else "/"
         }
+
+
+class LeafChildError(Exception):
+    """An error specifiyng attempted access to the child/subtree of a leaf node"""
+
+class PageOrPostWithoutSourceError(Exception):
+    """An error specifiyng attempted access to the source code of a node which
+    has none specified neither with a `source_path` nor directly set."""
+
+class PaginationError(Exception):
+    """An error when attempting to paginate an `AggregatedPage`, which can be
+    triggered due to either not having any posts to paginate OR attempting to
+    paginate an already paginated page."""
+
+class GroupError(Exception):
+    """An error raised when attempting to group an empty list of items into a subtree."""
+
+def warning(*args):
+    """A utility function for displaying warnings.
+
+    The `*args` are directly passed into a print statement.
+    """
+    print("PygeonWarning:", *args)

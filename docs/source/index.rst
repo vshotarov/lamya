@@ -22,7 +22,7 @@ current directory.
    build the site. For more info about flags have a look at the full `CLI reference`.
 
 Or you could write a simple build script which imports the
-:ref:`static site generator<pygeon.site_generator.SiteGenerator>` like so:
+:class:`pygeon.site_generator.SiteGenerator` like so:
 
 .. code-block:: python
 
@@ -44,7 +44,7 @@ Or you could write a simple build script which imports the
 
 Lastly, if you have a very specific idea of how you want your site to be built
 and would like just a little bit of help managing your content, you can opt
-into using only the :ref:`pygeon.content_tree` module and then using it's
+into using only the :mod:`pygeon.content_tree` module and then using it's
 features like grouping, filtering, reparenting, etc. to wrangle your content
 exactly the way you'd like.
 
@@ -91,4 +91,5 @@ License
    self
    get-started
    how-to
+   themes
    reference
