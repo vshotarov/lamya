@@ -1,6 +1,11 @@
 CLI Reference
 =============
 
+.. toctree::
+   :hidden:
+
+   Site options <self>
+
 .. sphinx_argparse_cli::
    :module: pygeon.__main__
    :func: build_parser
@@ -9,6 +14,7 @@ CLI Reference
 
 Theme options
 -------------
+
 Theme may require different options, such as 'dark' or 'light mode, including a sidebar or not, social media profile links, etc. Since they may be anything the theme developer is responsible for outlining what arguments may be set.
 
 In order for them to be parsed correctly the following 3 rules must be considered:
