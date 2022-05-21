@@ -204,7 +204,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         generation process
     """
     def __init__(self, name, url, subtitle="", content_directory=Path("content"), # pylint: disable=too-many-arguments,too-many-locals
-            theme_directory=Path("theme"), static_directory=Path("static"),
+            theme_directory=None, static_directory=Path("static"),
             templates_directory=Path("templates"), build_directory=Path("build"),
             locally_aggregate_whitelist=None, locally_aggregate_blacklist=None,
             globally_aggregate_whitelist=None, globally_aggregate_blacklist=None,
@@ -772,7 +772,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         class _404Page: # pylint: disable=too-few-public-methods
             front_matter = {}
         for folder in filter(lambda x: isinstance(x, content_tree.Folder),
-                self.content_tree.flat(False)):
+                self.content_tree.flat(False) + [self.content_tree]):
             if not folder.index_page:
                 with open(self.build_directory /\
                         folder.path.relative_to("/") / "index.html", "w",
@@ -780,6 +780,11 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
                     f.write(self.renderer.render("404.html",
                         page=_404Page(),
                         site_info=to_site_info(self)))
+
+            if folder == self.content_tree:
+                content_tree.warning(
+                    "There's no home index page. Consider writing a custom"
+                    " one or calling the `SiteGenerator.aggregate_posts method`.")
 
 
 class Jinja2Renderer: # pylint: disable=too-few-public-methods

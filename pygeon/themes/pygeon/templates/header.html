@@ -34,9 +34,11 @@
 			<p>{{ site_info.subtitle }}</p>
 		{% endif %}
 	</section>
+    {% if site_info.navigation %}
 	<button id="menu-toggle" aria-label="mobile menu toggle"><img alt="" src="{{ '/img/menu-2.svg' | pyg_urlencode }}"></button>
 	<nav aria-label="main">
 		{{ nested_navigation(site_info.navigation, 2) }}
 	</nav>
+    {% endif %}
 </header>
 {%- endblock %}
