@@ -781,10 +781,10 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
                         page=_404Page(),
                         site_info=to_site_info(self)))
 
-            if folder == self.content_tree:
-                content_tree.warning(
-                    "There's no home index page. Consider writing a custom"
-                    " one or calling the `SiteGenerator.aggregate_posts method`.")
+                if folder == self.content_tree:
+                    content_tree.warning(
+                        "There's no home index page. Consider writing a custom"
+                        " one or calling the `SiteGenerator.aggregate_posts method`.")
 
 
 class Jinja2Renderer: # pylint: disable=too-few-public-methods
