@@ -63,8 +63,9 @@ class RenderablePage: # pylint: disable=too-many-instance-attributes,too-few-pub
 
     :param name: the name of the page or post, as taken directly from the name
         of the file it corresponds to if it hasn't been overwritten
-    :param title: the name with underscores replaced with spaces and capital
-        letters at the beginning of the words
+    :param title: falls back to the name with underscores replaced with spaces
+        and capital letters at the beginning of the words if a title wasn't
+        provided in the front matter
     :param content: the processed markup ready for rendering
     :param href: the relative URL of this page or post
     :param site_url: the URL of the website
@@ -88,7 +89,8 @@ class RenderablePage: # pylint: disable=too-many-instance-attributes,too-few-pub
         :param page_or_post: the page or post to create a render struct for
         """
         self.name = page_or_post.name
-        self.title = self.name.replace("_"," ").title()
+        self.title = page_or_post.front_matter.get(
+            "title", self.name.replace("_"," ").title())
         self.content = page_or_post.content
         self.excerpt = content_processing.get_excerpt(self.content) if self.content else ""
         self.href = str(page_or_post.href)

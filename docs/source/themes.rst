@@ -1,7 +1,8 @@
 Themes
 ======
 Themes are an integral part of any static site generation framework and as such
-pygeon has a framework for customizing themes via the :ref:`theme options` argument,
+pygeon has a framework for customizing themes via the
+:ref:`theme options<cli_reference_theme-options>` arguments,
 but other than pygeon tries to stay away from the theme as much as possible, as
 that aspect is very specific to the site itself.
 

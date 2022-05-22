@@ -2,7 +2,8 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
-- test examples, as im writing them in a vacuum atm
+- add a way of aggregating all descendents into the home page rather than just the direct ones
+- add install instructions after this is deployed
 - add code highlighting
 - document `pyg_urlencode` for theme developers
 - document the required/supported front matter info for the default theme

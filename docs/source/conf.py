@@ -63,3 +63,4 @@ autodoc_default_options = {
 }
 autodoc_member_order = "bysource"
 html_theme_options={"collapse_navigation":False}
+sphinx_argparse_cli_prefix_document = True

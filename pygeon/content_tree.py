@@ -574,7 +574,7 @@ class CustomIndexPage(PageOrPost):
         """
         super().__init__(
             parent.name, source_path, source, user_data)
-        self._parent = parent
+        self.parent_to(parent)
 
 
 class ProceduralPage(AbstractPageOrPost):

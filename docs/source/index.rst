@@ -12,7 +12,7 @@ CLI
 You can run ``pygeon``'s static site generator as a module to turn a directory
 of markdown files into a static site::
 
-    python -m pygeon --content_directory 'path_to_content/' [OPTIONS]
+    python -m pygeon -url "http://my_url.com" --content_directory "path_to_content/" [OPTIONS]
 
 This will take all the markdown descendants of the ``path_to_content`` directory
 and turn them into a static site, built into a folder called ``build`` in the
@@ -21,7 +21,7 @@ current directory.
 .. note::
    If no ``--content_directory`` flag is provided, ``./content`` will be used.
    Additionally the ``--build_directory`` flag can be used to specify where to
-   build the site. For more info about flags have a look at the full `CLI reference`.
+   build the site. For more info about flags have a look at the full :doc:`cli-reference`.
 
 Build script
 ~~~~~~~~~~~~

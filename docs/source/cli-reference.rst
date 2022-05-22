@@ -12,6 +12,8 @@ CLI Reference
    :prog: 
    :title:
 
+.. _cli_reference_theme-options:
+
 Theme options
 -------------
 
