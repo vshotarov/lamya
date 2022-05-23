@@ -211,7 +211,7 @@ So, to fix that we can use ``pygeon`` in a build script like so:
    from pygeon.site_generator import SiteGenerator
 
 
-   site_gen = SiteGenerator("Mostly Harmless", "localhost:8000")
+   site_gen = SiteGenerator(name="Mostly Harmless", url="localhost:8000")
 
    # read the content from the content directory and put it in a tree structure
    site_gen.process_content_tree()
@@ -267,6 +267,11 @@ aggregated into its index page.
    to the site_gen.aggregate_posts() line*) you will be left with the exact
    same result as if you had ran pygeon through the CLI, since that is exactly
    what we do in the ``__main__.py`` of pygeon.
+
+.. note::
+   Also note we're using ``localhost:8000`` as the url argument, since that
+   makes it really easy to serve your website via the
+   `http.server python module <https://docs.python.org/3/library/http.server.html>`_.
 
 Creating a website, while using the content tree only
 -----------------------------------------------------
