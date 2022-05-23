@@ -53,29 +53,6 @@ Or you could write a simple build script which imports the
     # generate the site
     site_gen.render()
 
-Content Tree only
-~~~~~~~~~~~~~~~~~
-Lastly, if you have a very specific idea of how you want your site to be built
-and would like just a little bit of help managing your content, you can opt
-into using only the :mod:`pygeon.content_tree` module and then using it's
-features like grouping, filtering, reparenting, etc. to wrangle your content
-exactly the way you'd like.
-
-.. code-block:: python
-
-    from pygeon import content_tree
-    from pathlib import Path
-
-    ct = content_tree.ContentTree.from_directory(Path("content"))
-
-    # modify your existing content or generate some new one to be added to
-    # the content tree 
-    #
-    # NOTE: have a look at the how-to section for examples
-
-    # render to files using your template engine
-    # ...
-
 Features
 --------
 - designed to be interacted with - import it and build your site the way you want it
