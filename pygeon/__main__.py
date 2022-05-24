@@ -184,7 +184,7 @@ def build_parser():
         " e.g. `-th_sidebar`.\n"
         " \n2. we support "
         " key-value pairs with up to three values per key. Simple theme args "
-        " must start with `-th1_` or `--theme1_option`, e.g. `-th1_dark_mode` or"
+        " must start with `-th1_` or `--theme_option1`, e.g. `-th1_dark_mode` or"
         " `--theme_option1_dark_mode`. Arguments that accept tuples with 2 values"
         " should be prefixed with `-th2_` or `--theme_option2` and the same goes"
         " for arguments that accept tuples with 3 values.\n"
@@ -251,9 +251,9 @@ def process_args(parsed_args, unknown_args):
 
     # Theme options
     theme_options = {}
-    simple_option_prefixes = ["-th1_","-th2_","-th3_","--theme1_option_",
+    simple_option_prefixes = ["-th1_","-th2_","-th3_","--theme_option1_",
          "--theme_option2_","--theme_option3_"]
-    list_option_prefixes = ["-thl1_","-thl2_","-thl3_","--theme1_list_option_",
+    list_option_prefixes = ["-thl1_","-thl2_","-thl3_","--theme_list_option1_",
          "--theme_list_option2_","--theme_list_option3_"]
     while unknown_args:
         current = unknown_args.pop(0)

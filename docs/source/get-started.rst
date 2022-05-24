@@ -6,6 +6,8 @@ Install pygeon
 
 NOTE: Add install instructions after this is deployed
 
+.. _build-from-cli:
+
 Creating a simple website from the CLI
 --------------------------------------
 The command line interface is ideal for simple cases like personal websites,
@@ -61,6 +63,11 @@ A couple things to note:
 
 - if we had another directory inside ``content/blog/`` then that directory would
   have been added to the ``blog`` submenu in the navigation
+
+.. note::
+   For the long list of command line arguments have a look at :doc:`cli-reference`,
+   and bear in mind they can all be specified in a config file using the
+   :ref:`cli-reference:---from_file` argument.
 
 Content
 -------
@@ -160,6 +167,8 @@ What that means is that if the theme you are using uses a template called
 ``default.html`` and you would like to make a change to that, but leave everything
 else the same, then you can write your own ``default.html`` in the
 ``templates_directory`` which will act as an overwrite.
+
+.. _build-from-script:
 
 Creating more complex websites using build scripts
 --------------------------------------------------

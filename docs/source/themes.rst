@@ -10,9 +10,12 @@ that aspect is very specific to the site itself.
   what customization options are available
 - :doc:`default-theme` - a description of the supported theme options for the
   default pygeon theme
+- :doc:`custom-or-no-theme` - a description of how to create custom themes
+  or building websites without one
 
 .. toctree::
    :hidden:
 
    theme-framework
    default-theme
+   custom-or-no-theme

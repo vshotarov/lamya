@@ -2,6 +2,8 @@
 - I am not keen on the name `build` for the output folder
 
 # Todos
+- make a demo website for the default theme
+- add support for specifying max width for sidebar image
 - add a way of aggregating all descendents into the home page rather than just the direct ones
 - add install instructions after this is deployed
 - add code highlighting

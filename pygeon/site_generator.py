@@ -278,8 +278,8 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         self.url = url
         self.subtitle = subtitle
         self.content_directory = Path(content_directory)
-        self.theme_directory = Path(theme_directory) if theme_directory else\
-            Path(__file__).parent / "themes" / "pygeon"
+        self.theme_directory = Path(theme_directory) if theme_directory is not None\
+            else Path(__file__).parent / "themes" / "pygeon"
         self.static_directory = Path(static_directory)
         self.templates_directory = Path(templates_directory)
         self.build_directory = Path(build_directory)
