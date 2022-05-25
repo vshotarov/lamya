@@ -21,6 +21,7 @@
 	<title>{{ page.title }} | {{ site_info.name }}</title>
 	<link rel="stylesheet" href="{{ '/css/normalize.css' | pyg_urlencode }}">
 	<link rel="stylesheet" href="{{ '/css/main.css' | pyg_urlencode }}">
+	<link rel="stylesheet" href="{{ '/css/pygments.css' | pyg_urlencode }}">
 	{% for css_file in site_info.theme_options.get("extra_css",[]) + page.front_matter.get("extra_css_files",[]) %}
 	<link rel="stylesheet" href="{{ css_file | pyg_urlencode }}">
 	{% endfor %}

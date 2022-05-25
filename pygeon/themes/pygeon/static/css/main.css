@@ -524,8 +524,17 @@ main > ol > li > article {
 /* 5. Content */
 pre {
 	max-width: 100%;
-	white-space: nowrap;
+	white-space: pre;
 	overflow-x: auto;
+}
+
+.codehilite {
+	padding: 10px;
+	font-size: 0.9em;
+}
+
+.codehilite > pre {
+	margin-top: 0;
 }
 
 .article-content > h1:first-child

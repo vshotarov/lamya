@@ -299,7 +299,6 @@ def process_args(parsed_args, unknown_args):
 
 
 def main(args):
-    print(args.theme_options)
     site_gen = site_generator.SiteGenerator(
         name=args.name, url=args.url, subtitle=args.subtitle,
         content_directory=args.content_directory,
