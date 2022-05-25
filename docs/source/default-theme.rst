@@ -28,6 +28,7 @@ Supported Theme Options
 - ``sidebar_image_alt`` - the alt text for the sidebar image
 - ``sidebar_image_in_home_only`` - whether to display the image only in the home
   page
+- ``sidebar_image_max_width`` - the maximum width of the sidebar image
 - ``sidebar_social_in_home_only`` - whther to displace the social links only in
   the home page
 - ``social_links`` - a list of social links to display in the sidebar, underneath

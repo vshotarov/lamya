@@ -79,7 +79,7 @@ body {
 	flex-flow: row wrap;
 	justify-content: center;
 	align-content: flex-start;
-	column-gap: 10px;
+	column-gap: 50px;
 	max-width: 1200px;
 	width: 100%;
 }
@@ -124,7 +124,7 @@ body > footer {
 
 .main-and-sidebar-wrapper > aside {
 	margin-top: 1em;
-	flex: 1 0 0;
+	flex: 0.9 0 0;
 	overflow: hidden;
 }
 
@@ -424,6 +424,14 @@ header nav > ul > li > img {
 }
 .main-and-sidebar-wrapper > aside ul li {
 	margin-top: .2em;
+}
+
+aside > section[aria-label="sidebar image"] {
+    text-align: center;
+}
+
+aside > section[aria-label="sidebar image"] > img {
+    width: 100%;
 }
 
 /* end 2. */
