@@ -100,3 +100,14 @@ Here's how you might use them inside a jinja2 template:
    <body class="{% if site_info.theme_options.get('dark_mode') %}dark{% endif %}">
        ....
    </body>
+
+Supporting Absolute and Relative URLs
+-------------------------------------
+pygeon registers a jinja2 filter called ``pyg_urlencode`` which does the same
+thing as the native jinja2 ``urlencode``, but also makes sure the URL is appended
+to the base site URL if the ``use_absolute_urls``
+:class:`pygeon.site_generator.SiteGenerator` argument is enabled.
+
+What that means is all relative URLs inside templates, should go through the
+``pyg_urlencode`` filter to make sure they can safely be converted to absolute
+ones if neccessary.
