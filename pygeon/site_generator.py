@@ -739,8 +739,9 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         for leaf in sorted(self.content_tree.leaves(),
                 key=lambda x: len(getattr(x, "aggregated_posts", []))):
             # Make sure the content has been read and processed
-            leaf.parse_front_matter_and_content()
-            leaf.process_content(markup_processor_func)
+            if leaf._content is None or leaf._front_matter is None:
+                leaf.parse_front_matter_and_content()
+                leaf.process_content(markup_processor_func)
 
             # We may need to write the same page to multiple paths, because
             # of pagination, so we store the path in a list
