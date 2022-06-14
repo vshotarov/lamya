@@ -96,10 +96,10 @@ class RenderablePage: # pylint: disable=too-many-instance-attributes,too-few-pub
         self.href = str(page_or_post.href)
         self.site_url = page_or_post.site_generator_data["site_url"]
         self.aggregated_posts = [] if not isinstance(page_or_post, content_tree.AggregatedPage)\
-            else [RenderablePage(x) for x in page_or_post.aggregated_posts]
+            else [self.__class__(x) for x in page_or_post.aggregated_posts]
         self.aggregated_grouped_posts = [] if not isinstance(
                 page_or_post, content_tree.AggregatedGroupsPage)\
-            else {k: [RenderablePage(x) for x in v]\
+            else {k: [self.__class__(x) for x in v]\
                   for k,v in page_or_post.aggregated_grouped_posts.items()}
         self.pagination = page_or_post.pagination.as_navigation_dict()\
             if hasattr(page_or_post, "pagination")\
