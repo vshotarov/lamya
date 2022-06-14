@@ -225,10 +225,9 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         :param content_directory: the path to the top folder containing the site content.
             Defaults to a folder called `content` in the current directory. This
             folder is required to exist.
-        :param theme_directory: the path to the theme folder. Defaults to
-            a folder called `theme` in the current directory. This folder is
+        :param theme_directory: the path to the theme folder. This folder is
             required to exist. If `None` is specified, then the default theme
-            will be used.
+            will be used. `None` by default.
         :param static_directory: the path to a folder containing static files to be
             directly copied over into the built website. Defaults to a folder
             called `static` in the current directory. This folder is not
@@ -694,7 +693,9 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
 
     def render(self,
             to_renderable_page=RenderablePage, to_site_info=SiteInfo,
-            markup_processor_func=None, **kwargs):
+            markup_processor_func=None,
+            template_accessor_func=lambda x: x.front_matter.get("template","default.html"),
+            **kwargs):
         """This method renders the site into the build folder.
 
         :param to_renderable_page: a function that converts an `AbstractPageOrPost`
@@ -707,6 +708,9 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         :param markup_processor_func: an optional markup processing function.
             If `None` the `markup_processor_func` property of the class will
             be used. Default is `None`.
+        :param template_accessor_func: a function specifying how to choose a
+            template for each leaf node. Defaults to checking if there's a
+            'template' argument in the front matter and if not uses 'default.html'.
         :param kwargs: any other optional information to pass to the template engine
         """
         if markup_processor_func is None:
@@ -767,7 +771,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
                     os.makedirs(path.parent)
 
                 with open(path, "w", encoding="utf-8") as f:
-                    f.write(self.renderer.render("default.html",
+                    f.write(self.renderer.render(template_accessor_func(leaf),
                         page=to_renderable_page(leaf),
                         site_info=to_site_info(self), **kwargs))
 
