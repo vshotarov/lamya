@@ -782,8 +782,14 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         for folder in filter(lambda x: isinstance(x, content_tree.Folder),
                 self.content_tree.flat(False) + [self.content_tree]):
             if not folder.index_page:
-                with open(self.build_directory /\
-                        folder.path.relative_to("/") / "index.html", "w",
+                if not folder.leaves():
+                    continue
+                folder_render_path = self.build_directory /\
+                    folder.path.relative_to("/") / "index.html"
+                if not folder_render_path.parent.exists():
+                    os.makedirs(folder_render_path.parent)
+
+                with open(folder_render_path, "w",
                         encoding="utf-8") as f:
                     f.write(self.renderer.render("404.html",
                         page=_404Page(),
