@@ -593,6 +593,19 @@ class ProceduralPage(AbstractPageOrPost):
                 return f.read()
         return None
 
+    @source.setter
+    def source(self, new_source):
+        """Sets the `source` of this node directly. If the `source_path` is also
+        set, a warning is raised, since the `source` takes precedence over that.
+
+        :param new_source: the new source to set
+        """
+        self._source = new_source
+        if self._source_path:
+            warning(f"The 'source' has been updated on {self.name}, but the"
+                " 'source_path' has already been set, so the newly set 'source'"
+                " will override that")
+
 
 class AggregatedGroupsPage(ProceduralPage):
     """A procedurally generated page containing groups of posts, a great example
