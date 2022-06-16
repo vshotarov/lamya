@@ -35,10 +35,20 @@
 		{% endif %}
 	</section>
     {% if site_info.navigation %}
+	<div id="theme-switch" style="display:none;">
+		<button id="dark-button" aria-label="switch to dark mode" onclick="localStorage.setItem('dark-mode',1);document.documentElement.classList.add('dark')"><img alt="dark" src="/img/moon.svg"></button>
+		<button id="light-button" aria-label="switch to light mode" onclick="localStorage.setItem('dark-mode',0);document.documentElement.classList.remove('dark')"><img alt="light" src="/img/sun.svg"></button>
+	</div>
 	<button id="menu-toggle" aria-label="mobile menu toggle"><img alt="" src="{{ '/img/menu-2.svg' | pyg_urlencode }}"></button>
 	<nav aria-label="main">
 		{{ nested_navigation(site_info.navigation, 2) }}
 	</nav>
     {% endif %}
 </header>
+<script>
+	document.getElementById("theme-switch").style.display = "block";
+	if (localStorage.getItem("dark-mode") == "1") {
+		document.documentElement.classList.add('dark');
+	}
+</script>
 {%- endblock %}
