@@ -87,13 +87,13 @@ a {
 
 .article-excerpt,
 .article-content {
-	/* taken from gwern */
 	font-family: Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
 	line-height: 1.6;
 }
 
 code, pre {
 	font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+	color: initial;
 }
 
 .main-and-sidebar-wrapper > aside {
