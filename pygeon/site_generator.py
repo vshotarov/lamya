@@ -675,8 +675,9 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
                 ([self.archive.list_page] if self.archive.list_page else [])]
 
         filter_func = filter_func or (lambda x:\
-               ((isinstance(x, content_tree.AbstractPageOrPost) and self.is_page_func(x))\
-                    or isinstance(x, content_tree.Folder)\
+               (((isinstance(x, content_tree.AbstractPageOrPost) and self.is_page_func(x))\
+                    and not is_category_page_func(x) and not is_archive_page_func(x))\
+                or isinstance(x, content_tree.Folder)\
                 or (isinstance(x, content_tree.AbstractPageOrPost) and x.is_index_page())\
                 or (not exclude_categories and is_category_page_func(x))\
                 or (not exclude_archive and is_archive_page_func(x)))\
@@ -741,7 +742,8 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         # We want to render aggregated pages last, so we make sure that all
         # posts that they aggregate already have their content processed
         for leaf in sorted(self.content_tree.leaves(),
-                key=lambda x: len(getattr(x, "aggregated_posts", []))):
+                key=lambda x: len(getattr(x, "aggregated_posts", []) +\
+                                  list(getattr(x, "aggregated_grouped_posts", {}).keys()))):
             # Make sure the content has been read and processed
             if leaf._content is None or leaf._front_matter is None:
                 leaf.parse_front_matter_and_content()
