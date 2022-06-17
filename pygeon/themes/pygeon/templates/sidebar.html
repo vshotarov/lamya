@@ -30,6 +30,7 @@
 
 	{% if site_info.theme_options.get("links") %}
 	<section>
+		<h2 id="links-nav-title">Links</h2>
 		<dl aria-label="links">
 		{% for link in site_info.theme_options.get("links") %}
 			<dt>{{ link[0] }}</dt>

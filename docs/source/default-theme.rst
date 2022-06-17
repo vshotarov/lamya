@@ -20,6 +20,7 @@ Supported Theme Options
   is the link label, the second value is the actual link URL and the third value
   is an optional text to display as the clickable link
 - ``sidebar`` - whether to build a sidebar at all
+- ``sidebar_in_home_only`` - whether to build the sidebar only on the home page
 - ``sidebar_archive_nav`` - whether to include archive navigation in the sidebar
 - ``sidebar_description`` - a description to show in the sidebar
 - ``sidebar_description_in_home_only`` - whether to show the description only

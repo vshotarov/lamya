@@ -46,6 +46,9 @@ def build_parser():
     parser.add_argument("-pp","--posts_per_page", default=-1, type=int,
         help="number of posts on per page (pagination). "
             "If set to -1 no pagination will be applied.")
+    parser.add_argument("-pdk","--publish_date_key", default="publish_date",
+        help="the key used to specify the 'publish_date' in the front matter."
+            " Defaults to 'publish_date'.")
     parser.add_argument("-rdf","--read_date_format", default="%d-%m-%Y %H:%M",
         help="the expected date format for reading the 'publish_date' key in the"
             " front matter. Default is %%d-%%m-%%Y %%H:%%M.")
@@ -195,6 +198,7 @@ def build_parser():
         "Here are the accepted arguments for the default theme:\n"
         "\n\n    th_breadcrumbs - whether to display breadcrumbs or not. Default is off."
         "\n\n    th_sidebar - whether to build a sidebar or not. Default is off."
+        "\n\n    th_sidebar_in_home_only - whether to have the sidebar only on the home page."
         "\n\n    th_sidebar_image_in_home_only - whether to have the sidebar "
         " image only on the home page. Default is off."
         "\n\n    th_sidebar_social_in_home_only - whether to have the sidebar "

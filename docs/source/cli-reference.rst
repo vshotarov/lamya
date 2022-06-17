@@ -36,6 +36,8 @@ Here are the accepted arguments for the default theme:
 
   - **th_sidebar** - whether to build a sidebar or not. Default is off.
 
+  - **th_sidebar_in_home_only** - whether to build the sidebar only on the home page. Default is off.
+
   - **th_sidebar_image_in_home_only** - whether to have the sidebar  image only on the home page. Default is off.
 
   - **th_sidebar_social_in_home_only** - whether to have the sidebar  social icons only on the home page. Default is off.

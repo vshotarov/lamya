@@ -27,7 +27,8 @@
 	{% endfor %}
 </head>
 <body>
-	<div class="main-and-sidebar-wrapper {% if not site_info.theme_options.get('sidebar') %}no-sidebar{%endif%}">
+    {% set have_sidebar = site_info.theme_options.get("sidebar") and (not site_info.theme_options.get("sidebar_in_home_only") or page.href == "/") %}
+    <div class="main-and-sidebar-wrapper {% if not have_sidebar %}no-sidebar{%endif%} {% if page.href == "/" %}home{%endif%}">
 	{%- block body %}
 
 	{%+ filter indent(4) %}{% include "header.html" %}{%- endfilter %}
@@ -50,7 +51,7 @@
 	{%- endblock %}
 	</main>
 
-	{%- if site_info.theme_options.get("sidebar") +%}
+	{%- if have_sidebar +%}
 	{%+ filter indent(4) %}{% include "sidebar.html" %}{% endfilter %}
 	{%- endif +%}
 	</div>
