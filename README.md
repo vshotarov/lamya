@@ -3,6 +3,7 @@
 - at the moment rebuliding the website deletes the whole `build` folder and recreates it from scratch, which can become quite slow on huge websites, so i need some sort of a smart rebuild.
 
 # Todos
+- move `__main__ ` functions into a `cli.py` that can then be imported by user's custom build scripts
 - make a demo website for the default theme
 - add install instructions after this is deployed
 - add rss

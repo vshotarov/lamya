@@ -298,7 +298,7 @@ def process_args(parsed_args, unknown_args):
     return parsed_args
 
 
-def main(args):
+def main(args, render=True):
     site_gen = site_generator.SiteGenerator(
         name=args.name, url=args.url, subtitle=args.subtitle,
         content_directory=args.content_directory,
@@ -312,8 +312,9 @@ def main(args):
         globally_aggregate_blacklist=args.globally_aggregate_blacklist,
         num_posts_per_page=args.posts_per_page, lang=args.language,
         read_date_format=args.read_date_format,
+        front_matter_publish_date_key=args.publish_date_key,
         display_date_format=args.display_date_format, author_link=args.author_link,
-        theme_options=args.theme_options)
+        theme_options=args.theme_options, use_absolute_urls=args.use_absolute_urls)
     site_gen.process_content_tree()
     site_gen.aggregate_posts()
 
@@ -351,7 +352,10 @@ def main(args):
 
         site_gen.navigation = recursive_parse_paths(json.loads(args.custom_navigation))
 
-    site_gen.render()
+    if render:
+        site_gen.render()
+
+    return site_gen
 
 
 if __name__ == "__main__":
