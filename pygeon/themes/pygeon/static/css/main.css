@@ -513,6 +513,16 @@ header nav > ul > li > img {
 	margin-top: .2em;
 }
 
+.main-and-sidebar-wrapper > aside > section[aria-label="archive links"] ul li {
+	width: 100%;
+	border-bottom: 1px solid var(--body-bg1);
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+.main-and-sidebar-wrapper > aside > section[aria-label="archive links"] ul li a {
+	border: none;
+}
+
 aside > section[aria-label="sidebar image"] {
     text-align: center;
 }
@@ -649,22 +659,34 @@ nav.pagination ul {
 }
 
 nav.pagination ul li a[aria-current="true"] {
-	background: #dfdfdf;
+	background: var(--body-bg1);
 }
 
 nav.pagination ul li a:hover {
-	background: #efefef;
+	background: var(--body-bg3);
 }
 
 nav.pagination ul li a {
-	padding: 5px 10px;
+	padding: .25em .5em;
 	text-decoration: none;
 	color: var(--body-colour);
-	border: 1px solid #dfdfdf;
+	border: 1px solid var(--body-bg1);
 	border-right: none;
 }
 nav.pagination ul li:last-child a {
-	border-right: 1px solid #dfdfdf;
+	border-right: 1px solid var(--body-bg1);
+}
+
+@media screen and (max-width: 767px) {
+	nav.pagination {
+		font-size: 1.1em;
+	}
+	nav.pagination ul li a {
+		padding: .5em 1em;
+	}
+	nav.pagination {
+		border-bottom: 1px solid var(--body-bg1);
+	}
 }
 /* end 6. */
 

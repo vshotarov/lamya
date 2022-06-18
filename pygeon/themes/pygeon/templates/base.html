@@ -27,8 +27,9 @@
 	{% endfor %}
 </head>
 <body>
-    {% set have_sidebar = site_info.theme_options.get("sidebar") and (not site_info.theme_options.get("sidebar_in_home_only") or page.href == "/") %}
-    <div class="main-and-sidebar-wrapper {% if not have_sidebar %}no-sidebar{%endif%} {% if page.href == "/" %}home{%endif%}">
+	{% set is_home = (page.href if not page.pagination else page.pagination["root"]) == "/" %}
+    {% set have_sidebar = site_info.theme_options.get("sidebar") and (not site_info.theme_options.get("sidebar_in_home_only") or is_home) %}
+    <div class="main-and-sidebar-wrapper {% if not have_sidebar %}no-sidebar{%endif%} {% if is_home %}home{%endif%}">
 	{%- block body %}
 
 	{%+ filter indent(4) %}{% include "header.html" %}{%- endfilter %}
