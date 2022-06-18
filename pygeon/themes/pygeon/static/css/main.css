@@ -79,6 +79,7 @@ html {
 	font-size: 18px;
 	color: var(--body-colour);
 	background: var(--body-bg);
+	line-height: 1.5;
 }
 
 a {
@@ -492,7 +493,7 @@ header nav > ul > li > img {
 }
 
 .main-and-sidebar-wrapper > aside #sidebar-social-links > *:after {
-	content: " \B7 ";
+	content: " \B7\00a0";
 }
 .main-and-sidebar-wrapper > aside #sidebar-social-links > *:last-child:after {
 	content: "\00a0";
@@ -518,6 +519,7 @@ aside > section[aria-label="sidebar image"] {
 
 aside > section[aria-label="sidebar image"] > img {
     width: 100%;
+	max-width: 200px;
 }
 
 /* end 2. */
