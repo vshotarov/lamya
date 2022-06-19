@@ -1,15 +1,15 @@
 {% macro post_metadata(post, indent_level=0, categories=True) -%}
 {% filter indent(indent_level*4) %}
-<section aria-label="post metadata">
-	<span aria-label="publish date">{{ post.publish_date.strftime(site_info.display_date_format) }}</span>
+<div>
+    <time datetime="{{ post.publish_date.strftime('%Y-%m-%d %H:%S') }}">{{ post.publish_date.strftime(site_info.display_date_format) }}</time>
 	{% if categories %}
 	{% if site_info.category_nav %}
 	<a aria-label="link to category" href="{{ site_info.category_nav['categories'][post.front_matter.get('category', site_info.category_nav['uncategorized_name'])] | pyg_urlencode }}">{{ post.front_matter.get("category", site_info.category_nav["uncategorized_name"]) }}</a>
 	{% elif post.front_matter.get("category") %}
-	<span aria-label="category">{{ post.front_matter.get("category") }}</span>
+	<span>{{ post.front_matter.get("category") }}</span>
 	{% endif %}
 	{% endif %}
-</section>
+</div>
 {%- endfilter -%}
 {%- endmacro -%}
 

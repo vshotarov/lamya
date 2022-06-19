@@ -1,14 +1,14 @@
 {% block sidebar %}
-<aside aria-label="sidebar">
+<aside>
 	{% if site_info.theme_options.get("sidebar_image") and (not site_info.theme_options.get("sidebar_image_in_home_only") or page.href == "/") %}
-	<section aria-label="sidebar image">
+	<section id="sidebar-image">
 		<img alt="{{ site_info.theme_options.get('sidebar_image_alt','') }}" src="{{ site_info.theme_options.get('sidebar_image','') }}" style="{% if site_info.theme_options.get("sidebar_image_max_width") %}max-width:{{ site_info.theme_options.get("sidebar_image_max_width") }}px{% endif %}">
 	</section>
 	{% endif %}
 
 	{% if site_info.theme_options.get("social_links") and (not site_info.theme_options.get("sidebar_social_in_home_only") or page.href == "/") %}
 	<section>
-		<ul id="sidebar-social-links" aria-label="social links">
+		<ul id="sidebar-social-links">
 		{% for link in site_info.theme_options.get("social_links") %}
 			<li>
 			{% if (link | length) == 3 %}
@@ -23,7 +23,7 @@
 	{% endif -%}
 
 	{% if site_info.theme_options.get("sidebar_description") and (not site_info.theme_options.get("sidebar_description_in_home_only") or page.href == "/") %}
-	<section aria-label="description">
+	<section>
 		<p>{{ site_info.theme_options.get("sidebar_description") | safe }}</p>
 	</section>
 	{% endif %}
@@ -45,7 +45,7 @@
 	{% endif %}
 
 	{% if site_info.archive_nav and site_info.theme_options.get("sidebar_archive_nav") %}
-	<section aria-label="archive links">
+	<section id="archive-links">
 		<h2 id="archive-nav-title">Archive</h2>
 		<nav aria-labelledby="archive-nav-title">
 			<ul>

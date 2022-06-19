@@ -13,6 +13,7 @@ from functools import partial
 import os
 import shutil
 from collections import OrderedDict
+import urllib.parse
 
 try:
     import markdown
@@ -108,8 +109,8 @@ class RenderablePage: # pylint: disable=too-many-instance-attributes,too-few-pub
         self.user_data = page_or_post.user_data
         self.front_matter = page_or_post.front_matter
         self.is_post = page_or_post.site_generator_data.get("is_post",False)
-        self.absolute_canonical_href = self.site_url + str(
-            page_or_post.site_generator_data.get("canonical_href", self.href))
+        self.absolute_canonical_href = urllib.parse.quote_plus(self.site_url + str(
+            page_or_post.site_generator_data.get("canonical_href", self.href)))
         self.breadcrumbs = [("home","/")] + [
             (p.name,str(p.href) if isinstance(p, content_tree.Folder) and p.index_page else "")\
                 for p in reversed(page_or_post.ancestors[:-1])] +\
