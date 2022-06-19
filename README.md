@@ -3,6 +3,7 @@
 - at the moment rebuliding the website deletes the whole `build` folder and recreates it from scratch, which can become quite slow on huge websites, so i need some sort of a smart rebuild.
 
 # Todos
+- add support for codehilite and pygment arguments exposed to the user
 - add the method of running the builder using a Config object in the docs
 - move `__main__ ` functions into a `cli.py` that can then be imported by user's custom build scripts
 - make a demo website for the default theme

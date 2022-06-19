@@ -354,8 +354,14 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
 
         self.markup_processor_func = lambda x:\
             markdown.markdown(x, extensions=[
-                "footnotes","tables","fenced_code","toc","codehilite"] +\
-                ([markdown_strikethrough.StrikethroughExtension()] if markdown_strikethrough else []))
+                    "footnotes","tables","fenced_code","toc","codehilite"] +\
+                    ([markdown_strikethrough.StrikethroughExtension()]\
+                        if markdown_strikethrough else []),
+                extension_configs = {
+                    "codehilite" : {
+                        "linenums": False
+                    }
+                })
 
     def process_content_tree(self):
         """This method goes through all of the content, read from the `content`
