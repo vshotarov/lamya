@@ -101,9 +101,6 @@ Documentation
 - :doc:`CLI Reference <cli-reference>` - command line interface reference
 - :doc:`API Reference <api-reference>` - complete pygeon API reference
 
-Bugs/Requests
--------------
-
 License
 -------
 
