@@ -354,7 +354,8 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
                 " requirements list, so you need to install it separately.")
 
         self.markup_processor_func = lambda x:\
-            markdown.markdown(x, extensions=[
+            markdown.markdown(x,
+                extensions=[
                     "footnotes","tables","fenced_code","toc","codehilite"] +\
                     ([markdown_strikethrough.StrikethroughExtension()]\
                         if markdown_strikethrough else []),
