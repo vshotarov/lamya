@@ -25,7 +25,7 @@ current directory.
 
 Build script
 ~~~~~~~~~~~~
-Or you could write a simple build script which imports the
+Or you could write a simple build script which uses the
 :class:`pygeon.site_generator.SiteGenerator` like so:
 
 .. code-block:: python
@@ -51,6 +51,37 @@ Or you could write a simple build script which imports the
     # site_gen.navigation = {}
 
     # generate the site
+    site_gen.render()
+
+Alternatively, if you like the idea of mostly maintaining one `Config` object,
+which specifies most of your build process, you can utilize the same function
+that generates the site via the `CLI` method above -
+:meth:`pygeon.site_generator.SiteGenerator.run_from_config`.
+
+.. code-block:: python
+
+    from pygeon.config import Config as DefaultConfig
+    from pygeon.site_generator import SiteGenerator
+
+    class Config(DefaultConfig):
+        name = "dontpanic"
+        url = "https://dont.panic"
+        subtitle="we demand rigidly defined areas of doubt and uncertainty",
+        content_directory="content",
+        theme_options = {
+            "sidebar": True,
+            "sidebar_image": "/img/sidebar.png"
+        }
+
+    site_gen = SiteGenerator.run_from_config(Config(), render=False)
+
+    # We've set `render` to False above, so we can make any changes we'd like
+    # here before actually rendering the site
+
+    # NOTE: That this method is more similar to the CLI method above, since
+    # all of the functions like `process_content_tree`, `build_navigation`, etc.
+    # are called inside the `run_from_config`.
+
     site_gen.render()
 
 Features

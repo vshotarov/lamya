@@ -302,70 +302,11 @@ def process_args(parsed_args, unknown_args):
     return parsed_args
 
 
-def main(args, render=True):
-    site_gen = site_generator.SiteGenerator(
-        name=args.name, url=args.url, subtitle=args.subtitle,
-        content_directory=args.content_directory,
-        theme_directory=args.theme_directory,
-        templates_directory=args.templates_directory,
-        static_directory=args.static_directory,
-        build_directory=args.build_directory,
-        locally_aggregate_whitelist=args.locally_aggregate_whitelist,
-        locally_aggregate_blacklist=args.locally_aggregate_blacklist,
-        globally_aggregate_whitelist=args.globally_aggregate_whitelist,
-        globally_aggregate_blacklist=args.globally_aggregate_blacklist,
-        num_posts_per_page=args.posts_per_page, lang=args.language,
-        read_date_format=args.read_date_format,
-        front_matter_publish_date_key=args.publish_date_key,
-        display_date_format=args.display_date_format, author_link=args.author_link,
-        theme_options=args.theme_options, use_absolute_urls=args.use_absolute_urls)
-    site_gen.process_content_tree()
-    site_gen.aggregate_posts()
-
-    if args.build_categories:
-        site_gen.build_category_pages(
-            allow_uncategorized=not args.do_not_allow_uncategorized,
-            uncategorized_name=args.uncategorized_name,
-            category_list_page_name=args.categories_page_name,
-            group=args.group_categories)
-
-    if args.build_archive_by_month or args.build_archive_by_year:
-        site_gen.build_archive(
-            args.archive_month_format, args.archive_year_format)
-        site_gen.build_archive_pages(
-            by_month=args.build_archive_by_month, by_year=args.build_archive_by_year,
-            archive_list_page_name=args.archive_page_name, group=args.group_archive,
-            display_by_month_in_list_page=args.display_archive_by_month_in_list_page,
-            display_by_year_in_list_page=args.display_archive_by_year_in_list_page)
-
-    if args.custom_navigation is None:
-        site_gen.build_navigation(
-            extra_filter_func=lambda x: x.name not in args.exclude_from_navigation\
-                                    and str(x.path) not in args.exclude_from_navigation,
-            exclude_categories=args.exclude_categories_from_navigation,
-            exclude_archive=args.exclude_archive_from_navigation)
-
-        if args.home_name_in_navigation is not None:
-            site_gen.navigation.update({args.home_name_in_navigation: Path("/")})
-            site_gen.navigation.move_to_end(args.home_name_in_navigation, last=False)
-    else:
-        def recursive_parse_paths(_dict):
-            return {
-                k: (recursive_parse_paths(v) if isinstance(v, dict) else Path(v))\
-                for k,v in _dict.items()}
-
-        site_gen.navigation = recursive_parse_paths(json.loads(args.custom_navigation))
-
-    if render:
-        site_gen.render()
-
-    return site_gen
-
-
 if __name__ == "__main__":
     parsed_args,unknown_args,option_strings = parse_args()
     if parsed_args.from_file is None:
-        main(process_args(parsed_args, unknown_args))
+        site_generator.SiteGenerator.run_from_config(
+            (process_args(parsed_args, unknown_args)))
     else:
         # If we are reading from a file, let's get a dict with all the definitions
         args = {}
@@ -387,4 +328,5 @@ if __name__ == "__main__":
                     or not hasattr(args_object, k):
                 setattr(args_object, k, v)
 
-        main(process_args(args_object, unknown_args))
+        site_generator.SiteGenerator.run_from_config(
+            process_args(args_object, unknown_args))

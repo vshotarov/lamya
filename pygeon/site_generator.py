@@ -364,6 +364,80 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
                     }
                 })
 
+    @staticmethod
+    def run_from_config(config, render=True):
+        """Use a :class:`pygeon.config.Config` object to configure the whole
+        generation process, which is all contained in this one function.
+
+        Notably, the only reason to use this instead of providing a file with
+        all the parameters to the `--from_file` argument of the `CLI`, is
+        to have some other optional custom steps between building the site
+        and rendering it.
+
+        :param config: the :class:`pygeon.config.Config` object, containing all the arguments
+        :param render: whether or not to render the website at the end of the
+            function or leave that to the user, so other changes can be made before
+            that happens
+        :returns: the built :class:`SiteGenerator` object
+        """
+        site_gen = SiteGenerator(
+            name=config.name, url=config.url, subtitle=config.subtitle,
+            content_directory=config.content_directory,
+            theme_directory=config.theme_directory,
+            templates_directory=config.templates_directory,
+            static_directory=config.static_directory,
+            build_directory=config.build_directory,
+            locally_aggregate_whitelist=config.locally_aggregate_whitelist,
+            locally_aggregate_blacklist=config.locally_aggregate_blacklist,
+            globally_aggregate_whitelist=config.globally_aggregate_whitelist,
+            globally_aggregate_blacklist=config.globally_aggregate_blacklist,
+            num_posts_per_page=config.posts_per_page, lang=config.language,
+            read_date_format=config.read_date_format,
+            front_matter_publish_date_key=config.publish_date_key,
+            display_date_format=config.display_date_format, author_link=config.author_link,
+            theme_options=config.theme_options, use_absolute_urls=config.use_absolute_urls)
+        site_gen.process_content_tree()
+        site_gen.aggregate_posts()
+
+        if config.build_categories:
+            site_gen.build_category_pages(
+                allow_uncategorized=not config.do_not_allow_uncategorized,
+                uncategorized_name=config.uncategorized_name,
+                category_list_page_name=config.categories_page_name,
+                group=config.group_categories)
+
+        if config.build_archive_by_month or config.build_archive_by_year:
+            site_gen.build_archive(
+                config.archive_month_format, config.archive_year_format)
+            site_gen.build_archive_pages(
+                by_month=config.build_archive_by_month, by_year=config.build_archive_by_year,
+                archive_list_page_name=config.archive_page_name, group=config.group_archive,
+                display_by_month_in_list_page=config.display_archive_by_month_in_list_page,
+                display_by_year_in_list_page=config.display_archive_by_year_in_list_page)
+
+        if config.custom_navigation is None:
+            site_gen.build_navigation(
+                extra_filter_func=lambda x: x.name not in config.exclude_from_navigation\
+                                        and str(x.path) not in config.exclude_from_navigation,
+                exclude_categories=config.exclude_categories_from_navigation,
+                exclude_archive=config.exclude_archive_from_navigation)
+
+            if config.home_name_in_navigation is not None:
+                site_gen.navigation.update({config.home_name_in_navigation: Path("/")})
+                site_gen.navigation.move_to_end(config.home_name_in_navigation, last=False)
+        else:
+            def recursive_parse_paths(_dict):
+                return {
+                    k: (recursive_parse_paths(v) if isinstance(v, dict) else Path(v))\
+                    for k,v in _dict.items()}
+
+            site_gen.navigation = recursive_parse_paths(json.loads(config.custom_navigation))
+
+        if render:
+            site_gen.render()
+
+        return site_gen
+
     def process_content_tree(self):
         """This method goes through all of the content, read from the `content`
         directory and ensures we have all the data we require for them.
