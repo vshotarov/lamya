@@ -1,8 +1,8 @@
-"""The :mod:`pygeon.content_tree` module provides a naive tree data structure
+"""The :mod:`lamya.content_tree` module provides a naive tree data structure
 implementation, specifically designed to serve as a base for generating
-static sites. The :mod:`pygeon.site_generator` module utilises this to provide
+static sites. The :mod:`lamya.site_generator` module utilises this to provide
 a static site generator, but users are also encouraged to write their own
-build scripts directly using the :mod:`pygeon.content_tree` module.
+build scripts directly using the :mod:`lamya.content_tree` module.
 """
 from pathlib import Path
 from copy import deepcopy
@@ -14,7 +14,7 @@ try:
 except ImportError:
     markdown = None
 
-from pygeon.content_processing import split_front_matter
+from lamya.content_processing import split_front_matter
 
 
 class ContentTree:
@@ -541,7 +541,7 @@ class AbstractPageOrPost(ContentTree):
 
         :param front_matter_and_content_split_func: the function to use for
             splitting the front matter from the content. By default uses the
-            :func:`pygeon.content_processing.split_front_matter` function.
+            :func:`lamya.content_processing.split_front_matter` function.
         """
         self._front_matter, self._raw_content =\
             front_matter_and_content_split_func(self.source)
@@ -814,4 +814,4 @@ def warning(*args):
 
     The `*args` are directly passed into a print statement.
     """
-    print("PygeonWarning:", *args)
+    print("LamyaWarning:", *args)

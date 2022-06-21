@@ -1,8 +1,8 @@
-"""The :mod:`pygeon.site_generator` module provides a static site generator, that can
-be ran either from the CLI by running `pygeon` as a module or by importing
-the :class:`pygeon.site_generator.SiteGenerator` class and using it in your own scripts.
+"""The :mod:`lamya.site_generator` module provides a static site generator, that can
+be ran either from the CLI by running `lamya` as a module or by importing
+the :class:`lamya.site_generator.SiteGenerator` class and using it in your own scripts.
 
-The static site generator utilises the :mod:`pygeon.content_tree` tree implementation
+The static site generator utilises the :mod:`lamya.content_tree` tree implementation
 to parse existing content and render it using a template engine (Jinja2 by default),
 while optionally aggregating content into list pages, categories and an archive.
 """
@@ -28,8 +28,8 @@ try:
 except ImportError:
     jinja2 = None
 
-from pygeon import content_tree
-from pygeon import content_processing
+from lamya import content_tree
+from lamya import content_processing
 
 
 class Callbacks: # pylint: disable=too-few-public-methods
@@ -37,16 +37,16 @@ class Callbacks: # pylint: disable=too-few-public-methods
     of the static site generation process.
 
     NOTE: At the moment it only contains a callback for immediately after
-    :class:`pygeon.content_tree.ContentTree` node being created, but I'd like to have
+    :class:`lamya.content_tree.ContentTree` node being created, but I'd like to have
     an easy way of adding more callbacks in the future.
     """
     @staticmethod
     def post_content_tree_entity_create(site_generator, entity):
-        """Ran on every single :class:`pygeon.content_tree.ContentTree` instance created
+        """Ran on every single :class:`lamya.content_tree.ContentTree` instance created
         in the context of the site generator.
 
         :param site_generator: the site generator object
-        :param entity: the :class:`pygeon.content_tree.ContentTree` instance
+        :param entity: the :class:`lamya.content_tree.ContentTree` instance
         """
         # NOTE: I can use these callbacks to make sure all data that I would
         # like to exist on the content_tree entities actually does, rather
@@ -190,7 +190,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
     :param front_matter_delimiter: we expect the front matter in the raw content
         of each page/post to be surrounded by lines containing only this character
     :param callbacks: a `Callbacks` struct for running functions at specific times.
-        NOTE: at the moment we only run after generating any :mod:`pygeon.content_tree` node
+        NOTE: at the moment we only run after generating any :mod:`lamya.content_tree` node
     :param lang: the language to put in the `html lang` property
     :param front_matter_publish_date_key: the name of the publish date key
         in the front matter
@@ -201,7 +201,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
     :param theme_options: a `dict` of theme options
     :param use_absolute_urls: whether or not to use full absolute URLs instead
         of the default relative ones
-    :param content_tree: the :class:`pygeon.content_tree.Root` node that contains the
+    :param content_tree: the :class:`lamya.content_tree.Root` node that contains the
         content of the static site
     :param internal_data: a `dict` containing extra information about the site
         generation process
@@ -279,7 +279,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         self.subtitle = subtitle
         self.content_directory = Path(content_directory)
         self.theme_directory = Path(theme_directory) if theme_directory is not None\
-            else Path(__file__).parent / "themes" / "pygeon"
+            else Path(__file__).parent / "themes" / "lamya"
         self.static_directory = Path(static_directory)
         self.templates_directory = Path(templates_directory)
         self.build_directory = Path(build_directory)
@@ -367,7 +367,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def run_from_config(config, render=True):
-        """Use a :class:`pygeon.config.Config` object to configure the whole
+        """Use a :class:`lamya.config.Config` object to configure the whole
         generation process, which is all contained in this one function.
 
         Notably, the only reason to use this instead of providing a file with
@@ -375,7 +375,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         to have some other optional custom steps between building the site
         and rendering it.
 
-        :param config: the :class:`pygeon.config.Config` object, containing all the arguments
+        :param config: the :class:`lamya.config.Config` object, containing all the arguments
         :param render: whether or not to render the website at the end of the
             function or leave that to the user, so other changes can be made before
             that happens
@@ -547,7 +547,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         """This method reads categories from the content's front matter and
         groups them into category pages.
 
-        :param parent: the :mod:`pygeon.content_tree` parent node to put the
+        :param parent: the :mod:`lamya.content_tree` parent node to put the
             category pages in. If `None` the root will be used.
         :param category_accessor: a function defining how to query the category
             for each page or post node. By default it attempts to read it from
@@ -648,7 +648,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         """This method takes the previously built `Archive` struct and generates
         the archive pages.
 
-        :param parent: the :mod:`pygeon.content_tree` parent node to put the
+        :param parent: the :mod:`lamya.content_tree` parent node to put the
             archive pages in
         :param by_month: whether or not to write pages for the monthly archive
         :param by_year: whether or not to write pages for the yearly archive
@@ -727,7 +727,7 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
             pages to the navigation if any of the following are true:
 
             - the node passes the `is_page_func` or it is a
-                :class:`pygeon.content_tree.Folder`
+                :class:`lamya.content_tree.Folder`
             - the node is an `index_page`
             - the node is a `category` page and categories are not excluded
             - the node is an `archive` page and the archive is not excluded

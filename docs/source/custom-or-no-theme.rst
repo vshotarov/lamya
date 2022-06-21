@@ -2,7 +2,7 @@ Custom or No Theme
 ==================
 Building Without a Theme
 ------------------------
-A pygeon website can be generated without the need for a specific theme, as
+A lamya website can be generated without the need for a specific theme, as
 you can provide your own :ref:`cli-reference:---templates_directory` to source
 the jinja2 templates from.
 
@@ -25,7 +25,7 @@ have a site structure like so::
 
 and you specify that you don't want to source any themes::
 
-    python -m pygeon -url "localhost:8000" --theme_directory "" 
+    python -m lamya -url "localhost:8000" --theme_directory "" 
 
 it will have the effect of building a website only using your own custom
 templates and static files.
@@ -40,7 +40,7 @@ That way we provide a non-destructive way of modifying themes locally.
 
 What that means is that if there's a ``default.html`` file in the theme's
 ``templates`` directory and you have one in your own ``templates`` directory,
-pygeon will pick up your template, but still use the theme's ones for anything
+lamya will pick up your template, but still use the theme's ones for anything
 else.
 
 Same goes for the ``static`` directory. Say for example the theme comes with

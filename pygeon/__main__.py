@@ -4,27 +4,27 @@ import sys
 from pathlib import Path
 import json
 
-from pygeon import site_generator
+from lamya import site_generator
 
 
-class UnrecognizedPygeonArgumentError(Exception):
+class UnrecognizedLamyaArgumentError(Exception):
     pass
 
-class NotEnoughValuesForPygeonArgumentError(Exception):
+class NotEnoughValuesForLamyaArgumentError(Exception):
     pass
 
-class MissingRequiredPygeonArgumentError(Exception):
+class MissingRequiredLamyaArgumentError(Exception):
     pass
 
 
 def build_parser():
     parser = argparse.ArgumentParser(
-        prog="python -m pygeon",
-        description="An opinionated static site generator using the `pygeon` library",
+        prog="python -m lamya",
+        description="An opinionated static site generator using the `lamya` library",
         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("-ff","--from_file",
         help="read the arguments from a python file, e.g. "
-            "`python -m pygeon -ff config.py`. If supplied, all extra command line"
+            "`python -m lamya -ff config.py`. If supplied, all extra command line"
             " arguments will be treated as overrides for the config file.")
     parser.add_argument("-n","--name",
         help="the name of the website. Defaults to current directory name.")
@@ -210,8 +210,8 @@ def build_parser():
         "\n\n    th1_sidebar_image_alt - the alt text for the sidebar image"
         "\n\n    th1_sidebar_description - a bit of descriptive text in the sidebar"
         "\n\n    thl{2/3}_social_links - a list of (name, url, optional img) tuples, e.g."
-        "`-thl3_social_links github \"https://github.com/pygeon\" \"/img/github.svg\""
-        " -thl2_social_links twitter \"https://twitter.com/pygeon\"`, which will"
+        "`-thl3_social_links github \"https://github.com/lamya\" \"/img/github.svg\""
+        " -thl2_social_links twitter \"https://twitter.com/lamya\"`, which will"
         " produce an icon for github and the text 'twitter' for the twitter link."
         "\n\n    thl{2/3}_links - a list of (name, url, optional nice name) tuples, e.g."
         "`-thl3_links \"my knitting blog\" \"https://knittingforfunandprofit.com\""
@@ -243,7 +243,7 @@ def parse_args():
 
 def process_args(parsed_args, unknown_args):
     if parsed_args.url is None:
-        raise MissingRequiredPygeonArgumentError("The -url, --url argument is required.")
+        raise MissingRequiredLamyaArgumentError("The -url, --url argument is required.")
 
     if parsed_args.name is None:
         parsed_args.name = Path(os.getcwd()).stem
@@ -269,14 +269,14 @@ def process_args(parsed_args, unknown_args):
             continue
 
         if not (is_simple_theme_option or is_list_theme_option):
-            raise UnrecognizedPygeonArgumentError("Unrecognized argument " + current)
+            raise UnrecognizedLamyaArgumentError("Unrecognized argument " + current)
 
         tuple_size = int(current.split("_")[2 if current.startswith("--") else 0][-1])
 
         arg_values = []
         for i in range(tuple_size):
             if not unknown_args or unknown_args[0].startswith("-"):
-                raise NotEnoughValuesForPygeonArgumentError(
+                raise NotEnoughValuesForLamyaArgumentError(
                     "Not enough values for arg " + current)
             arg_values.append(unknown_args.pop(0))
 

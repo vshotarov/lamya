@@ -1,14 +1,14 @@
-# pygeon
-The `pygeon` package provides both an out of the box markdown static site generator and a framework for building your own custom ones.
+# lamya
+The `lamya` (_emphasis is on the ya - lamyà_) package provides both an out of the box markdown static site generator and a framework for building your own custom ones.
 
 _I like to think of it as a static site generator generator._
 
 ## Quickstart
 ### CLI
-You can run `pygeon`'s static site generator as a module to turn a directory of markdown files into a static site:
+You can run `lamya`'s static site generator as a module to turn a directory of markdown files into a static site:
 
 ```
-python -m pygeon -url "http://my_url.com" --content_directory "path_to_content/" [OPTIONS]
+python -m lamya -url "http://my_url.com" --content_directory "path_to_content/" [OPTIONS]
 ```
 
 This will take all the markdown descendants of the `path_to_content` directory and turn them into a static site, built into a folder called `build` in the current directory.
@@ -16,10 +16,10 @@ This will take all the markdown descendants of the `path_to_content` directory a
 _NOTE: If no `--content_directory` flag is provided, `./content` will be used. Additionally the `--build_directory` flag can be used to specify where to build the site. For more info about flags have a look at the full [CLI Reference <- ADD LINK]()._
 
 ### Build script
-Or you could write a simple build script which uses the `pygeon.site_generator.SiteGenerator` like so:
+Or you could write a simple build script which uses the `lamya.site_generator.SiteGenerator` like so:
 
 ```python
-from pygeon.site_generator import SiteGenerator
+from lamya.site_generator import SiteGenerator
 from pathlib import Path
 
 site_gen = SiteGenerator(name="dontpanic", url="https://dont.panic",
@@ -43,11 +43,11 @@ site_gen.build_navigation()
 site_gen.render()
 ```
 
-Alternatively, if you like the idea of mostly maintaining one Config object, which specifies most of your build process, you can utilize the same function that generates the site via the CLI method above - `pygeon.site_generator.SiteGenerator.run_from_config()`.
+Alternatively, if you like the idea of mostly maintaining one Config object, which specifies most of your build process, you can utilize the same function that generates the site via the CLI method above - `lamya.site_generator.SiteGenerator.run_from_config()`.
 
 ```python
-from pygeon.config import Config as DefaultConfig
-from pygeon.site_generator import SiteGenerator
+from lamya.config import Config as DefaultConfig
+from lamya.site_generator import SiteGenerator
 
 class Config(DefaultConfig):
     name = "dontpanic"
@@ -76,14 +76,14 @@ site_gen.render()
 - designed to be interacted with - import it and build your site the way you want it
 - provides an out-of-the-box site generator
 - content is described by a simple and easily modified tree structure
-- even though, there’s no specific extensions support, pygeon is easily extensible, since it’s just a small collection of simple python objects
+- even though, there’s no specific extensions support, lamya is easily extensible, since it’s just a small collection of simple python objects
 
 ## Documentation
 
-- [Get started <- ADD LINK]() - install pygeon and learn the basics to hit the ground running
+- [Get started <- ADD LINK]() - install lamya and learn the basics to hit the ground running
 - [Themes <- ADD LINK]() - information about developing, customizing, interacting with themes and also the documentation of the default theme
 - [CLI Reference]() - command line interface reference
-- [API Reference]() - complete pygeon API reference
+- [API Reference]() - complete lamya API reference
 
 Or here's a link to the [full documentation <- ADD LINK]().
 

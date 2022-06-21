@@ -13,7 +13,7 @@ class Config:
 
     NOTE: The arguments here are the same as those when running from the CLI,
     as this Config is meant to be used to run the whole site generation process,
-    rather than just the initialization of the :class:`pygeon.site_generator.SiteGenerator`
+    rather than just the initialization of the :class:`lamya.site_generator.SiteGenerator`
     class.
 
     :param name: name of the site
@@ -45,9 +45,9 @@ class Config:
         category pages from the navigation if they exist
     :param exclude_archive_from_navigation: whether or not to exclude any
         archive pages from the navigation if they exist
-    :param exclude_from_navigation: other :mod:`pygeon.content_tree` entities
+    :param exclude_from_navigation: other :mod:`lamya.content_tree` entities
         to exclude from the navigation specified either by name or path, from the navigation if they exist
-    :param exclude_from_navigation: other :mod:`pygeon.content_tree` entities
+    :param exclude_from_navigation: other :mod:`lamya.content_tree` entities
         to exclude from the navigation specified either by name or path
     :param custom_navigation: a custom dict-like object specifying the navigation
     :param locally_aggregate_whitelist: a list of folders that should have their

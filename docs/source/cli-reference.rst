@@ -7,7 +7,7 @@ CLI Reference
    Site options <self>
 
 .. sphinx_argparse_cli::
-   :module: pygeon.__main__
+   :module: lamya.__main__
    :func: build_parser
    :prog: 
    :title:
@@ -54,7 +54,7 @@ Here are the accepted arguments for the default theme:
 
   - **thl{2/3}_social_links** - a list of (name, url, optional img) tuples, e.g.
 
-    ``-thl3_social_links github "https://github.com/pygeon" "/img/github.svg" -thl2_social_links twitter "https://twitter.com/pygeon"``,
+    ``-thl3_social_links github "https://github.com/lamya" "/img/github.svg" -thl2_social_links twitter "https://twitter.com/lamya"``,
     
     which will produce an icon for github and the text 'twitter' for the twitter link.
 

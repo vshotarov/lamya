@@ -1,6 +1,6 @@
 Default theme
 =============
-pygeon comes with a simple, mobile friendly and fairly brutalist default theme.
+lamya comes with a simple, mobile friendly and fairly brutalist default theme.
 
 Supported Theme Options
 -----------------------

@@ -9,7 +9,7 @@ As such a theme is a combination of:
 - any additional static content such as images, other media or any files you might
   want to share
 
-The way to specify what theme you would like to use is by pointing pygeon to
+The way to specify what theme you would like to use is by pointing lamya to
 where the theme has been placed using the :ref:`cli-reference:---theme_directory`
 argument.
 
@@ -29,9 +29,9 @@ or :ref:`build-from-script`.
 Theme Options as a SiteGenerator argument
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you are building from a script, i.e. importing the
-:class:`pygeon.site_generator.SiteGenerator`, then you can just provide a
+:class:`lamya.site_generator.SiteGenerator`, then you can just provide a
 dictionary with all of your theme options to the
-:class:`constructor's <pygeon.site_generator.SiteGenerator>`
+:class:`constructor's <lamya.site_generator.SiteGenerator>`
 ``theme_options`` argument.
 
 .. note::
@@ -53,7 +53,7 @@ and then passing that config file to the command line interface using the
    accepted CLI arguments, can also be given in the config file.
 
 The second way of specifying theme options is directly as arguments in the CLI.
-Since they can have any arbitrary names, pygeon requires the following naming
+Since they can have any arbitrary names, lamya requires the following naming
 rules to be met when using this method:
 
 1. flags that represent switches with an implied value, which don't require a
@@ -73,13 +73,13 @@ rules to be met when using this method:
    ``--theme_option2`` and arguments accepting three values with ``-th3_`` or
    ``--theme_option3``. E.g.
 
-   ``python -m pygeon -url "localhost:8000" -th1_foo bar --theme_option2 foo2 two bars``
+   ``python -m lamya -url "localhost:8000" -th1_foo bar --theme_option2 foo2 two bars``
 
 3. setting the same argument twice overwrites the previous value, so if a list
    of values is required, use the ``-thl{1/2/3}_`` or ``--theme_option{1/2/3}``
    arguments, like so::
 
-       python -m pygeon -url "localhost:8000" \
+       python -m lamya -url "localhost:8000" \
            -thl2_authors Arthur Dent \
            -thl2_authors Ford Prefect \
            -thl2_authors Tricia McMillan
@@ -103,10 +103,10 @@ Here's how you might use them inside a jinja2 template:
 
 Supporting Absolute and Relative URLs
 -------------------------------------
-pygeon registers a jinja2 filter called ``pyg_urlencode`` which does the same
+lamya registers a jinja2 filter called ``pyg_urlencode`` which does the same
 thing as the native jinja2 ``urlencode``, but also makes sure the URL is appended
 to the base site URL if the ``use_absolute_urls``
-:class:`pygeon.site_generator.SiteGenerator` argument is enabled.
+:class:`lamya.site_generator.SiteGenerator` argument is enabled.
 
 What that means is all relative URLs inside templates, should go through the
 ``pyg_urlencode`` filter to make sure they can safely be converted to absolute

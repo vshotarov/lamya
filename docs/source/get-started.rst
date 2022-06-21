@@ -1,8 +1,8 @@
 Get started
 ===========
-Install pygeon
+Install lamya
 --------------
-``pygeon`` requires Python 3.8+
+``lamya`` requires Python 3.8+
 
 NOTE: Add install instructions after this is deployed
 
@@ -15,7 +15,7 @@ blogs and portfolios.
 
 For those cases the quickest way to get a site up and running is to organize
 your content in a directory using the hierarchy you would like to use for
-navigation and URLs and run ``pygeon`` from the command line.
+navigation and URLs and run ``lamya`` from the command line.
 
 Let's consider the following example of a simple personal website::
 
@@ -29,17 +29,17 @@ Let's consider the following example of a simple personal website::
         └── contact.md
         └── index.md
 
-Running ``pygeon`` as a module, while inside the ``my_site_dir`` folder, like so::
+Running ``lamya`` as a module, while inside the ``my_site_dir`` folder, like so::
 
-    python -m pygeon -url "http://my_url.com" [OPTIONS]
+    python -m lamya -url "http://my_url.com" [OPTIONS]
 
-will give us a very simple blank website using the default ``pygeon`` theme.
+will give us a very simple blank website using the default ``lamya`` theme.
 
 A couple things to note:
 
 - the ``-url`` is a required flag, as it's necessary for canonical links
 
-- instead of running ``pygeon`` inside the directory, we could also run it from
+- instead of running ``lamya`` inside the directory, we could also run it from
   anywhere, but give it the :ref:`site_directory<cli-reference:paths>` argument
 
 - we don't have an index page inside the ``blog`` folder, which means that one
@@ -88,7 +88,7 @@ The following markdown extensions are enabled by default:
 
 Front matter
 ~~~~~~~~~~~~
-Front matter in ``pygeon`` is actual python code that will get executed at build
+Front matter in ``lamya`` is actual python code that will get executed at build
 time and is delimited by lines containing only ``+`` symbols.
 
 Here's an example of a blog post:
@@ -104,9 +104,9 @@ Here's an example of a blog post:
 .. note::
    The date format can be specified using the
    :ref:`--read_date_format<cli-reference:--rdf>` CLI argument or if importing
-   the :mod:`pygeon.site_generator` the ``SiteGenerator.read_date_format`` argument.
+   the :mod:`lamya.site_generator` the ``SiteGenerator.read_date_format`` argument.
 
-These are the **only** front matter keys ``pygeon`` understands:
+These are the **only** front matter keys ``lamya`` understands:
 
 - ``title`` - a string representing the title of the post.
 
@@ -128,9 +128,9 @@ the information.
 Static files
 ------------
 Images, extra stylesheets and javascript files are very common when creating
-a website, and as such ``pygeon`` provides an easy way of supporting them.
+a website, and as such ``lamya`` provides an easy way of supporting them.
 
-Both the CLI and the :class:`SiteGenerator <pygeon.site_generator.SiteGenerator>`
+Both the CLI and the :class:`SiteGenerator <lamya.site_generator.SiteGenerator>`
 accept a ``static_directory`` argument, which specifies a folder, the contents
 of which will be directly copied to the ``build`` folder. As such, they will
 be directly accessible by their relative URLs.
@@ -175,7 +175,7 @@ Creating more complex websites using build scripts
 The command line way of building websites is certainly sufficient if you are
 creating classic personal or blog sites, but if you ever need something more
 customizable you are completely free to import the
-:class:`SiteGenerator <pygeon.site_generator.SiteGenerator>` and take charge
+:class:`SiteGenerator <lamya.site_generator.SiteGenerator>` and take charge
 of how your website is built.
 
 This method implies that you would have a build script of some sort, which
@@ -186,7 +186,7 @@ scraped content which you can have included in your build script, etc.
 
 The possibilities are literally endless, since you are working with python.
 
-Here's how to get started with using pygeon in that manner.
+Here's how to get started with using lamya in that manner.
 
 Say for this example we have an old blog that has multiple authors and the content
 is separated as so::
@@ -211,13 +211,13 @@ entry for each author would be created in the blog submenu on the navigation.
 
 That's no good for our example.
 
-So, to fix that we can use ``pygeon`` in a build script like so:
+So, to fix that we can use ``lamya`` in a build script like so:
 
 .. code-block:: python
    :emphasize-lines: 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23
    :caption: ``my_site_dir/build.py``
 
-   from pygeon.site_generator import SiteGenerator
+   from lamya.site_generator import SiteGenerator
 
 
    site_gen = SiteGenerator(name="Mostly Harmless", url="localhost:8000")
@@ -267,15 +267,15 @@ to the site_gen.aggregate_posts() line*) is:
     navigation
 
 Then when we run
-:meth:`site_gen.aggregate_posts()<pygeon.site_generator.SiteGenerator.aggregate_posts()>`,
+:meth:`site_gen.aggregate_posts()<lamya.site_generator.SiteGenerator.aggregate_posts()>`,
 all the blog posts are direct descendants of the blog folder, so they are
 aggregated into its index page.
 
 .. note::
    If you remove the highlighted code (*everything from the line saying IMPORTANT
    to the site_gen.aggregate_posts() line*) you will be left with the exact
-   same result as if you had ran pygeon through the CLI, since that is exactly
-   what we do in the ``__main__.py`` of pygeon.
+   same result as if you had ran lamya through the CLI, since that is exactly
+   what we do in the ``__main__.py`` of lamya.
 
 .. note::
    Also note we're using ``localhost:8000`` as the url argument, since that
@@ -284,8 +284,8 @@ aggregated into its index page.
 
 Creating a website, while using the content tree only
 -----------------------------------------------------
-The last way of using pygeon to create your site, is to only utilize the
-:mod:`pygeon.content_tree` module, which is only desirable if you have
+The last way of using lamya to create your site, is to only utilize the
+:mod:`lamya.content_tree` module, which is only desirable if you have
 incredibly specific and non-standard requirements for your website.
 
 What that means is you will be able to do similar things to what we did above
@@ -297,11 +297,11 @@ Here's how to get started in those cases:
 
 .. code-block:: python
 
-   import pygeon.content_tree
+   import lamya.content_tree
    from pathlib import Path
    
    
-   ct = pygeon.content_tree.ContentTree.from_directory(
+   ct = lamya.content_tree.ContentTree.from_directory(
        Path("content"), accepted_file_types=[".md"])
    
    # visualise your content tree, to help you decide how to manage it
