@@ -3,6 +3,15 @@ The `lamya` (_emphasis is on the ya - lamyà_) package provides both an out of t
 
 _I like to think of it as a static site generator generator._
 
+## Install
+To install `lamya` you can use pip:
+
+```
+pip install lamya[all]
+```
+
+The reason I've added the optional `all` dependencies is that by default `lamya` attempts to use `markdown` as a markup processor and `jinja2` as a template engine, but if you know you will be using a different markup processor and template engine you are free to skip the `[all]` and just install `lamya`.
+
 ## Quickstart
 ### CLI
 You can run `lamya`'s static site generator as a module to turn a directory of markdown files into a static site:
