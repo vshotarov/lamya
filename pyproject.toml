@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lamya"
-version = "1.0.1"
+version = "1.0.2"
 authors = [
 	{ name="Vasil Shotarov", email="vshotarov@gmail.com" },
 ]
@@ -23,7 +23,7 @@ classifiers = [
 "Documentation" = "https://lamya.readthedocs.io/en/latest/index.html"
 
 [project.optional-dependencies]
-all = ["Markdown>=3", "Jinja2>=3"]
+all = ["Markdown==3.3.3", "Jinja2>=3"]
 
 [tool.setuptools]
 packages = ["lamya"]
