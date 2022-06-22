@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lamya"
+version = "1.0.1"
+authors = [
+	{ name="Vasil Shotarov", email="vshotarov@gmail.com" },
+]
+description = "The lamyà package provides both an out of the box markdown static site generator and a framework for building your own custom ones."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+	"Programming Language :: Python :: 3",
+	"License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+	"Operating System :: OS Independent"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/vshotarov/lamya"
+"Bug Tracker" = "https://github.com/vshotarov/lamya/issues"
+"Documentation" = "https://lamya.readthedocs.io/en/latest/index.html"
+
+[project.optional-dependencies]
+all = ["Markdown>=3", "Jinja2>=3"]
+
+[tool.setuptools]
+packages = ["lamya"]
+
+[tool.setuptools.package-data]
+lamya = ["**/*.html","**/*.css","**/*.js","**/*.svg"]

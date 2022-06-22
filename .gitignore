@@ -5,3 +5,5 @@ venv
 tests/*/**/build
 *.sh
 docs/build
+dist
+*.egg-info
