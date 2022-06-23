@@ -3,12 +3,14 @@ img {
 }
 
 /* light mode */
-:root {
+:root,
+:root.light {
    --body-bg: #ffffff;
    --body-bg1: #dedede;
    --body-bg2: #aaa;
    --body-bg3: #eee;
    --body-bg4: #cecece;
+   --code-bg: #eee;
    --body-colour: #000000;
    --body-secondary-colour: #6a6a6a;
    --link-colour: #1976d2;
@@ -24,7 +26,8 @@ img {
 	   --body-bg2: #363636;
 	   --body-bg3: #464646;
 	   --body-bg4: #565656;
-       --body-color: rgba(255,255,255,0.87);
+	   --code-bg: #2e2e2e;
+       --body-colour: rgba(255,255,255,0.87);
 	   --body-secondary-colour: rgba(255,255,255,0.6);
 	   --link-colour: #64b5f6;
 	   --svg-link-colour: invert(59%) sepia(78%) saturate(454%) hue-rotate(178deg) brightness(100%) contrast(93%);
@@ -41,6 +44,7 @@ img {
    --body-bg2: #363636;
    --body-bg3: #464646;
    --body-bg4: #565656;
+   --code-bg: #2e2e2e;
    --body-colour: rgba(255,255,255,0.87);
    --body-secondary-colour: rgba(255,255,255,0.6);
    --link-colour: #64b5f6;
@@ -93,7 +97,14 @@ a {
 }
 
 code, pre {
-	font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+	font-family: Menlo, Consolas, Monaco, Lucida Console, monospace;
+	color: var(--body-colour);
+	background: var(--code-bg);
+}
+
+.codehilite code,
+.codehilite pre {
+	background: inherit;
 	color: initial;
 }
 

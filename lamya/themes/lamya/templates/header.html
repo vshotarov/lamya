@@ -35,8 +35,8 @@
 		{% endif %}
 	</section>
 	<div id="theme-switch" style="display:none;">
-		<button id="dark-button" aria-label="switch to dark mode" onclick="localStorage.setItem('dark-mode',1);document.documentElement.classList.add('dark')"><img alt="dark" src="/img/moon.svg"></button>
-		<button id="light-button" aria-label="switch to light mode" onclick="localStorage.setItem('dark-mode',0);document.documentElement.classList.remove('dark')"><img alt="light" src="/img/sun.svg"></button>
+		<button id="dark-button" aria-label="switch to dark mode" onclick="sessionStorage.setItem('dark-mode',1);document.documentElement.classList.add('dark');document.documentElement.classList.remove('light');"><img alt="dark" src="/img/moon.svg"></button>
+		<button id="light-button" aria-label="switch to light mode" onclick="sessionStorage.setItem('dark-mode',0);document.documentElement.classList.remove('dark');document.documentElement.classList.add('light');"><img alt="light" src="/img/sun.svg"></button>
 	</div>
     {% if site_info.navigation %}
 	<button id="menu-toggle" aria-label="mobile menu toggle"><img alt="" src="{{ '/img/menu-2.svg' | pyg_urlencode }}"></button>
@@ -47,8 +47,10 @@
 </header>
 <script>
 	document.getElementById("theme-switch").style.display = "block";
-	if (localStorage.getItem("dark-mode") == "1") {
+	if (sessionStorage.getItem("dark-mode") == "1") {
 		document.documentElement.classList.add('dark');
+	} else if (sessionStorage.getItem("dark-mode") == "0") {
+		document.documentElement.classList.add('light');
 	}
 </script>
 {%- endblock %}
