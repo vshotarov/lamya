@@ -2,8 +2,11 @@
 for running a static site generation process, which can be subclassed to overwrite
 only the properties you would like."""
 from pathlib import Path
+from dataclasses import dataclass, field
+from typing import Union, List, Dict, Optional
 
 
+@dataclass
 class Config:
     """The base Config class defining the default argument values for a static
     site generation process.
@@ -87,60 +90,53 @@ class Config:
     :param theme_options: a dict-like object containing specific to the theme arguments
     """
     # main
-    name = "unnamed"
-    url = "http://localhost:8000"
-    subtitle = ""
-    author_link = ""
-    language = "en"
-    use_absolute_urls = False
-    posts_per_page= -1
-    publish_date_key = "publish_date"
-    read_date_format = "%d-%m-%Y %H:%M"
-    display_date_format = "%B %-d, %Y"
+    name: str = "unnamed"
+    url: str = "http://localhost:8000"
+    subtitle: str = ""
+    author_link: str = ""
+    language: str = "en"
+    use_absolute_urls: bool = False
+    posts_per_page: int = -1
+    publish_date_key: str = "publish_date"
+    read_date_format: str = "%d-%m-%Y %H:%M"
+    display_date_format: str = "%B %-d, %Y"
     # directories
-    site_directory = "."
-    content_directory = None
-    theme_directory = None
-    static_directory = None
-    templates_directory = None
-    build_directory = None
+    site_directory: Union[str,Path] = "."
+    content_directory: Optional[Union[str,Path]] = None
+    theme_directory: Optional[Union[str,Path]] = None
+    static_directory: Optional[Union[str,Path]] = None
+    templates_directory: Optional[Union[str,Path]] = None
+    build_directory: Optional[Union[str,Path]] = None
     # navigation
-    home_name_in_navigation = None
-    exclude_categories_from_navigation = False
-    exclude_archive_from_navigation = False
-    exclude_from_navigation = None
-    custom_navigation = None
+    home_name_in_navigation: Optional[str] = None
+    exclude_categories_from_navigation: bool = False
+    exclude_archive_from_navigation: bool = False
+    exclude_from_navigation: List[str] = field(default_factory=list)
+    custom_navigation: Optional[Dict[str, Union[str, Dict]]] = None
     # aggregation
-    locally_aggregate_whitelist=None
-    locally_aggregate_blacklist=None
-    globally_aggregate_whitelist=None
-    globally_aggregate_blacklist=None
+    locally_aggregate_whitelist: List[str] = field(default_factory=list)
+    locally_aggregate_blacklist: List[str] = field(default_factory=list)
+    globally_aggregate_whitelist: List[str] = field(default_factory=list)
+    globally_aggregate_blacklist: List[str] = field(default_factory=list)
     # category pages
-    build_categories = False
-    do_not_allow_uncategorized = False
-    categories_page_name = ""
-    group_categories = False
-    uncategorized_name = "Uncategorized"
+    build_categories: bool = False
+    do_not_allow_uncategorized: bool = False
+    categories_page_name: Optional[str] = None
+    group_categories: bool = False
+    uncategorized_name: str = "Uncategorized"
     # archive pages
-    build_archive_by_month = False
-    build_archive_by_year = False
-    archive_page_name = ""
-    group_archive = False
-    display_archive_by_month_in_list_page = False
-    display_archive_by_year_in_list_page = False
-    archive_month_format = "%B, %Y"
-    archive_year_format = "%Y"
+    build_archive_by_month: bool = False
+    build_archive_by_year: bool = False
+    archive_page_name: Optional[str] = None
+    group_archive: bool = False
+    display_archive_by_month_in_list_page: bool = False
+    display_archive_by_year_in_list_page: bool = False
+    archive_month_format: str = "%B, %Y"
+    archive_year_format: str = "%Y"
     # theme
-    theme_options = None
+    theme_options: Dict = field(default_factory=dict)
 
-    def __init__(self):
-        self.exclude_from_navigation = self.exclude_from_navigation or []
-        self.locally_aggregate_whitelist = self.locally_aggregate_whitelist or []
-        self.locally_aggregate_blacklist = self.locally_aggregate_blacklist or []
-        self.globally_aggregate_whitelist = self.globally_aggregate_whitelist or []
-        self.globally_aggregate_blacklist = self.globally_aggregate_blacklist or []
-        self.theme_options = self.theme_options or {}
-
+    def __post_init__(self):
         self.site_directory = Path(self.site_directory)
         self.content_directory = Path(self.content_directory)\
             if self.content_directory else self.site_directory / "content"
