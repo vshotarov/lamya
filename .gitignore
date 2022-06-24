@@ -7,3 +7,4 @@ tests/*/**/build
 docs/build
 dist
 *.egg-info
+NOTES.md
