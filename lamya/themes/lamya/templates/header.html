@@ -15,7 +15,7 @@
 		{% endif %}
 		<img alt="" aria-hidden="true" src="{{ '/img/caret-down.svg' | pyg_urlencode }}">
 		<button class="visually-hidden">Toggle submenu for "{{name}}"</button>
-		{{ nested_navigation(href_or_submenu["children"], indent_level=2, name=name) }}
+		{{ nested_navigation(href_or_submenu.get("children",href_or_submenu), indent_level=2, name=name) }}
 	{% else %}
 	<li>
 		<a href="{{ href_or_submenu | pyg_urlencode }}">{{ name }}</a>

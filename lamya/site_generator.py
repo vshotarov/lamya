@@ -425,15 +425,16 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
                 exclude_archive=config.exclude_archive_from_navigation)
 
             if config.home_name_in_navigation is not None:
-                site_gen.navigation.update({config.home_name_in_navigation: Path("/")})
+                site_gen.navigation.update({config.home_name_in_navigation: "/"})
                 site_gen.navigation.move_to_end(config.home_name_in_navigation, last=False)
         else:
             def recursive_parse_paths(_dict):
                 return {
-                    k: (recursive_parse_paths(v) if isinstance(v, dict) else Path(v))\
+                    k: (recursive_parse_paths(v) if isinstance(v, dict) else v)\
                     for k,v in _dict.items()}
 
-            site_gen.navigation = recursive_parse_paths(json.loads(config.custom_navigation))
+            site_gen.navigation = recursive_parse_paths(json.loads(config.custom_navigation)\
+                if isinstance(config.custom_navigation, str) else config.custom_navigation)
 
         if render:
             site_gen.render()
