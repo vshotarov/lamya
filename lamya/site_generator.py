@@ -335,11 +335,25 @@ class SiteGenerator: # pylint: disable=too-many-instance-attributes
         self.renderer = Jinja2Renderer([
             str(self.templates_directory),
             str(self.theme_directory / "templates")])
-        self.renderer.environment.filters["pyg_urlencode"] = lambda x:\
-            ("" if (x.startswith(self.url) or not self.use_absolute_urls) else self.url) +\
-                self.renderer.environment.filters["urlencode"](
-                    x if (not self.url.startswith("file://") or "." in x.split("/")[-1])\
-                        else (x + "/index.html"))
+
+        def pyg_urlencode(url):
+            jinja_urlencode = self.renderer.environment.filters["urlencode"]
+            if self.use_absolute_urls and url.startswith("/"):
+                if not self.url.startswith("file://") or "." in url.split("/")[-1]:
+                    return self.url +\
+                        jinja_urlencode(url)
+                else:
+                    return self.url +\
+                        jinja_urlencode(url + "/index.html")
+
+            parsed_url = urllib.parse.urlparse(url, allow_fragments=False)
+
+            return parsed_url._replace(
+                path=jinja_urlencode(parsed_url.path),
+                params=jinja_urlencode(parsed_url.params),
+                query=jinja_urlencode(parsed_url.query)).geturl()
+
+        self.renderer.environment.filters["pyg_urlencode"] = pyg_urlencode
 
     def initialize_markup_processor(self):
         """This method initializes the function which we will use to process
