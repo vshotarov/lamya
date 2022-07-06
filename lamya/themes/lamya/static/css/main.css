@@ -105,7 +105,7 @@ code, pre {
 .codehilite code,
 .codehilite pre {
 	background: inherit;
-	color: initial;
+	color: inherit;
 }
 
 .main-and-sidebar-wrapper > aside {
