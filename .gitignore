@@ -8,3 +8,4 @@ docs/build
 dist
 *.egg-info
 NOTES.md
+DEPLOYMENT_INSTRUCTIONS
